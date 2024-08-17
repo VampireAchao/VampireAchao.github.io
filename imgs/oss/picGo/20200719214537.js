@@ -1065,4 +1065,2085 @@
         initList: function initList() {
             var _this = this;
 
-            var elemen
+            var element = this.element,
+                options = this.options,
+                list = this.list;
+            var items = []; // initList may be called in this.update, so should keep idempotent
+
+            list.innerHTML = '';
+            forEach(this.images, function (image, index) {
+                var src = image.src;
+                var alt = image.alt || getImageNameFromURL(src);
+                var url = options.url;
+
+                if (isString(url)) {
+                    url = image.getAttribute(url);
+                } else if (isFunction(url)) {
+                    url = url.call(_this, image);
+                }
+
+                if (src || url) {
+                    var item = document.createElement('li');
+                    var img = document.createElement('img');
+                    img.src = src || url;
+                    img.alt = alt;
+                    img.setAttribute('data-index', index);
+                    img.setAttribute('data-original-url', url || src);
+                    img.setAttribute('data-viewer-action', 'view');
+                    img.setAttribute('role', 'button');
+                    item.appendChild(img);
+                    list.appendChild(item);
+                    items.push(item);
+                }
+            });
+            this.items = items;
+            forEach(items, function (item) {
+                var image = item.firstElementChild;
+                setData(image, 'filled', true);
+
+                if (options.loading) {
+                    addClass(item, CLASS_LOADING);
+                }
+
+                addListener(image, EVENT_LOAD, function (event) {
+                    if (options.loading) {
+                        removeClass(item, CLASS_LOADING);
+                    }
+
+                    _this.loadImage(event);
+                }, {
+                    once: true
+                });
+            });
+
+            if (options.transition) {
+                addListener(element, EVENT_VIEWED, function () {
+                    addClass(list, CLASS_TRANSITION);
+                }, {
+                    once: true
+                });
+            }
+        },
+        renderList: function renderList(index) {
+            var i = index || this.index;
+            var width = this.items[i].offsetWidth || 30;
+            var outerWidth = width + 1; // 1 pixel of `margin-left` width
+            // Place the active item in the center of the screen
+
+            setStyle(this.list, assign({
+                width: outerWidth * this.length
+            }, getTransforms({
+                translateX: (this.viewerData.width - width) / 2 - outerWidth * i
+            })));
+        },
+        resetList: function resetList() {
+            var list = this.list;
+            list.innerHTML = '';
+            removeClass(list, CLASS_TRANSITION);
+            setStyle(list, getTransforms({
+                translateX: 0
+            }));
+        },
+        initImage: function initImage(done) {
+            var _this2 = this;
+
+            var options = this.options,
+                image = this.image,
+                viewerData = this.viewerData;
+            var footerHeight = this.footer.offsetHeight;
+            var viewerWidth = viewerData.width;
+            var viewerHeight = Math.max(viewerData.height - footerHeight, footerHeight);
+            var oldImageData = this.imageData || {};
+            var sizingImage;
+            this.imageInitializing = {
+                abort: function abort() {
+                    sizingImage.onload = null;
+                }
+            };
+            sizingImage = getImageNaturalSizes(image, function (naturalWidth, naturalHeight) {
+                var aspectRatio = naturalWidth / naturalHeight;
+                var width = viewerWidth;
+                var height = viewerHeight;
+                _this2.imageInitializing = false;
+
+                if (viewerHeight * aspectRatio > viewerWidth) {
+                    height = viewerWidth / aspectRatio;
+                } else {
+                    width = viewerHeight * aspectRatio;
+                }
+
+                width = Math.min(width * 0.9, naturalWidth);
+                height = Math.min(height * 0.9, naturalHeight);
+                var imageData = {
+                    naturalWidth: naturalWidth,
+                    naturalHeight: naturalHeight,
+                    aspectRatio: aspectRatio,
+                    ratio: width / naturalWidth,
+                    width: width,
+                    height: height,
+                    left: (viewerWidth - width) / 2,
+                    top: (viewerHeight - height) / 2
+                };
+                var initialImageData = assign({}, imageData);
+
+                if (options.rotatable) {
+                    imageData.rotate = oldImageData.rotate || 0;
+                    initialImageData.rotate = 0;
+                }
+
+                if (options.scalable) {
+                    imageData.scaleX = oldImageData.scaleX || 1;
+                    imageData.scaleY = oldImageData.scaleY || 1;
+                    initialImageData.scaleX = 1;
+                    initialImageData.scaleY = 1;
+                }
+
+                _this2.imageData = imageData;
+                _this2.initialImageData = initialImageData;
+
+                if (done) {
+                    done();
+                }
+            });
+        },
+        renderImage: function renderImage(done) {
+            var _this3 = this;
+
+            var image = this.image,
+                imageData = this.imageData;
+            setStyle(image, assign({
+                width: imageData.width,
+                height: imageData.height,
+                // XXX: Not to use translateX/Y to avoid image shaking when zooming
+                marginLeft: imageData.left,
+                marginTop: imageData.top
+            }, getTransforms(imageData)));
+
+            if (done) {
+                if ((this.viewing || this.zooming) && this.options.transition) {
+                    var onTransitionEnd = function onTransitionEnd() {
+                        _this3.imageRendering = false;
+                        done();
+                    };
+
+                    this.imageRendering = {
+                        abort: function abort() {
+                            removeListener(image, EVENT_TRANSITION_END, onTransitionEnd);
+                        }
+                    };
+                    addListener(image, EVENT_TRANSITION_END, onTransitionEnd, {
+                        once: true
+                    });
+                } else {
+                    done();
+                }
+            }
+        },
+        resetImage: function resetImage() {
+            // this.image only defined after viewed
+            if (this.viewing || this.viewed) {
+                var image = this.image;
+
+                if (this.viewing) {
+                    this.viewing.abort();
+                }
+
+                image.parentNode.removeChild(image);
+                this.image = null;
+            }
+        }
+    };
+
+    var events = {
+        bind: function bind() {
+            var options = this.options,
+                viewer = this.viewer,
+                canvas = this.canvas;
+            var document = this.element.ownerDocument;
+            addListener(viewer, EVENT_CLICK, this.onClick = this.click.bind(this));
+            addListener(viewer, EVENT_DRAG_START, this.onDragStart = this.dragstart.bind(this));
+            addListener(canvas, EVENT_POINTER_DOWN, this.onPointerDown = this.pointerdown.bind(this));
+            addListener(document, EVENT_POINTER_MOVE, this.onPointerMove = this.pointermove.bind(this));
+            addListener(document, EVENT_POINTER_UP, this.onPointerUp = this.pointerup.bind(this));
+            addListener(document, EVENT_KEY_DOWN, this.onKeyDown = this.keydown.bind(this));
+            addListener(window, EVENT_RESIZE, this.onResize = this.resize.bind(this));
+
+            if (options.zoomable && options.zoomOnWheel) {
+                addListener(viewer, EVENT_WHEEL, this.onWheel = this.wheel.bind(this), {
+                    passive: false,
+                    capture: true
+                });
+            }
+
+            if (options.toggleOnDblclick) {
+                addListener(canvas, EVENT_DBLCLICK, this.onDblclick = this.dblclick.bind(this));
+            }
+        },
+        unbind: function unbind() {
+            var options = this.options,
+                viewer = this.viewer,
+                canvas = this.canvas;
+            var document = this.element.ownerDocument;
+            removeListener(viewer, EVENT_CLICK, this.onClick);
+            removeListener(viewer, EVENT_DRAG_START, this.onDragStart);
+            removeListener(canvas, EVENT_POINTER_DOWN, this.onPointerDown);
+            removeListener(document, EVENT_POINTER_MOVE, this.onPointerMove);
+            removeListener(document, EVENT_POINTER_UP, this.onPointerUp);
+            removeListener(document, EVENT_KEY_DOWN, this.onKeyDown);
+            removeListener(window, EVENT_RESIZE, this.onResize);
+
+            if (options.zoomable && options.zoomOnWheel) {
+                removeListener(viewer, EVENT_WHEEL, this.onWheel, {
+                    passive: false,
+                    capture: true
+                });
+            }
+
+            if (options.toggleOnDblclick) {
+                removeListener(canvas, EVENT_DBLCLICK, this.onDblclick);
+            }
+        }
+    };
+
+    var handlers = {
+        click: function click(event) {
+            var target = event.target;
+            var options = this.options,
+                imageData = this.imageData;
+            var action = getData(target, DATA_ACTION); // Cancel the emulated click when the native click event was triggered.
+
+            if (IS_TOUCH_DEVICE && event.isTrusted && target === this.canvas) {
+                clearTimeout(this.clickCanvasTimeout);
+            }
+
+            switch (action) {
+                case 'mix':
+                    if (this.played) {
+                        this.stop();
+                    } else if (options.inline) {
+                        if (this.fulled) {
+                            this.exit();
+                        } else {
+                            this.full();
+                        }
+                    } else {
+                        this.hide();
+                    }
+
+                    break;
+
+                case 'hide':
+                    this.hide();
+                    break;
+
+                case 'view':
+                    this.view(getData(target, 'index'));
+                    break;
+
+                case 'zoom-in':
+                    this.zoom(0.1, true);
+                    break;
+
+                case 'zoom-out':
+                    this.zoom(-0.1, true);
+                    break;
+
+                case 'one-to-one':
+                    this.toggle();
+                    break;
+
+                case 'reset':
+                    this.reset();
+                    break;
+
+                case 'prev':
+                    this.prev(options.loop);
+                    break;
+
+                case 'play':
+                    this.play(options.fullscreen);
+                    break;
+
+                case 'next':
+                    this.next(options.loop);
+                    break;
+
+                case 'rotate-left':
+                    this.rotate(-90);
+                    break;
+
+                case 'rotate-right':
+                    this.rotate(90);
+                    break;
+
+                case 'flip-horizontal':
+                    this.scaleX(-imageData.scaleX || -1);
+                    break;
+
+                case 'flip-vertical':
+                    this.scaleY(-imageData.scaleY || -1);
+                    break;
+
+                default:
+                    if (this.played) {
+                        this.stop();
+                    }
+
+            }
+        },
+        dblclick: function dblclick(event) {
+            event.preventDefault();
+
+            if (this.viewed && event.target === this.image) {
+                // Cancel the emulated double click when the native dblclick event was triggered.
+                if (IS_TOUCH_DEVICE && event.isTrusted) {
+                    clearTimeout(this.doubleClickImageTimeout);
+                }
+
+                this.toggle();
+            }
+        },
+        load: function load() {
+            var _this = this;
+
+            if (this.timeout) {
+                clearTimeout(this.timeout);
+                this.timeout = false;
+            }
+
+            var element = this.element,
+                options = this.options,
+                image = this.image,
+                index = this.index,
+                viewerData = this.viewerData;
+            removeClass(image, CLASS_INVISIBLE);
+
+            if (options.loading) {
+                removeClass(this.canvas, CLASS_LOADING);
+            }
+
+            image.style.cssText = 'height:0;' + "margin-left:".concat(viewerData.width / 2, "px;") + "margin-top:".concat(viewerData.height / 2, "px;") + 'max-width:none!important;' + 'position:absolute;' + 'width:0;';
+            this.initImage(function () {
+                toggleClass(image, CLASS_MOVE, options.movable);
+                toggleClass(image, CLASS_TRANSITION, options.transition);
+
+                _this.renderImage(function () {
+                    _this.viewed = true;
+                    _this.viewing = false;
+
+                    if (isFunction(options.viewed)) {
+                        addListener(element, EVENT_VIEWED, options.viewed, {
+                            once: true
+                        });
+                    }
+
+                    dispatchEvent(element, EVENT_VIEWED, {
+                        originalImage: _this.images[index],
+                        index: index,
+                        image: image
+                    });
+                });
+            });
+        },
+        loadImage: function loadImage(event) {
+            var image = event.target;
+            var parent = image.parentNode;
+            var parentWidth = parent.offsetWidth || 30;
+            var parentHeight = parent.offsetHeight || 50;
+            var filled = !!getData(image, 'filled');
+            getImageNaturalSizes(image, function (naturalWidth, naturalHeight) {
+                var aspectRatio = naturalWidth / naturalHeight;
+                var width = parentWidth;
+                var height = parentHeight;
+
+                if (parentHeight * aspectRatio > parentWidth) {
+                    if (filled) {
+                        width = parentHeight * aspectRatio;
+                    } else {
+                        height = parentWidth / aspectRatio;
+                    }
+                } else if (filled) {
+                    height = parentWidth / aspectRatio;
+                } else {
+                    width = parentHeight * aspectRatio;
+                }
+
+                setStyle(image, assign({
+                    width: width,
+                    height: height
+                }, getTransforms({
+                    translateX: (parentWidth - width) / 2,
+                    translateY: (parentHeight - height) / 2
+                })));
+            });
+        },
+        keydown: function keydown(event) {
+            var options = this.options;
+
+            if (!this.fulled || !options.keyboard) {
+                return;
+            }
+
+            switch (event.keyCode || event.which || event.charCode) {
+                // Escape
+                case 27:
+                    if (this.played) {
+                        this.stop();
+                    } else if (options.inline) {
+                        if (this.fulled) {
+                            this.exit();
+                        }
+                    } else {
+                        this.hide();
+                    }
+
+                    break;
+                // Space
+
+                case 32:
+                    if (this.played) {
+                        this.stop();
+                    }
+
+                    break;
+                // ArrowLeft
+
+                case 37:
+                    this.prev(options.loop);
+                    break;
+                // ArrowUp
+
+                case 38:
+                    // Prevent scroll on Firefox
+                    event.preventDefault(); // Zoom in
+
+                    this.zoom(options.zoomRatio, true);
+                    break;
+                // ArrowRight
+
+                case 39:
+                    this.next(options.loop);
+                    break;
+                // ArrowDown
+
+                case 40:
+                    // Prevent scroll on Firefox
+                    event.preventDefault(); // Zoom out
+
+                    this.zoom(-options.zoomRatio, true);
+                    break;
+                // Ctrl + 0
+
+                case 48: // Fall through
+                // Ctrl + 1
+                // eslint-disable-next-line no-fallthrough
+
+                case 49:
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+                        this.toggle();
+                    }
+
+                    break;
+            }
+        },
+        dragstart: function dragstart(event) {
+            if (event.target.tagName.toLowerCase() === 'img') {
+                event.preventDefault();
+            }
+        },
+        pointerdown: function pointerdown(event) {
+            var options = this.options,
+                pointers = this.pointers;
+            var buttons = event.buttons,
+                button = event.button;
+
+            if (!this.viewed || this.showing || this.viewing || this.hiding // Handle mouse event and pointer event and ignore touch event
+                || (event.type === 'mousedown' || event.type === 'pointerdown' && event.pointerType === 'mouse') && ( // No primary button (Usually the left button)
+                    isNumber(buttons) && buttons !== 1 || isNumber(button) && button !== 0 // Open context menu
+                    || event.ctrlKey)) {
+                return;
+            } // Prevent default behaviours as page zooming in touch devices.
+
+
+            event.preventDefault();
+
+            if (event.changedTouches) {
+                forEach(event.changedTouches, function (touch) {
+                    pointers[touch.identifier] = getPointer(touch);
+                });
+            } else {
+                pointers[event.pointerId || 0] = getPointer(event);
+            }
+
+            var action = options.movable ? ACTION_MOVE : false;
+
+            if (options.zoomOnTouch && options.zoomable && Object.keys(pointers).length > 1) {
+                action = ACTION_ZOOM;
+            } else if (options.slideOnTouch && (event.pointerType === 'touch' || event.type === 'touchstart') && this.isSwitchable()) {
+                action = ACTION_SWITCH;
+            }
+
+            if (options.transition && (action === ACTION_MOVE || action === ACTION_ZOOM)) {
+                removeClass(this.image, CLASS_TRANSITION);
+            }
+
+            this.action = action;
+        },
+        pointermove: function pointermove(event) {
+            var pointers = this.pointers,
+                action = this.action;
+
+            if (!this.viewed || !action) {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (event.changedTouches) {
+                forEach(event.changedTouches, function (touch) {
+                    assign(pointers[touch.identifier] || {}, getPointer(touch, true));
+                });
+            } else {
+                assign(pointers[event.pointerId || 0] || {}, getPointer(event, true));
+            }
+
+            this.change(event);
+        },
+        pointerup: function pointerup(event) {
+            var _this2 = this;
+
+            var options = this.options,
+                action = this.action,
+                pointers = this.pointers;
+            var pointer;
+
+            if (event.changedTouches) {
+                forEach(event.changedTouches, function (touch) {
+                    pointer = pointers[touch.identifier];
+                    delete pointers[touch.identifier];
+                });
+            } else {
+                pointer = pointers[event.pointerId || 0];
+                delete pointers[event.pointerId || 0];
+            }
+
+            if (!action) {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (options.transition && (action === ACTION_MOVE || action === ACTION_ZOOM)) {
+                addClass(this.image, CLASS_TRANSITION);
+            }
+
+            this.action = false; // Emulate click and double click in touch devices to support backdrop and image zooming (#210).
+
+            if (IS_TOUCH_DEVICE && action !== ACTION_ZOOM && pointer && Date.now() - pointer.timeStamp < 500) {
+                clearTimeout(this.clickCanvasTimeout);
+                clearTimeout(this.doubleClickImageTimeout);
+
+                if (options.toggleOnDblclick && this.viewed && event.target === this.image) {
+                    if (this.imageClicked) {
+                        this.imageClicked = false; // This timeout will be cleared later when a native dblclick event is triggering
+
+                        this.doubleClickImageTimeout = setTimeout(function () {
+                            dispatchEvent(_this2.image, EVENT_DBLCLICK);
+                        }, 50);
+                    } else {
+                        this.imageClicked = true; // The default timing of a double click in Windows is 500 ms
+
+                        this.doubleClickImageTimeout = setTimeout(function () {
+                            _this2.imageClicked = false;
+                        }, 500);
+                    }
+                } else {
+                    this.imageClicked = false;
+
+                    if (options.backdrop && options.backdrop !== 'static' && event.target === this.canvas) {
+                        // This timeout will be cleared later when a native click event is triggering
+                        this.clickCanvasTimeout = setTimeout(function () {
+                            dispatchEvent(_this2.canvas, EVENT_CLICK);
+                        }, 50);
+                    }
+                }
+            }
+        },
+        resize: function resize() {
+            var _this3 = this;
+
+            if (!this.isShown || this.hiding) {
+                return;
+            }
+
+            this.initContainer();
+            this.initViewer();
+            this.renderViewer();
+            this.renderList();
+
+            if (this.viewed) {
+                this.initImage(function () {
+                    _this3.renderImage();
+                });
+            }
+
+            if (this.played) {
+                if (this.options.fullscreen && this.fulled && !(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement)) {
+                    this.stop();
+                    return;
+                }
+
+                forEach(this.player.getElementsByTagName('img'), function (image) {
+                    addListener(image, EVENT_LOAD, _this3.loadImage.bind(_this3), {
+                        once: true
+                    });
+                    dispatchEvent(image, EVENT_LOAD);
+                });
+            }
+        },
+        wheel: function wheel(event) {
+            var _this4 = this;
+
+            if (!this.viewed) {
+                return;
+            }
+
+            event.preventDefault(); // Limit wheel speed to prevent zoom too fast
+
+            if (this.wheeling) {
+                return;
+            }
+
+            this.wheeling = true;
+            setTimeout(function () {
+                _this4.wheeling = false;
+            }, 50);
+            var ratio = Number(this.options.zoomRatio) || 0.1;
+            var delta = 1;
+
+            if (event.deltaY) {
+                delta = event.deltaY > 0 ? 1 : -1;
+            } else if (event.wheelDelta) {
+                delta = -event.wheelDelta / 120;
+            } else if (event.detail) {
+                delta = event.detail > 0 ? 1 : -1;
+            }
+
+            this.zoom(-delta * ratio, true, event);
+        }
+    };
+
+    var methods = {
+        /** Show the viewer (only available in modal mode)
+         * @param {boolean} [immediate=false] - Indicates if show the viewer immediately or not.
+         * @returns {Viewer} this
+         */
+        show: function show() {
+            var immediate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+            var element = this.element,
+                options = this.options;
+
+            if (options.inline || this.showing || this.isShown || this.showing) {
+                return this;
+            }
+
+            if (!this.ready) {
+                this.build();
+
+                if (this.ready) {
+                    this.show(immediate);
+                }
+
+                return this;
+            }
+
+            if (isFunction(options.show)) {
+                addListener(element, EVENT_SHOW, options.show, {
+                    once: true
+                });
+            }
+
+            if (dispatchEvent(element, EVENT_SHOW) === false || !this.ready) {
+                return this;
+            }
+
+            if (this.hiding) {
+                this.transitioning.abort();
+            }
+
+            this.showing = true;
+            this.open();
+            var viewer = this.viewer;
+            removeClass(viewer, CLASS_HIDE);
+
+            if (options.transition && !immediate) {
+                var shown = this.shown.bind(this);
+                this.transitioning = {
+                    abort: function abort() {
+                        removeListener(viewer, EVENT_TRANSITION_END, shown);
+                        removeClass(viewer, CLASS_IN);
+                    }
+                };
+                addClass(viewer, CLASS_TRANSITION); // Force reflow to enable CSS3 transition
+
+                viewer.initialOffsetWidth = viewer.offsetWidth;
+                addListener(viewer, EVENT_TRANSITION_END, shown, {
+                    once: true
+                });
+                addClass(viewer, CLASS_IN);
+            } else {
+                addClass(viewer, CLASS_IN);
+                this.shown();
+            }
+
+            return this;
+        },
+
+        /**
+         * Hide the viewer (only available in modal mode)
+         * @param {boolean} [immediate=false] - Indicates if hide the viewer immediately or not.
+         * @returns {Viewer} this
+         */
+        hide: function hide() {
+            var immediate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+            var element = this.element,
+                options = this.options;
+
+            if (options.inline || this.hiding || !(this.isShown || this.showing)) {
+                return this;
+            }
+
+            if (isFunction(options.hide)) {
+                addListener(element, EVENT_HIDE, options.hide, {
+                    once: true
+                });
+            }
+
+            if (dispatchEvent(element, EVENT_HIDE) === false) {
+                return this;
+            }
+
+            if (this.showing) {
+                this.transitioning.abort();
+            }
+
+            this.hiding = true;
+
+            if (this.played) {
+                this.stop();
+            } else if (this.viewing) {
+                this.viewing.abort();
+            }
+
+            var viewer = this.viewer;
+
+            if (options.transition && !immediate) {
+                var hidden = this.hidden.bind(this);
+
+                var hide = function hide() {
+                    // XXX: It seems the `event.stopPropagation()` method does not work here
+                    setTimeout(function () {
+                        addListener(viewer, EVENT_TRANSITION_END, hidden, {
+                            once: true
+                        });
+                        removeClass(viewer, CLASS_IN);
+                    }, 0);
+                };
+
+                this.transitioning = {
+                    abort: function abort() {
+                        if (this.viewed) {
+                            removeListener(this.image, EVENT_TRANSITION_END, hide);
+                        } else {
+                            removeListener(viewer, EVENT_TRANSITION_END, hidden);
+                        }
+                    }
+                }; // Note that the `CLASS_TRANSITION` class will be removed on pointer down (#255)
+
+                if (this.viewed && hasClass(this.image, CLASS_TRANSITION)) {
+                    addListener(this.image, EVENT_TRANSITION_END, hide, {
+                        once: true
+                    });
+                    this.zoomTo(0, false, false, true);
+                } else {
+                    hide();
+                }
+            } else {
+                removeClass(viewer, CLASS_IN);
+                this.hidden();
+            }
+
+            return this;
+        },
+
+        /**
+         * View one of the images with image's index
+         * @param {number} index - The index of the image to view.
+         * @returns {Viewer} this
+         */
+        view: function view() {
+            var _this = this;
+
+            var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.options.initialViewIndex;
+            index = Number(index) || 0;
+
+            if (this.hiding || this.played || index < 0 || index >= this.length || this.viewed && index === this.index) {
+                return this;
+            }
+
+            if (!this.isShown) {
+                this.index = index;
+                return this.show();
+            }
+
+            if (this.viewing) {
+                this.viewing.abort();
+            }
+
+            var element = this.element,
+                options = this.options,
+                title = this.title,
+                canvas = this.canvas;
+            var item = this.items[index];
+            var img = item.querySelector('img');
+            var url = getData(img, 'originalUrl');
+            var alt = img.getAttribute('alt');
+            var image = document.createElement('img');
+            image.src = url;
+            image.alt = alt;
+
+            if (isFunction(options.view)) {
+                addListener(element, EVENT_VIEW, options.view, {
+                    once: true
+                });
+            }
+
+            if (dispatchEvent(element, EVENT_VIEW, {
+                originalImage: this.images[index],
+                index: index,
+                image: image
+            }) === false || !this.isShown || this.hiding || this.played) {
+                return this;
+            }
+
+            this.image = image;
+            removeClass(this.items[this.index], CLASS_ACTIVE);
+            addClass(item, CLASS_ACTIVE);
+            this.viewed = false;
+            this.index = index;
+            this.imageData = {};
+            addClass(image, CLASS_INVISIBLE);
+
+            if (options.loading) {
+                addClass(canvas, CLASS_LOADING);
+            }
+
+            canvas.innerHTML = '';
+            canvas.appendChild(image); // Center current item
+
+            this.renderList(); // Clear title
+
+            title.innerHTML = ''; // Generate title after viewed
+
+            var onViewed = function onViewed() {
+                var imageData = _this.imageData;
+                var render = Array.isArray(options.title) ? options.title[1] : options.title;
+                title.innerHTML = escapeHTMLEntities(isFunction(render) ? render.call(_this, image, imageData) : "".concat(alt, " (").concat(imageData.naturalWidth, " \xD7 ").concat(imageData.naturalHeight, ")"));
+            };
+
+            var onLoad;
+            addListener(element, EVENT_VIEWED, onViewed, {
+                once: true
+            });
+            this.viewing = {
+                abort: function abort() {
+                    removeListener(element, EVENT_VIEWED, onViewed);
+
+                    if (image.complete) {
+                        if (this.imageRendering) {
+                            this.imageRendering.abort();
+                        } else if (this.imageInitializing) {
+                            this.imageInitializing.abort();
+                        }
+                    } else {
+                        // Cancel download to save bandwidth.
+                        image.src = '';
+                        removeListener(image, EVENT_LOAD, onLoad);
+
+                        if (this.timeout) {
+                            clearTimeout(this.timeout);
+                        }
+                    }
+                }
+            };
+
+            if (image.complete) {
+                this.load();
+            } else {
+                addListener(image, EVENT_LOAD, onLoad = this.load.bind(this), {
+                    once: true
+                });
+
+                if (this.timeout) {
+                    clearTimeout(this.timeout);
+                } // Make the image visible if it fails to load within 1s
+
+
+                this.timeout = setTimeout(function () {
+                    removeClass(image, CLASS_INVISIBLE);
+                    _this.timeout = false;
+                }, 1000);
+            }
+
+            return this;
+        },
+
+        /**
+         * View the previous image
+         * @param {boolean} [loop=false] - Indicate if view the last one
+         * when it is the first one at present.
+         * @returns {Viewer} this
+         */
+        prev: function prev() {
+            var loop = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+            var index = this.index - 1;
+
+            if (index < 0) {
+                index = loop ? this.length - 1 : 0;
+            }
+
+            this.view(index);
+            return this;
+        },
+
+        /**
+         * View the next image
+         * @param {boolean} [loop=false] - Indicate if view the first one
+         * when it is the last one at present.
+         * @returns {Viewer} this
+         */
+        next: function next() {
+            var loop = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+            var maxIndex = this.length - 1;
+            var index = this.index + 1;
+
+            if (index > maxIndex) {
+                index = loop ? 0 : maxIndex;
+            }
+
+            this.view(index);
+            return this;
+        },
+
+        /**
+         * Move the image with relative offsets.
+         * @param {number} offsetX - The relative offset distance on the x-axis.
+         * @param {number} offsetY - The relative offset distance on the y-axis.
+         * @returns {Viewer} this
+         */
+        move: function move(offsetX, offsetY) {
+            var imageData = this.imageData;
+            this.moveTo(isUndefined(offsetX) ? offsetX : imageData.left + Number(offsetX), isUndefined(offsetY) ? offsetY : imageData.top + Number(offsetY));
+            return this;
+        },
+
+        /**
+         * Move the image to an absolute point.
+         * @param {number} x - The x-axis coordinate.
+         * @param {number} [y=x] - The y-axis coordinate.
+         * @returns {Viewer} this
+         */
+        moveTo: function moveTo(x) {
+            var y = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : x;
+            var imageData = this.imageData;
+            x = Number(x);
+            y = Number(y);
+
+            if (this.viewed && !this.played && this.options.movable) {
+                var changed = false;
+
+                if (isNumber(x)) {
+                    imageData.left = x;
+                    changed = true;
+                }
+
+                if (isNumber(y)) {
+                    imageData.top = y;
+                    changed = true;
+                }
+
+                if (changed) {
+                    this.renderImage();
+                }
+            }
+
+            return this;
+        },
+
+        /**
+         * Zoom the image with a relative ratio.
+         * @param {number} ratio - The target ratio.
+         * @param {boolean} [hasTooltip=false] - Indicates if it has a tooltip or not.
+         * @param {Event} [_originalEvent=null] - The original event if any.
+         * @returns {Viewer} this
+         */
+        zoom: function zoom(ratio) {
+            var hasTooltip = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+            var _originalEvent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+            var imageData = this.imageData;
+            ratio = Number(ratio);
+
+            if (ratio < 0) {
+                ratio = 1 / (1 - ratio);
+            } else {
+                ratio = 1 + ratio;
+            }
+
+            this.zoomTo(imageData.width * ratio / imageData.naturalWidth, hasTooltip, _originalEvent);
+            return this;
+        },
+
+        /**
+         * Zoom the image to an absolute ratio.
+         * @param {number} ratio - The target ratio.
+         * @param {boolean} [hasTooltip=false] - Indicates if it has a tooltip or not.
+         * @param {Event} [_originalEvent=null] - The original event if any.
+         * @param {Event} [_zoomable=false] - Indicates if the current zoom is available or not.
+         * @returns {Viewer} this
+         */
+        zoomTo: function zoomTo(ratio) {
+            var _this2 = this;
+
+            var hasTooltip = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+            var _originalEvent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+            var _zoomable = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+
+            var element = this.element,
+                options = this.options,
+                pointers = this.pointers,
+                imageData = this.imageData;
+            var width = imageData.width,
+                height = imageData.height,
+                left = imageData.left,
+                top = imageData.top,
+                naturalWidth = imageData.naturalWidth,
+                naturalHeight = imageData.naturalHeight;
+            ratio = Math.max(0, ratio);
+
+            if (isNumber(ratio) && this.viewed && !this.played && (_zoomable || options.zoomable)) {
+                if (!_zoomable) {
+                    var minZoomRatio = Math.max(0.01, options.minZoomRatio);
+                    var maxZoomRatio = Math.min(100, options.maxZoomRatio);
+                    ratio = Math.min(Math.max(ratio, minZoomRatio), maxZoomRatio);
+                }
+
+                if (_originalEvent && ratio > 0.95 && ratio < 1.05) {
+                    ratio = 1;
+                }
+
+                var newWidth = naturalWidth * ratio;
+                var newHeight = naturalHeight * ratio;
+                var offsetWidth = newWidth - width;
+                var offsetHeight = newHeight - height;
+                var oldRatio = width / naturalWidth;
+
+                if (isFunction(options.zoom)) {
+                    addListener(element, EVENT_ZOOM, options.zoom, {
+                        once: true
+                    });
+                }
+
+                if (dispatchEvent(element, EVENT_ZOOM, {
+                    ratio: ratio,
+                    oldRatio: oldRatio,
+                    originalEvent: _originalEvent
+                }) === false) {
+                    return this;
+                }
+
+                this.zooming = true;
+
+                if (_originalEvent) {
+                    var offset = getOffset(this.viewer);
+                    var center = pointers && Object.keys(pointers).length ? getPointersCenter(pointers) : {
+                        pageX: _originalEvent.pageX,
+                        pageY: _originalEvent.pageY
+                    }; // Zoom from the triggering point of the event
+
+                    imageData.left -= offsetWidth * ((center.pageX - offset.left - left) / width);
+                    imageData.top -= offsetHeight * ((center.pageY - offset.top - top) / height);
+                } else {
+                    // Zoom from the center of the image
+                    imageData.left -= offsetWidth / 2;
+                    imageData.top -= offsetHeight / 2;
+                }
+
+                imageData.width = newWidth;
+                imageData.height = newHeight;
+                imageData.ratio = ratio;
+                this.renderImage(function () {
+                    _this2.zooming = false;
+
+                    if (isFunction(options.zoomed)) {
+                        addListener(element, EVENT_ZOOMED, options.zoomed, {
+                            once: true
+                        });
+                    }
+
+                    dispatchEvent(element, EVENT_ZOOMED, {
+                        ratio: ratio,
+                        oldRatio: oldRatio,
+                        originalEvent: _originalEvent
+                    });
+                });
+
+                if (hasTooltip) {
+                    this.tooltip();
+                }
+            }
+
+            return this;
+        },
+
+        /**
+         * Rotate the image with a relative degree.
+         * @param {number} degree - The rotate degree.
+         * @returns {Viewer} this
+         */
+        rotate: function rotate(degree) {
+            this.rotateTo((this.imageData.rotate || 0) + Number(degree));
+            return this;
+        },
+
+        /**
+         * Rotate the image to an absolute degree.
+         * @param {number} degree - The rotate degree.
+         * @returns {Viewer} this
+         */
+        rotateTo: function rotateTo(degree) {
+            var imageData = this.imageData;
+            degree = Number(degree);
+
+            if (isNumber(degree) && this.viewed && !this.played && this.options.rotatable) {
+                imageData.rotate = degree;
+                this.renderImage();
+            }
+
+            return this;
+        },
+
+        /**
+         * Scale the image on the x-axis.
+         * @param {number} scaleX - The scale ratio on the x-axis.
+         * @returns {Viewer} this
+         */
+        scaleX: function scaleX(_scaleX) {
+            this.scale(_scaleX, this.imageData.scaleY);
+            return this;
+        },
+
+        /**
+         * Scale the image on the y-axis.
+         * @param {number} scaleY - The scale ratio on the y-axis.
+         * @returns {Viewer} this
+         */
+        scaleY: function scaleY(_scaleY) {
+            this.scale(this.imageData.scaleX, _scaleY);
+            return this;
+        },
+
+        /**
+         * Scale the image.
+         * @param {number} scaleX - The scale ratio on the x-axis.
+         * @param {number} [scaleY=scaleX] - The scale ratio on the y-axis.
+         * @returns {Viewer} this
+         */
+        scale: function scale(scaleX) {
+            var scaleY = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : scaleX;
+            var imageData = this.imageData;
+            scaleX = Number(scaleX);
+            scaleY = Number(scaleY);
+
+            if (this.viewed && !this.played && this.options.scalable) {
+                var changed = false;
+
+                if (isNumber(scaleX)) {
+                    imageData.scaleX = scaleX;
+                    changed = true;
+                }
+
+                if (isNumber(scaleY)) {
+                    imageData.scaleY = scaleY;
+                    changed = true;
+                }
+
+                if (changed) {
+                    this.renderImage();
+                }
+            }
+
+            return this;
+        },
+
+        /**
+         * Play the images
+         * @param {boolean} [fullscreen=false] - Indicate if request fullscreen or not.
+         * @returns {Viewer} this
+         */
+        play: function play() {
+            var _this3 = this;
+
+            var fullscreen = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+            if (!this.isShown || this.played) {
+                return this;
+            }
+
+            var options = this.options,
+                player = this.player;
+            var onLoad = this.loadImage.bind(this);
+            var list = [];
+            var total = 0;
+            var index = 0;
+            this.played = true;
+            this.onLoadWhenPlay = onLoad;
+
+            if (fullscreen) {
+                this.requestFullscreen();
+            }
+
+            addClass(player, CLASS_SHOW);
+            forEach(this.items, function (item, i) {
+                var img = item.querySelector('img');
+                var image = document.createElement('img');
+                image.src = getData(img, 'originalUrl');
+                image.alt = img.getAttribute('alt');
+                total += 1;
+                addClass(image, CLASS_FADE);
+                toggleClass(image, CLASS_TRANSITION, options.transition);
+
+                if (hasClass(item, CLASS_ACTIVE)) {
+                    addClass(image, CLASS_IN);
+                    index = i;
+                }
+
+                list.push(image);
+                addListener(image, EVENT_LOAD, onLoad, {
+                    once: true
+                });
+                player.appendChild(image);
+            });
+
+            if (isNumber(options.interval) && options.interval > 0) {
+                var play = function play() {
+                    _this3.playing = setTimeout(function () {
+                        removeClass(list[index], CLASS_IN);
+                        index += 1;
+                        index = index < total ? index : 0;
+                        addClass(list[index], CLASS_IN);
+                        play();
+                    }, options.interval);
+                };
+
+                if (total > 1) {
+                    play();
+                }
+            }
+
+            return this;
+        },
+        // Stop play
+        stop: function stop() {
+            var _this4 = this;
+
+            if (!this.played) {
+                return this;
+            }
+
+            var player = this.player;
+            this.played = false;
+            clearTimeout(this.playing);
+            forEach(player.getElementsByTagName('img'), function (image) {
+                removeListener(image, EVENT_LOAD, _this4.onLoadWhenPlay);
+            });
+            removeClass(player, CLASS_SHOW);
+            player.innerHTML = '';
+            this.exitFullscreen();
+            return this;
+        },
+        // Enter modal mode (only available in inline mode)
+        full: function full() {
+            var _this5 = this;
+
+            var options = this.options,
+                viewer = this.viewer,
+                image = this.image,
+                list = this.list;
+
+            if (!this.isShown || this.played || this.fulled || !options.inline) {
+                return this;
+            }
+
+            this.fulled = true;
+            this.open();
+            addClass(this.button, CLASS_FULLSCREEN_EXIT);
+
+            if (options.transition) {
+                removeClass(list, CLASS_TRANSITION);
+
+                if (this.viewed) {
+                    removeClass(image, CLASS_TRANSITION);
+                }
+            }
+
+            addClass(viewer, CLASS_FIXED);
+            viewer.setAttribute('style', '');
+            setStyle(viewer, {
+                zIndex: options.zIndex
+            });
+            this.initContainer();
+            this.viewerData = assign({}, this.containerData);
+            this.renderList();
+
+            if (this.viewed) {
+                this.initImage(function () {
+                    _this5.renderImage(function () {
+                        if (options.transition) {
+                            setTimeout(function () {
+                                addClass(image, CLASS_TRANSITION);
+                                addClass(list, CLASS_TRANSITION);
+                            }, 0);
+                        }
+                    });
+                });
+            }
+
+            return this;
+        },
+        // Exit modal mode (only available in inline mode)
+        exit: function exit() {
+            var _this6 = this;
+
+            var options = this.options,
+                viewer = this.viewer,
+                image = this.image,
+                list = this.list;
+
+            if (!this.isShown || this.played || !this.fulled || !options.inline) {
+                return this;
+            }
+
+            this.fulled = false;
+            this.close();
+            removeClass(this.button, CLASS_FULLSCREEN_EXIT);
+
+            if (options.transition) {
+                removeClass(list, CLASS_TRANSITION);
+
+                if (this.viewed) {
+                    removeClass(image, CLASS_TRANSITION);
+                }
+            }
+
+            removeClass(viewer, CLASS_FIXED);
+            setStyle(viewer, {
+                zIndex: options.zIndexInline
+            });
+            this.viewerData = assign({}, this.parentData);
+            this.renderViewer();
+            this.renderList();
+
+            if (this.viewed) {
+                this.initImage(function () {
+                    _this6.renderImage(function () {
+                        if (options.transition) {
+                            setTimeout(function () {
+                                addClass(image, CLASS_TRANSITION);
+                                addClass(list, CLASS_TRANSITION);
+                            }, 0);
+                        }
+                    });
+                });
+            }
+
+            return this;
+        },
+        // Show the current ratio of the image with percentage
+        tooltip: function tooltip() {
+            var _this7 = this;
+
+            var options = this.options,
+                tooltipBox = this.tooltipBox,
+                imageData = this.imageData;
+
+            if (!this.viewed || this.played || !options.tooltip) {
+                return this;
+            }
+
+            tooltipBox.textContent = "".concat(Math.round(imageData.ratio * 100), "%");
+
+            if (!this.tooltipping) {
+                if (options.transition) {
+                    if (this.fading) {
+                        dispatchEvent(tooltipBox, EVENT_TRANSITION_END);
+                    }
+
+                    addClass(tooltipBox, CLASS_SHOW);
+                    addClass(tooltipBox, CLASS_FADE);
+                    addClass(tooltipBox, CLASS_TRANSITION); // Force reflow to enable CSS3 transition
+
+                    tooltipBox.initialOffsetWidth = tooltipBox.offsetWidth;
+                    addClass(tooltipBox, CLASS_IN);
+                } else {
+                    addClass(tooltipBox, CLASS_SHOW);
+                }
+            } else {
+                clearTimeout(this.tooltipping);
+            }
+
+            this.tooltipping = setTimeout(function () {
+                if (options.transition) {
+                    addListener(tooltipBox, EVENT_TRANSITION_END, function () {
+                        removeClass(tooltipBox, CLASS_SHOW);
+                        removeClass(tooltipBox, CLASS_FADE);
+                        removeClass(tooltipBox, CLASS_TRANSITION);
+                        _this7.fading = false;
+                    }, {
+                        once: true
+                    });
+                    removeClass(tooltipBox, CLASS_IN);
+                    _this7.fading = true;
+                } else {
+                    removeClass(tooltipBox, CLASS_SHOW);
+                }
+
+                _this7.tooltipping = false;
+            }, 1000);
+            return this;
+        },
+        // Toggle the image size between its natural size and initial size
+        toggle: function toggle() {
+            if (this.imageData.ratio === 1) {
+                this.zoomTo(this.initialImageData.ratio, true);
+            } else {
+                this.zoomTo(1, true);
+            }
+
+            return this;
+        },
+        // Reset the image to its initial state
+        reset: function reset() {
+            if (this.viewed && !this.played) {
+                this.imageData = assign({}, this.initialImageData);
+                this.renderImage();
+            }
+
+            return this;
+        },
+        // Update viewer when images changed
+        update: function update() {
+            var element = this.element,
+                options = this.options,
+                isImg = this.isImg; // Destroy viewer if the target image was deleted
+
+            if (isImg && !element.parentNode) {
+                return this.destroy();
+            }
+
+            var images = [];
+            forEach(isImg ? [element] : element.querySelectorAll('img'), function (image) {
+                if (options.filter) {
+                    if (options.filter(image)) {
+                        images.push(image);
+                    }
+                } else {
+                    images.push(image);
+                }
+            });
+
+            if (!images.length) {
+                return this;
+            }
+
+            this.images = images;
+            this.length = images.length;
+
+            if (this.ready) {
+                var indexes = [];
+                forEach(this.items, function (item, i) {
+                    var img = item.querySelector('img');
+                    var image = images[i];
+
+                    if (image && img) {
+                        if (image.src !== img.src) {
+                            indexes.push(i);
+                        }
+                    } else {
+                        indexes.push(i);
+                    }
+                });
+                setStyle(this.list, {
+                    width: 'auto'
+                });
+                this.initList();
+
+                if (this.isShown) {
+                    if (this.length) {
+                        if (this.viewed) {
+                            var index = indexes.indexOf(this.index);
+
+                            if (index >= 0) {
+                                this.viewed = false;
+                                this.view(Math.max(this.index - (index + 1), 0));
+                            } else {
+                                addClass(this.items[this.index], CLASS_ACTIVE);
+                            }
+                        }
+                    } else {
+                        this.image = null;
+                        this.viewed = false;
+                        this.index = 0;
+                        this.imageData = {};
+                        this.canvas.innerHTML = '';
+                        this.title.innerHTML = '';
+                    }
+                }
+            } else {
+                this.build();
+            }
+
+            return this;
+        },
+        // Destroy the viewer
+        destroy: function destroy() {
+            var element = this.element,
+                options = this.options;
+
+            if (!element[NAMESPACE]) {
+                return this;
+            }
+
+            this.destroyed = true;
+
+            if (this.ready) {
+                if (this.played) {
+                    this.stop();
+                }
+
+                if (options.inline) {
+                    if (this.fulled) {
+                        this.exit();
+                    }
+
+                    this.unbind();
+                } else if (this.isShown) {
+                    if (this.viewing) {
+                        if (this.imageRendering) {
+                            this.imageRendering.abort();
+                        } else if (this.imageInitializing) {
+                            this.imageInitializing.abort();
+                        }
+                    }
+
+                    if (this.hiding) {
+                        this.transitioning.abort();
+                    }
+
+                    this.hidden();
+                } else if (this.showing) {
+                    this.transitioning.abort();
+                    this.hidden();
+                }
+
+                this.ready = false;
+                this.viewer.parentNode.removeChild(this.viewer);
+            } else if (options.inline) {
+                if (this.delaying) {
+                    this.delaying.abort();
+                } else if (this.initializing) {
+                    this.initializing.abort();
+                }
+            }
+
+            if (!options.inline) {
+                removeListener(element, EVENT_CLICK, this.onStart);
+            }
+
+            element[NAMESPACE] = undefined;
+            return this;
+        }
+    };
+
+    var others = {
+        open: function open() {
+            var body = this.body;
+            addClass(body, CLASS_OPEN);
+            body.style.paddingRight = "".concat(this.scrollbarWidth + (parseFloat(this.initialBodyPaddingRight) || 0), "px");
+        },
+        close: function close() {
+            var body = this.body;
+            removeClass(body, CLASS_OPEN);
+            body.style.paddingRight = this.initialBodyPaddingRight;
+        },
+        shown: function shown() {
+            var element = this.element,
+                options = this.options;
+            this.fulled = true;
+            this.isShown = true;
+            this.render();
+            this.bind();
+            this.showing = false;
+
+            if (isFunction(options.shown)) {
+                addListener(element, EVENT_SHOWN, options.shown, {
+                    once: true
+                });
+            }
+
+            if (dispatchEvent(element, EVENT_SHOWN) === false) {
+                return;
+            }
+
+            if (this.ready && this.isShown && !this.hiding) {
+                this.view(this.index);
+            }
+        },
+        hidden: function hidden() {
+            var element = this.element,
+                options = this.options;
+            this.fulled = false;
+            this.viewed = false;
+            this.isShown = false;
+            this.close();
+            this.unbind();
+            addClass(this.viewer, CLASS_HIDE);
+            this.resetList();
+            this.resetImage();
+            this.hiding = false;
+
+            if (!this.destroyed) {
+                if (isFunction(options.hidden)) {
+                    addListener(element, EVENT_HIDDEN, options.hidden, {
+                        once: true
+                    });
+                }
+
+                dispatchEvent(element, EVENT_HIDDEN);
+            }
+        },
+        requestFullscreen: function requestFullscreen() {
+            var document = this.element.ownerDocument;
+
+            if (this.fulled && !(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement)) {
+                var documentElement = document.documentElement; // Element.requestFullscreen()
+
+                if (documentElement.requestFullscreen) {
+                    documentElement.requestFullscreen();
+                } else if (documentElement.webkitRequestFullscreen) {
+                    documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                } else if (documentElement.mozRequestFullScreen) {
+                    documentElement.mozRequestFullScreen();
+                } else if (documentElement.msRequestFullscreen) {
+                    documentElement.msRequestFullscreen();
+                }
+            }
+        },
+        exitFullscreen: function exitFullscreen() {
+            var document = this.element.ownerDocument;
+
+            if (this.fulled && (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement)) {
+                // Document.exitFullscreen()
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        },
+        change: function change(event) {
+            var options = this.options,
+                pointers = this.pointers;
+            var pointer = pointers[Object.keys(pointers)[0]];
+            var offsetX = pointer.endX - pointer.startX;
+            var offsetY = pointer.endY - pointer.startY;
+
+            switch (this.action) {
+                // Move the current image
+                case ACTION_MOVE:
+                    this.move(offsetX, offsetY);
+                    break;
+                // Zoom the current image
+
+                case ACTION_ZOOM:
+                    this.zoom(getMaxZoomRatio(pointers), false, event);
+                    break;
+
+                case ACTION_SWITCH: {
+                    this.action = 'switched';
+                    var absoluteOffsetX = Math.abs(offsetX);
+
+                    if (absoluteOffsetX > 1 && absoluteOffsetX > Math.abs(offsetY)) {
+                        // Empty `pointers` as `touchend` event will not be fired after swiped in iOS browsers.
+                        this.pointers = {};
+
+                        if (offsetX > 1) {
+                            this.prev(options.loop);
+                        } else if (offsetX < -1) {
+                            this.next(options.loop);
+                        }
+                    }
+
+                    break;
+                }
+            } // Override
+
+
+            forEach(pointers, function (p) {
+                p.startX = p.endX;
+                p.startY = p.endY;
+            });
+        },
+        isSwitchable: function isSwitchable() {
+            var imageData = this.imageData,
+                viewerData = this.viewerData;
+            return this.length > 1 && imageData.left >= 0 && imageData.top >= 0 && imageData.width <= viewerData.width && imageData.height <= viewerData.height;
+        }
+    };
+
+    var AnotherViewer = WINDOW.Viewer;
+
+    var Viewer =
+        /*#__PURE__*/
+        function () {
+            /**
+             * Create a new Viewer.
+             * @param {Element} element - The target element for viewing.
+             * @param {Object} [options={}] - The configuration options.
+             */
+            function Viewer(element) {
+                var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+                _classCallCheck(this, Viewer);
+
+                if (!element || element.nodeType !== 1) {
+                    throw new Error('The first argument is required and must be an element.');
+                }
+
+                this.element = element;
+                this.options = assign({}, DEFAULTS, isPlainObject(options) && options);
+                this.action = false;
+                this.fading = false;
+                this.fulled = false;
+                this.hiding = false;
+                this.imageClicked = false;
+                this.imageData = {};
+                this.index = this.options.initialViewIndex;
+                this.isImg = false;
+                this.isShown = false;
+                this.length = 0;
+                this.played = false;
+                this.playing = false;
+                this.pointers = {};
+                this.ready = false;
+                this.showing = false;
+                this.timeout = false;
+                this.tooltipping = false;
+                this.viewed = false;
+                this.viewing = false;
+                this.wheeling = false;
+                this.zooming = false;
+                this.init();
+            }
+
+            _createClass(Viewer, [{
+                key: "init",
+                value: function init() {
+                    var _this = this;
+
+                    var element = this.element,
+                        options = this.options;
+
+                    if (element[NAMESPACE]) {
+                        return;
+                    }
+
+                    element[NAMESPACE] = this;
+                    var isImg = element.tagName.toLowerCase() === 'img';
+                    var images = [];
+                    forEach(isImg ? [element] : element.querySelectorAll('img'), function (image) {
+                        if (isFunction(options.filter)) {
+                            if (options.filter.call(_this, image)) {
+                                images.push(image);
+                            }
+                        } else {
+                            images.push(image);
+                        }
+                    });
+                    this.isImg = isImg;
+                    this.length = images.length;
+                    this.images = images;
+                    var ownerDocument = element.ownerDocument;
+                    var body = ownerDocument.body || ownerDocument.documentElement;
+                    this.body = body;
+                    this.scrollbarWidth = window.innerWidth - ownerDocument.documentElement.clientWidth;
+                    this.initialBodyPaddingRight = window.getComputedStyle(body).paddingRight; // Override `transition` option if it is not supported
+
+                    if (isUndefined(document.createElement(NAMESPACE).style.transition)) {
+                        options.transition = false;
+                    }
+
+                    if (options.inline) {
+                        var count = 0;
+
+                        var progress = function progress() {
+                            count += 1;
+
+                            if (count === _this.length) {
+                                var timeout;
+                                _this.initializing = false;
+                                _this.delaying = {
+                                    abort: function abort() {
+                                        clearTimeout(timeout);
+                                    }
+                                }; // build asynchronously to keep `this.viewer` is accessible in `ready` event handler.
+
+                                timeout = setTimeout(function () {
+                                    _this.delaying = false;
+
+                                    _this.build();
+                                }, 0);
+                            }
+                        };
+
+                        this.initializing = {
+                            abort: function abort() {
+                                forEach(images, function (image) {
+                                    if (!image.complete) {
+                                        removeListener(image, EVENT_LOAD, progress);
+                                    }
+                                });
+                            }
+                        };
+                        forEach(images, function (image) {
+                            if (image.complete) {
+                                progress();
+                            } else {
+                                addListener(image, EVENT_LOAD, progress, {
+                                    once: true
+                                });
+                            }
+                        });
+                    } else {
+                        addListener(element, EVENT_CLICK, this.onStart = function (_ref) {
+                            var target = _ref.target;
+
+                            if (target.tagName.toLowerCase() === 'img' && (!isFunction(options.filter) || options.filter.call(_this, target))) {
+                                _this.view(_this.images.indexOf(target));
+                            }
+                        });
+                    }
+                }
+            }, {
+                key: "build",
+                value: function build() {
+                    if (this.ready) {
+                        return;
+                    }
+
+                    var element = this.element,
+                        options = this.options;
+                    var parent = element.parentNode;
+                    var template = document.createElement('div');
+                    template.innerHTML = TEMPLATE;
+                    var viewer = template.querySelector(".".concat(NAMESPACE, "-container"));
+                    var title = viewer.querySelector(".".concat(NAMESPACE, "-title"));
+                    var toolbar = viewer.querySelector(".".concat(NAMESPACE, "-toolbar"));
+                    var navbar = viewer.querySelector(".".concat(NAMESPACE, "-navbar"));
+                    var button = viewer.querySelector(".".concat(NAMESPACE, "-button"));
+                    var canvas = viewer.querySelector(".".concat(NAMESPACE, "-canvas"));
+                    this.parent = parent;
+                    this.viewer = viewer;
+                    this.title = title;
+                    this.toolbar = toolbar;
+                    this.navbar = navbar;
+                    this.button = button;
+                    this.canvas = canvas;
+                    this.footer = viewer.querySelector(".".concat(NAMESPACE, "-footer"));
+                    this.tooltipBox = viewer.querySelector(".".concat(NAMESPACE, "-tooltip"));
+                    this.player = viewer.querySelector(".".concat(NAMESPACE, "-player"));
+                    this.list = viewer.querySelector(".".concat(NAMESPACE, "-list"));
+                    addClass(title, !options.title ? CLASS_HIDE : getResponsiveClass(Array.isArray(options.title) ? options.title[0] : options.title));
+                    addClass(navbar, !options.navbar ? CLASS_HIDE : getResponsiveClass(options.navbar));
+                    toggleClass(button, CLASS_HIDE, !options.button);
+
+                    if (options.backdrop) {
+                        addClass(viewer, "".concat(NAMESPACE, "-backdrop"));
+
+                        if (!options.inline && options.backdrop !== 'static') {
+                            setData(canvas, DATA_ACTION, 'hide');
+                        }
+                    }
+
+                    if (isString(options.className) && options.className) {
+                        // In case there are multiple class names
+                        options.className.split(REGEXP_SPACES).forEach(function (className) {
+                            addClass(viewer, className);
+                        });
+                    }
+
+                    if (options.toolbar) {
+                        var list = document.createElement('ul');
+                        var custom = isPlainObject(options.toolbar);
+                        var zoomButtons = BUTTONS.slice(0, 3);
+                        var rotateButtons = BUTTONS.slice(7, 9);
+                        var scaleButtons = BUTTONS.slice(9);
+
+                        if (!custom) {
+                            addClass(toolbar, getResponsiveClass(options.toolbar));
+                        }
+
+                        forEach(custom ? options.toolbar : BUTTONS, function (value, index) {
+                            var deep = custom && isPlainObject(value);
+                            var name = custom ? hyphenate(index) : value;
+                            var show = deep && !isUndefined(value.show) ? value.show : value;
+
+                            if (!show || !options.zoomable && zoomButtons.indexOf(name) !== -1 || !options.rotatable && rotateButtons.indexOf(name) !== -1 || !options.scalable && scaleButtons.indexOf(name) !== -1) {
+                                return;
+                            }
+
+                            var size = deep && !isUndefined(value.size) ? value.size : value;
+                            var click = deep && !isUndefined(value.click) ? value.click : value;
+                            var item = document.createElement('li');
+                            item.setAttribute('role', 'button');
+                            addClass(item, "".concat(NAMESPACE, "-").concat(name));
+
+                            if (!isFunction(click)) {
+                                setData(item, DATA_ACTION, name);
+                            }
+
+                            if (isNumber(show)) {
+                                addClass(item, getResponsiveClass(show));
+                            }
+
+                            if (['small', 'large'].indexOf(size) !== -1) {
+                                addClass(item, "".concat(NAMESPACE, "-").concat(size));
+                            } else if (name === 'play') {
+                                addClass(item, "".concat(NAMESPACE, "-large"));
+                            }
+
+                            if (isFunction(click)) {
+                                addListener(item, EVENT_CLICK, click);
+                            }
+
+                            list.appendChild(item);
+                        });
+                        toolbar.appendChild(list);
+                    } else {
+                        addClass(toolbar, CLASS_HIDE);
+                    }
+
+                    if (!options.rotatable) {
+                        var rotates = toolbar.querySelectorAll('li[class*="rotate"]');
+                        addClass(rotates, CLASS_INVISIBLE);
+                        forEach(rotates, function (rotate) {
+                            toolbar.appendChild(rotate);
+                        });
+                    }
+
+                    if (options.inline) {
+                        addClass(button, CLASS_FULLSCREEN);
+                        setStyle(viewer, {
+                            zIndex: options.zIndexInline
+                        });
+
+                        if (window.getComputedStyle(parent).position === 'static') {
+                            setStyle(parent, {
+                                position: 'relative'
+                            });
+                        }
+
+                        parent.insertBefore(viewer, element.nextSibling);
+                    } else {
+                        addClass(button, CLASS_CLOSE);
+                        addClass(viewer, CLASS_FIXED);
+                        addClass(viewer, CLASS_FADE);
+                        addClass(viewer, CLASS_HIDE);
+                        setStyle(viewer, {
+                            zIndex: options.zIndex
+                        });
+                        var container = options.container;
+
+                        if (isString(container)) {
+                            container = element.ownerDocument.querySelector(container);
+                        }
+
+                        if (!container) {
+                            container = this.body;
+                        }
+
+                        container.appendChild(viewer);
+                    }
+
+                    if (options.inline) {
+                        this.render();
+                        this.bind();
+                        this.isShown = true;
+                    }
+
+                    this.ready = true;
+
+                    if (isFunction(options.ready)) {
+                        addListener(element, EVENT_READY, options.ready, {
+                            once: true
+                        });
+                    }
+
+                    if (dispatchEvent(element, EVENT_READY) === false) {
+                        this.ready = false;
+                        return;
+                    }
+
+                    if (this.ready && options.inline) {
+                        this.view(this.index);
+                    }
+                }
+                /**
+                 * Get the no conflict viewer class.
+                 * @returns {Viewer} The viewer class.
+                 */
+
+            }], [{
+                key: "noConflict",
+                value: function noConflict() {
+                    window.Viewer = AnotherViewer;
+                    return Viewer;
+                }
+                /**
+                 * Change the default options.
+                 * @param {Object} options - The new default options.
+                 */
+
+            }, {
+                key: "setDefaults",
+                value: function setDefaults(options) {
+                    assign(DEFAULTS, isPlainObject(options) && options);
+                }
+            }]);
+
+            return Viewer;
+        }();
+
+    assign(Viewer.prototype, render, events, handlers, methods, others);
+
+    return Viewer;
+
+})));

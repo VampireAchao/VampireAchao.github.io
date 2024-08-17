@@ -1834,4 +1834,56 @@ afterClose : function () {
 }
 
 };
-hs.l
+hs.langDefaults = hs.lang;
+// history
+var HsExpander = hs.Expander;
+if (hs.ie && window == window.top) {
+	(function () {
+		try {
+			document.documentElement.doScroll('left');
+		} catch (e) {
+			setTimeout(arguments.callee, 50);
+			return;
+		}
+		hs.ready();
+	})();
+}
+hs.addEventListener(document, 'DOMContentLoaded', hs.ready);
+hs.addEventListener(window, 'load', hs.ready);
+
+// set handlers
+hs.addEventListener(document, 'ready', function() {
+	if (hs.expandCursor) {
+		var style = hs.createElement('style', { type: 'text/css' }, null, 
+			document.getElementsByTagName('HEAD')[0]), 
+			backCompat = document.compatMode == 'BackCompat';
+			
+		
+		function addRule(sel, dec) {
+			if (hs.ie && (hs.uaVersion < 9 || backCompat)) {
+				var last = document.styleSheets[document.styleSheets.length - 1];
+				if (typeof(last.addRule) == "object") last.addRule(sel, dec);
+			} else {
+				style.appendChild(document.createTextNode(sel + " {" + dec + "}"));
+			}
+		}
+		function fix(prop) {
+			return 'expression( ( ( ignoreMe = document.documentElement.'+ prop +
+				' ? document.documentElement.'+ prop +' : document.body.'+ prop +' ) ) + \'px\' );';
+		}
+		if (hs.expandCursor) addRule ('.highslide img', 
+			'cursor: url('+ hs.graphicsDir + hs.expandCursor +'), pointer !important;');
+	}
+});
+hs.addEventListener(window, 'resize', function() {
+	hs.getPageSize();
+});
+hs.addEventListener(document, 'mousemove', function(e) {
+	hs.mouse = { x: e.clientX, y: e.clientY	};
+});
+hs.addEventListener(document, 'mousedown', hs.mouseClickHandler);
+hs.addEventListener(document, 'mouseup', hs.mouseClickHandler);
+
+hs.addEventListener(document, 'ready', hs.getAnchors);
+hs.addEventListener(window, 'load', hs.preloadImages);
+}
