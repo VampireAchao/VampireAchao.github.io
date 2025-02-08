@@ -427,4 +427,659 @@
 <p>然后我们可以拿着<code>taskId</code>去查询进度<code>taskId</code>最大保存4小时</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSONObject;<br><span class="hljs-keyword">import</span> com.aliyuncs.DefaultAcsClient;<br><span class="hljs-keyword">import</span> com.aliyuncs.IAcsClient;<br><span class="hljs-keyword">import</span> com.aliyuncs.exceptions.ClientException;<br><span class="hljs-keyword">import</span> com.aliyuncs.exceptions.ServerException;<br><span class="hljs-keyword">import</span> com.aliyuncs.green.model.v20180509.VideoAsyncScanResultsRequest;<br><span class="hljs-keyword">import</span> com.aliyuncs.http.FormatType;<br><span class="hljs-keyword">import</span> com.aliyuncs.http.HttpResponse;<br><span class="hljs-keyword">import</span> com.aliyuncs.profile.DefaultProfile;<br><span class="hljs-keyword">import</span> com.aliyuncs.profile.IClientProfile;<br><br><span class="hljs-keyword">import</span> java.util.*;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * TODO Add class description here</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> jialun.wjl</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@create</span> 2018/12/24 19:22</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Main</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">IClientProfile</span> <span class="hljs-variable">profile</span> <span class="hljs-operator">=</span> DefaultProfile.getProfile(<span class="hljs-string">&quot;cn-shanghai&quot;</span>, <span class="hljs-string">&quot;请填写您的accessKeyId&quot;</span>, <span class="hljs-string">&quot;请填写您的accessKeySecret&quot;</span>);<br>        DefaultProfile.addEndpoint(<span class="hljs-string">&quot;cn-shanghai&quot;</span>, <span class="hljs-string">&quot;cn-shanghai&quot;</span>, <span class="hljs-string">&quot;Green&quot;</span>, <span class="hljs-string">&quot;green.cn-shanghai.aliyuncs.com&quot;</span>);<br>        <span class="hljs-type">IAcsClient</span> <span class="hljs-variable">client</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultAcsClient</span>(profile);<br><br>        <span class="hljs-type">VideoAsyncScanResultsRequest</span> <span class="hljs-variable">videoAsyncScanResultsRequest</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">VideoAsyncScanResultsRequest</span>();<br>        videoAsyncScanResultsRequest.setAcceptFormat(FormatType.JSON);<br><br>        List&lt;String&gt; taskList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;String&gt;();<br>        <span class="hljs-comment">// 这里添加要查询的taskId。提交任务的时候需要自行保存taskId。</span><br>        taskList.add(<span class="hljs-string">&quot;viUB1uskhXAW5Fay2a@ci5V-1sZbev&quot;</span>);<br><br>        videoAsyncScanResultsRequest.setHttpContent(JSON.toJSONString(taskList).getBytes(<span class="hljs-string">&quot;UTF-8&quot;</span>), <span class="hljs-string">&quot;UTF-8&quot;</span>, FormatType.JSON);<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * 请务必设置超时时间。</span><br><span class="hljs-comment">         */</span><br>        videoAsyncScanResultsRequest.setConnectTimeout(<span class="hljs-number">3000</span>);<br>        videoAsyncScanResultsRequest.setReadTimeout(<span class="hljs-number">6000</span>);<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">HttpResponse</span> <span class="hljs-variable">httpResponse</span> <span class="hljs-operator">=</span> client.doAction(videoAsyncScanResultsRequest);<br>            <span class="hljs-keyword">if</span>(httpResponse.isSuccess())&#123;<br>                <span class="hljs-type">JSONObject</span> <span class="hljs-variable">jsonObject</span> <span class="hljs-operator">=</span> JSON<br>                    .parseObject(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(httpResponse.getHttpContent(), <span class="hljs-string">&quot;UTF-8&quot;</span>));<br>                System.out.println(JSON.toJSONString(jsonObject, <span class="hljs-literal">true</span>));<br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                System.out.println(<span class="hljs-string">&quot;response not success. status:&quot;</span> + httpResponse.getStatus());<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (ServerException e) &#123;<br>            e.printStackTrace();<br>        &#125; <span class="hljs-keyword">catch</span> (ClientException e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>未完成时，返回值是这样的</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>	<span class="hljs-attr">&quot;msg&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;OK&quot;</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;code&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">200</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">[</span><br>		<span class="hljs-punctuation">&#123;</span><br>			<span class="hljs-attr">&quot;msg&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;PROCESSING - scanning&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;code&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">280</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;dataId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;a4705a67-7c73-40f4-948d-5b197d14f0aa&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;taskId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;vi4O50Nxv46L7M878A6jFo1-1sZ8FL&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/imgs/oss/QQ%E8%A7%86%E9%A2%91_b5ca71298bf92a778ef1ce94259dcdce1580718352.mp4&quot;</span><br>		<span class="hljs-punctuation">&#125;</span><br>	<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;requestId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-stri
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>	<span class="hljs-attr">&quot;msg&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;OK&quot;</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;code&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">200</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">[</span><br>		<span class="hljs-punctuation">&#123;</span><br>			<span class="hljs-attr">&quot;msg&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;PROCESSING - scanning&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;code&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">280</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;dataId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;a4705a67-7c73-40f4-948d-5b197d14f0aa&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;taskId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;vi4O50Nxv46L7M878A6jFo1-1sZ8FL&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/imgs/oss/QQ%E8%A7%86%E9%A2%91_b5ca71298bf92a778ef1ce94259dcdce1580718352.mp4&quot;</span><br>		<span class="hljs-punctuation">&#125;</span><br>	<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;requestId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;3E8EC910-CE4C-4931-B06D-CC0DEB936E09&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+<p>完成后是这样</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>	<span class="hljs-attr">&quot;msg&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;OK&quot;</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;code&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">200</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">[</span><br>		<span class="hljs-punctuation">&#123;</span><br>			<span class="hljs-attr">&quot;msg&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;OK&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;code&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">200</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;dataId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;a4705a67-7c73-40f4-948d-5b197d14f0aa&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;results&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">[</span><br>				<span class="hljs-punctuation">&#123;</span><br>					<span class="hljs-attr">&quot;rate&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">99.9</span><span class="hljs-punctuation">,</span><br>					<span class="hljs-attr">&quot;suggestion&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;pass&quot;</span><span class="hljs-punctuation">,</span><br>					<span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;normal&quot;</span><span class="hljs-punctuation">,</span><br>					<span class="hljs-attr">&quot;scene&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;porn&quot;</span><br>				<span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><br>				<span class="hljs-punctuation">&#123;</span><br>					<span class="hljs-attr">&quot;rate&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">99.9</span><span class="hljs-punctuation">,</span><br>					<span class="hljs-attr">&quot;suggestion&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;pass&quot;</span><span class="hljs-punctuation">,</span><br>					<span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;normal&quot;</span><span class="hljs-punctuation">,</span><br>					<span class="hljs-attr">&quot;scene&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;terrorism&quot;</span><br>				<span class="hljs-punctuation">&#125;</span><br>			<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;taskId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;vi4O50Nxv46L7M878A6jFo1-1sZ8FL&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/imgs/oss/QQ%E8%A7%86%E9%A2%91_b5ca71298bf92a778ef1ce94259dcdce1580718352.mp4&quot;</span><br>		<span class="hljs-punctuation">&#125;</span><br>	<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;requestId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;1EF03EF2-C59A-40C1-A45D-BB26C2FA85FD&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+<p>如果我们配置了异步回调处理，那么阿里云在检测完成后会给我们发送一个回调，回调的参数是这样的</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>     <span class="hljs-attr">&quot;scenes&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>        <span class="hljs-string">&quot;porn&quot;</span><br>    <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>     <span class="hljs-attr">&quot;audioScenes&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>        <span class="hljs-string">&quot;antispam&quot;</span><br>    <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>     <span class="hljs-attr">&quot;tasks&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>          <span class="hljs-punctuation">&#123;</span><br>               <span class="hljs-attr">&quot;dataId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;videoId xxx&quot;</span><span class="hljs-punctuation">,</span>		<span class="hljs-comment">//这里的dataId是提交检测时返回的dataId</span><br>               <span class="hljs-attr">&quot;url&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;http://www.foo.bak/a.mp4&quot;</span><span class="hljs-punctuation">,</span><br>               <span class="hljs-attr">&quot;interval&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span><br>               <span class="hljs-attr">&quot;maxFrames&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">200</span><br>        <span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">]</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+<p>那么接下来是我们的文本反垃圾</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSONArray;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSONObject;<br><span class="hljs-keyword">import</span> com.aliyun.oss.ClientException;<br><span class="hljs-keyword">import</span> com.aliyuncs.DefaultAcsClient;<br><span class="hljs-keyword">import</span> com.aliyuncs.IAcsClient;<br><span class="hljs-keyword">import</span> com.aliyuncs.exceptions.ServerException;<br><span class="hljs-keyword">import</span> com.aliyuncs.green.model.v20180509.TextScanRequest;<br><span class="hljs-keyword">import</span> com.aliyuncs.http.FormatType;<br><span class="hljs-keyword">import</span> com.aliyuncs.http.HttpResponse;<br><span class="hljs-keyword">import</span> com.aliyuncs.profile.DefaultProfile;<br><span class="hljs-keyword">import</span> com.aliyuncs.profile.IClientProfile;<br><br><span class="hljs-keyword">import</span> java.util.*;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Main</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">IClientProfile</span> <span class="hljs-variable">profile</span> <span class="hljs-operator">=</span> DefaultProfile<br>            .getProfile(<span class="hljs-string">&quot;cn-shanghai&quot;</span>, <span class="hljs-string">&quot;您的AccessKeyId&quot;</span>, <span class="hljs-string">&quot;您的AccessKeySecret&quot;</span>);<br>        DefaultProfile<br>            .addEndpoint(<span class="hljs-string">&quot;cn-shanghai&quot;</span>, <span class="hljs-string">&quot;cn-shanghai&quot;</span>, <span class="hljs-string">&quot;Green&quot;</span>, <span class="hljs-string">&quot;green.cn-shanghai.aliyuncs.com&quot;</span>);        <br>        <span class="hljs-type">IAcsClient</span> <span class="hljs-variable">client</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultAcsClient</span>(profile);<br>        <span class="hljs-type">TextScanRequest</span> <span class="hljs-variable">textScanRequest</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TextScanRequest</span>();<br>        textScanRequest.setAcceptFormat(FormatType.JSON); <span class="hljs-comment">// 指定API返回格式。</span><br>        textScanRequest.setHttpContentType(FormatType.JSON);<br>        textScanRequest.setMethod(com.aliyuncs.http.MethodType.POST); <span class="hljs-comment">// 指定请求方法。</span><br>        textScanRequest.setEncoding(<span class="hljs-string">&quot;UTF-8&quot;</span>);<br>        textScanRequest.setRegionId(<span class="hljs-string">&quot;cn-shanghai&quot;</span>);<br>        List&lt;Map&lt;String, Object&gt;&gt; tasks = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;Map&lt;String, Object&gt;&gt;();<br>        Map&lt;String, Object&gt; task1 = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinkedHashMap</span>&lt;String, Object&gt;();<br>        task1.put(<span class="hljs-string">&quot;dataId&quot;</span>, UUID.randomUUID().toString());<br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * 待检测的文本，长度不超过10000个字符。</span><br><span class="hljs-comment">         */</span><br>        task1.put(<span class="hljs-string">&quot;content&quot;</span>, <span class="hljs-string">&quot;test content&quot;</span>);<br>        tasks.add(task1);<br>        <span class="hljs-type">JSONObject</span> <span class="hljs-variable">data</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JSONObject</span>();<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * 检测场景。文本垃圾检测请传递antispam。</span><br><span class="hljs-comment">         **/</span><br>        data.put(<span class="hljs-string">&quot;scenes&quot;</span>, Arrays.asList(<span class="hljs-string">&quot;antispam&quot;</span>));<br>        data.put(<span class="hljs-string">&quot;tasks&quot;</span>, tasks);<br>        System.out.println(JSON.toJSONString(data, <span class="hljs-literal">true</span>));<br>        textScanRequest.setHttpContent(data.toJSONString().getBytes(<span class="hljs-string">&quot;UTF-8&quot;</span>), <span class="hljs-string">&quot;UTF-8&quot;</span>, FormatType.JSON);<br>        <span class="hljs-comment">// 请务必设置超时时间。</span><br>        textScanRequest.setConnectTimeout(<span class="hljs-number">3000</span>);<br>        textScanRequest.setReadTimeout(<span class="hljs-number">6000</span>);<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">HttpResponse</span> <span class="hljs-variable">httpResponse</span> <span class="hljs-operator">=</span> client.doAction(textScanRequest);<br>            <span class="hljs-keyword">if</span>(httpResponse.isSuccess())&#123;<br>                <span class="hljs-type">JSONObject</span> <span class="hljs-variable">scrResponse</span> <span class="hljs-operator">=</span> JSON.parseObject(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(httpResponse.getHttpContent(), <span class="hljs-string">&quot;UTF-8&quot;</span>));<br>                System.out.println(JSON.toJSONString(scrResponse, <span class="hljs-literal">true</span>));<br>                <span class="hljs-keyword">if</span> (<span class="hljs-number">200</span> == scrResponse.getInteger(<span class="hljs-string">&quot;code&quot;</span>)) &#123;<br>                    <span class="hljs-type">JSONArray</span> <span class="hljs-variable">taskResults</span> <span class="hljs-operator">=</span> scrResponse.getJSONArray(<span class="hljs-string">&quot;data&quot;</span>);<br>                    <span class="hljs-keyword">for</span> (Object taskResult : taskResults) &#123;<br>                        <span class="hljs-keyword">if</span>(<span class="hljs-number">200</span> == ((JSONObject)taskResult).getInteger(<span class="hljs-string">&quot;code&quot;</span>))&#123;<br>                            <span class="hljs-type">JSONArray</span> <span class="hljs-variable">sceneResults</span> <span class="hljs-operator">=</span> ((JSONObject)taskResult).getJSONArray(<span class="hljs-string">&quot;results&quot;</span>);<br>                            <span class="hljs-keyword">for</span> (Object sceneResult : sceneResults) &#123;<br>                                <span class="hljs-type">String</span> <span class="hljs-variable">scene</span> <span class="hljs-operator">=</span> ((JSONObject)sceneResult).getString(<span class="hljs-string">&quot;scene&quot;</span>);<br>                                <span class="hljs-type">String</span> <span class="hljs-variable">suggestion</span> <span class="hljs-operator">=</span> ((JSONObject)sceneResult).getString(<span class="hljs-string">&quot;suggestion&quot;</span>);<br>                                <span class="hljs-comment">//根据scene和suggetion做相关处理。</span><br>                                <span class="hljs-comment">//suggestion == pass表示未命中垃圾。suggestion == block表示命中了垃圾，可以通过label字段查看命中的垃圾分类。</span><br>                                System.out.println(<span class="hljs-string">&quot;args = [&quot;</span> + scene + <span class="hljs-string">&quot;]&quot;</span>);<br>                                System.out.println(<span class="hljs-string">&quot;args = [&quot;</span> + suggestion + <span class="hljs-string">&quot;]&quot;</span>);<br>                            &#125;<br>                        &#125;<span class="hljs-keyword">else</span>&#123;<br>                            System.out.println(<span class="hljs-string">&quot;task process fail:&quot;</span> + ((JSONObject)taskResult).getInteger(<span class="hljs-string">&quot;code&quot;</span>));<br>                        &#125;<br>                    &#125;<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    System.out.println(<span class="hljs-string">&quot;detect not success. code:&quot;</span> + scrResponse.getInteger(<span class="hljs-string">&quot;code&quot;</span>));<br>                &#125;<br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                System.out.println(<span class="hljs-string">&quot;response not success. status:&quot;</span> + httpResponse.getStatus());<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (ServerException e) &#123;<br>            e.printStackTrace();<br>        &#125; <span class="hljs-keyword">catch</span> (ClientException e) &#123;<br>            e.printStackTrace();<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>返回值</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>	<span class="hljs-attr">&quot;msg&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;OK&quot;</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;code&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">200</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">[</span><br>		<span class="hljs-punctuation">&#123;</span><br>			<span class="hljs-attr">&quot;msg&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;OK&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;code&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">200</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;dataId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;d826ad34-8150-4ea3-8e2a-93e3841f681b&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;results&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">[</span><br>				<span class="hljs-punctuation">&#123;</span><br>					<span class="hljs-attr">&quot;rate&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-number">99.91</span><span class="hljs-punctuation">,</span><br>					<span class="hljs-attr">&quot;suggestion&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;pass&quot;</span><span class="hljs-punctuation">,</span><br>					<span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;normal&quot;</span><span class="hljs-punctuation">,</span><br>					<span class="hljs-attr">&quot;scene&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;antispam&quot;</span><br>				<span class="hljs-punctuation">&#125;</span><br>			<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;content&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;搞快点&quot;</span><span class="hljs-punctuation">,</span><br>			<span class="hljs-attr">&quot;taskId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;txt28tO0JTEXEl5zkeClNwR@n-1sZbjU&quot;</span><br>		<span class="hljs-punctuation">&#125;</span><br>	<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>	<span class="hljs-attr">&quot;requestId&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;91DF1A2C-192F-4C45-BE9C-B092DBDA8A01&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+<p>最终我们需要的返回值是两个，<code>label</code>表示命中场景，<code>suggestion</code>表示检测结果</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">场景</th>
+<th style="text-align:left">描述</th>
+<th style="text-align:left">scene</th>
+<th style="text-align:left">label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">图片智能鉴黄</td>
+<td style="text-align:left">识别图片中的色情内容。</td>
+<td style="text-align:left">porn</td>
+<td style="text-align:left">normal：正常图片，无色情内容sexy：性感图片porn：色情图片</td>
+</tr>
+<tr>
+<td style="text-align:left">图片暴恐涉政识别</td>
+<td style="text-align:left">识别图片中的暴恐涉政内容。</td>
+<td style="text-align:left">terrorism</td>
+<td style="text-align:left">normal：正常图片bloody：血腥explosion：爆炸烟光outfit：特殊装束logo：特殊标识weapon：武器politics：涉政violence ： 打斗crowd：聚众parade：游行carcrash：车祸现场flag：旗帜location：地标others：其他</td>
+</tr>
+<tr>
+<td style="text-align:left">图文违规识别</td>
+<td style="text-align:left">识别图片中的广告以及文字违规信息。</td>
+<td style="text-align:left">ad</td>
+<td style="text-align:left">normal：正常图片politics：文字含涉政内容porn：文字含涉黄内容abuse：文字含辱骂内容terrorism：文字含暴恐内容contraband：文字含违禁内容spam：文字含其他垃圾内容npx：牛皮藓广告qrcode：包含二维码programCode：包含小程序码ad：其他广告<strong>说明</strong> 默认只会返回normal或者ad，如需其他label，请通过工单联系我们进行配置。</td>
+</tr>
+<tr>
+<td style="text-align:left">图片二维码识别</td>
+<td style="text-align:left">识别图片中的二维码。</td>
+<td style="text-align:left">qrcode</td>
+<td style="text-align:left">normal：正常图片qrcode：含二维码的图片programCode：含小程序码的图片<strong>说明</strong> 默认不识别小程序码。如果需要识别，请通过工单联系我们调整。</td>
+</tr>
+<tr>
+<td style="text-align:left">图片不良场景识别</td>
+<td style="text-align:left">识别图片中出现的黑屏、黑边、昏暗画面、画中画、抽烟、打架等不良场景。</td>
+<td style="text-align:left">live</td>
+<td style="text-align:left">normal：正常图片meaningless：无意义图片PIP：画中画smoking：吸烟drivelive：车内直播</td>
+</tr>
+<tr>
+<td style="text-align:left">图片logo识别</td>
+<td style="text-align:left">识别图片中的logo信息，例如台标，商标等。</td>
+<td style="text-align:left">logo</td>
+<td style="text-align:left">normal：正常图片TV：带有管控logo的图片trademark：商标</td>
+</tr>
+</tbody>
+</table>
+<p>然后是状态码</p>
+<table>
+<thead>
+<tr>
+<th>OK</th>
+<th>200</th>
+<th>请求成功。</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PROCESSING</td>
+<td>280</td>
+<td>任务正在执行中，建议您等待一段时间（例如5s）后再查询结果。</td>
+</tr>
+<tr>
+<td>BAD_REQUEST</td>
+<td>400</td>
+<td>请求有误，通常由于请求参数不正确导致，请仔细检查请求参数。</td>
+</tr>
+<tr>
+<td>NOT_ALLOWED</td>
+<td>401</td>
+<td>请求失败，通常是由于使用了不安全的图片、视频、语音链接地址。</td>
+</tr>
+<tr>
+<td>FORBIDDEN</td>
+<td>403</td>
+<td>请求访问失败，通常由于您的图片、视频、语音链接无法访问导致，请确认公网是否可访问，并且无防盗链策略。</td>
+</tr>
+<tr>
+<td>NOT_FOUND</td>
+<td>404</td>
+<td>待检测内容未找到，通常是由于您的图片、视频、语音内容无法下载导致，请确认内容可通过公网访问到。</td>
+</tr>
+<tr>
+<td>DOWNLOAD_FAILED</td>
+<td>480</td>
+<td>下载失败，请确认待检测内容的大小、分辨率（如果有）在API的限制范围内。</td>
+</tr>
+<tr>
+<td>GENERAL_ERROR</td>
+<td>500</td>
+<td>一般是服务端临时出错。建议重试，若持续返回该错误码，请通过工单联系我们。</td>
+</tr>
+<tr>
+<td>DB_FAILED</td>
+<td>580</td>
+<td>数据库操作失败。建议重试，若持续返回该错误码，请通过工单联系我们。</td>
+</tr>
+<tr>
+<td>TIMEOUT</td>
+<td>581</td>
+<td>超时。建议重试，若持续返回该错误码，请通过工单联系我们。</td>
+</tr>
+<tr>
+<td>CACHE_FAILED</td>
+<td>585</td>
+<td>缓存出错。建议重试，若持续返回该错误码，请通过工单联系我们。</td>
+</tr>
+<tr>
+<td>ALGO_FAILED</td>
+<td>586</td>
+<td>算法出错。请通过工单联系我们。</td>
+</tr>
+<tr>
+<td>MQ_FAILED</td>
+<td>587</td>
+<td>中间件出错。请通过工单联系我们。</td>
+</tr>
+<tr>
+<td>EXCEED_QUOTA</td>
+<td>588</td>
+<td>请求频率超出配额。默认配额：图片检测50张/秒，视频检测20路/秒，语音检测20路/秒，文本检测100条/秒。如果需要调整配额，请通过工单联系我们。<strong>说明</strong> 关于价格说明，请参见<a target="_blank" rel="noopener" href="https://www.aliyun.com/price/product/?#lvwang/detail">内容安全产品定价</a>。</td>
+</tr>
+<tr>
+<td>TOO_LARGE</td>
+<td>589</td>
+<td>待检测内容过大，请确保检测的内容在API的限制范围内。建议重试，若持续返回该错误码，请通过工单联系我们。</td>
+</tr>
+<tr>
+<td>BAD_FORMAT</td>
+<td>590</td>
+<td>待检测内容格式错误，请确保检测的内容在API的限制范围内。</td>
+</tr>
+<tr>
+<td>CONNECTION_POOL_FULL</td>
+<td>591</td>
+<td>连接池满。请通过工单联系我们。</td>
+</tr>
+<tr>
+<td>DOWNLOAD_TIMEOUT</td>
+<td>592</td>
+<td>下载超时，下载时间限制为3s，请确保检测的内容大小在API的限制范围内。</td>
+</tr>
+<tr>
+<td>EXPIRED</td>
+<td>594</td>
+<td>任务过期，如taskId过期。</td>
+</tr>
+<tr>
+<td>CATCH_FRAME_FAILED</td>
+<td>595</td>
+<td>截帧失败，请通过工单联系我们。</td>
+</tr>
+<tr>
+<td>PERMISSION_DENY</td>
+<td>596</td>
+<td>账号未授权、账号欠费、账号未开通、账号被禁等原因，具体可以参考返回的msg。</td>
+</tr>
+</tbody>
+</table>
+<p>我自己写了个<code>demo</code>放进昨天创建的<code>springboot</code>项目里了</p>
+<p><a target="_blank" rel="noopener" href="https://gitee.com/VampireAchao/simple-springboot.git"><code>git</code>地址</a></p>
+
+    </div>
+</article>
+
+
+                </div>
+                <aside class="col-md-4 gal-left" id="sidebar">
+    <!-- 此为sidebar的搜索框, 非搜索结果页面 -->
+<aside id="sidebar-search">
+    <div class="search" data-aos="fade-up" data-aos-duration="2000">
+        <form class="form-inline clearfix" id="search-form" method="get"
+              action="/search/index.html">
+            <input type="text" name="s" class="form-control" id="searchInput" placeholder="搜索文章~" autocomplete="off">
+            <button class="btn btn-danger btn-gal" type="submit">
+                <i class="fa fa-search"></i>
+            </button>
+        </form>
+    </div>
+</aside>
+    <aside id="sidebar-author">
+    <div class="panel panel-gal" data-aos="flip-right" data-aos-duration="3000">
+        <div class="panel-heading" style="text-align: center">
+            <i class="fa fa-quote-left"></i>
+            阿超
+            <i class="fa fa-quote-right"></i>
+        </div>
+        <div class="author-panel text-center">
+            <div class="author-avatar">
+            <img src="/imgs/head.png"
+                             alt="个人头像" class="author-image">
+            </div>
+            <p class="author-description"><p>​ 我的名字叫阿超 年龄23岁 家在四川省成都市 未婚 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</p>
+</p>
+        </div>
+    </div>
+</aside>
+
+    
+    <aside id="sidebar-recent_comments">
+    <div class="panel panel-gal recent hidden-xs" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-comments"></i>
+            最新评论
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush"></ul>
+    </div>
+</aside>
+    
+    <!-- 要配置好leancloud才能开启此小工具 -->
+    
+    
+    <aside id="sidebar-recent_posts">
+    <div class="panel panel-gal recent hidden-xs" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-refresh"></i>
+            近期文章
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush">
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/02/08/figma/">figma</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/02/07/css%E5%BE%AA%E7%8E%AF%E6%B7%A1%E5%85%A5%E6%B7%A1%E5%87%BA%E6%92%AD%E6%94%BE%EF%BC%88%E4%BA%8C%EF%BC%89/">css循环淡入淡出播放（二）</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/02/06/ConsecutiveScrollerLayout/">ConsecutiveScrollerLayout</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/02/05/vue-vben-admin/">vue-vben-admin</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/02/04/yjs/">yjs</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/02/03/tiptap/">tiptap</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/02/02/%E8%83%A1%E6%A1%83%E5%B7%A5%E5%85%B7%E7%AE%B1SnapHutao/">胡桃工具箱SnapHutao</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/02/01/fyne/">fyne</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/01/31/Apache-Linkis/">Apache Linkis</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/01/30/readability/">readability</a>
+                </span>
+            </li>
+            
+        </ul>
+    </div>
+</aside>
+    
+    
+    <aside id="sidebar-rand_posts">
+    <div class="panel panel-gal recent" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-refresh"></i>
+            随机文章
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush">
+            
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2023/11/06/Hello-%E7%AE%97%E6%B3%95/">Hello 算法</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/10/05/RainEffect/">RainEffect</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/03/03/collectingAndThen/">collectingAndThen</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2021/02/25/mysql%E4%B8%AD%E6%9D%A1%E4%BB%B6%E5%87%BD%E6%95%B0/">mysql中条件函数</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/01/10/oss%E8%A7%86%E9%A2%91%E6%88%AA%E5%B0%81%E9%9D%A2/">oss视频截封面</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/02/03/%E4%BD%BF%E7%94%A8cargo%E5%88%9B%E5%BB%BArust%E7%A8%8B%E5%BA%8F%E5%B9%B6%E8%BF%90%E8%A1%8C/">使用cargo创建rust程序并运行</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2021/05/14/%E5%B8%B8%E9%87%8For%E6%9E%9A%E4%B8%BE%E7%9A%84%E5%8F%96%E8%88%8D/">常量or枚举的取舍</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/01/12/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86%E5%99%A8Files/">文件管理器Files</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2024/02/21/%E7%94%A8canvas%E6%B6%88%E9%99%A4%E9%94%AF%E9%BD%BF%E7%9A%84%E6%96%B9%E5%BC%8F/">用canvas消除锯齿的方式</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2023/04/24/%E9%80%9A%E8%BF%87getter%E8%8E%B7%E5%8F%96setter%E5%87%BD%E6%95%B0/">通过getter获取setter函数</a>
+                </span>
+            </li>
+            
+        </ul>
+    </div>
+</aside>
+    
+    
+    <aside id="gal-sets">
+        <div class="panel panel-gal" data-aos="fade-up" data-aos-duration="2000">
+            <ul class="nav nav-pills pills-gal">
+
+                
+                <li>
+                    <a href="/2020/08/09/%E4%BA%91%E9%89%B4%E9%BB%84%EF%BC%8C%E4%BD%A0%E6%87%82/index.html#sidebar-tags" data-toggle="tab" id="tags-tab">热门标签</a>
+                </li>
+                
+                
+                <li>
+                    <a href="/2020/08/09/%E4%BA%91%E9%89%B4%E9%BB%84%EF%BC%8C%E4%BD%A0%E6%87%82/index.html#sidebar-friend-links" data-toggle="tab" id="friend-links-tab">友情链接</a>
+                </li>
+                
+                
+                <li>
+                    <a href="/2020/08/09/%E4%BA%91%E9%89%B4%E9%BB%84%EF%BC%8C%E4%BD%A0%E6%87%82/index.html#sidebar-links" data-toggle="tab" id="links-tab">个人链接</a>
+                </li>
+                
+            </ul>
+            <div class="tab-content">
+                
+                <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
+    
+    <a href="/tags/java/" style="font-size: 18.389539848247743px;" class="tag-cloud-link">java</a>
+    
+    <a href="/tags/ai/" style="font-size: 14.44904266976951px;" class="tag-cloud-link">ai</a>
+    
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.770436788906842px;" class="tag-cloud-link">前端</a>
+    
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.323623473260405px;" class="tag-cloud-link">软件及插件</a>
+    
+    <a href="/tags/android/" style="font-size: 14.895463251897084px;" class="tag-cloud-link">android</a>
+    
+    <a href="/tags/python/" style="font-size: 19.833521598359997px;" class="tag-cloud-link">python</a>
+    
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 12.70632559278467px;" class="tag-cloud-link">数据库</a>
+    
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.685024476977386px;" class="tag-cloud-link">运维</a>
+    
+    <a href="/tags/ios/" style="font-size: 11.911052463475816px;" class="tag-cloud-link">ios</a>
+    
+    <a href="/tags/flutter/" style="font-size: 11.154921463656041px;" class="tag-cloud-link">flutter</a>
+    
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.104040604622156px;" class="tag-cloud-link">小技巧</a>
+    
+    <a href="/tags/Java/" style="font-size: 11.422797538316008px;" class="tag-cloud-link">Java</a>
+    
+    <a href="/tags/bug/" style="font-size: 10.885383980790085px;" class="tag-cloud-link">bug</a>
+    
+    <a href="/tags/kotlin/" style="font-size: 15.407081007368678px;" class="tag-cloud-link">kotlin</a>
+    
+    <a href="/tags/swift/" style="font-size: 9.2247005347164px;" class="tag-cloud-link">swift</a>
+    
+    <a href="/tags/c/" style="font-size: 19.360374635983902px;" class="tag-cloud-link">c</a>
+    
+    <a href="/tags/minecraft/" style="font-size: 12.097795600457363px;" class="tag-cloud-link">minecraft</a>
+    
+    <a href="/tags/rust/" style="font-size: 12.400034388177424px;" class="tag-cloud-link">rust</a>
+    
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 13.46739267233669px;" class="tag-cloud-link">部署</a>
+    
+    <a href="/tags/flink/" style="font-size: 18.09735678553338px;" class="tag-cloud-link">flink</a>
+    
+    <a href="/tags/go/" style="font-size: 9.171321007690917px;" class="tag-cloud-link">go</a>
+    
+    <a href="/tags/lua/" style="font-size: 18.078930515257476px;" class="tag-cloud-link">lua</a>
+    
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 12.378789290269168px;" class="tag-cloud-link">机器学习</a>
+    
+    <a href="/tags/php/" style="font-size: 8.277159539216186px;" class="tag-cloud-link">php</a>
+    
+    <a href="/tags/c/" style="font-size: 18.794132821855186px;" class="tag-cloud-link">c++</a>
+    
+    <a href="/tags/typescript/" style="font-size: 9.43843076937416px;" class="tag-cloud-link">typescript</a>
+    
+    <a href="/tags/redis/" style="font-size: 12.1402372758607px;" class="tag-cloud-link">redis</a>
+    
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 12.328506141924823px;" class="tag-cloud-link">设计模式</a>
+    
+    <a href="/tags/objective-c/" style="font-size: 9.369403026240034px;" class="tag-cloud-link">objective-c</a>
+    
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 9.10730792020906px;" class="tag-cloud-link">算法</a>
+    
+</div>
+                
+                
+                <div class="friend-links tab-pane nav bs-sidenav fade" id="sidebar-friend-links">
+    
+    <li>
+        <a href="https://mofan212.gitee.io/" target="_blank">Mofan</a>
+    </li>
+    
+    <li>
+        <a href="http://www.wwang.net" target="_blank">派派河鉴黄师</a>
+    </li>
+    
+    <li>
+        <a href="https://shrimp_study.gitee.io/" target="_blank">加油</a>
+    </li>
+    
+    <li>
+        <a href="https://howling.gitee.io/" target="_blank">嚎羸</a>
+    </li>
+    
+    <li>
+        <a href="https://techyang99.gitee.io/" target="_blank">Techyang</a>
+    </li>
+    
+    <li>
+        <a href="https://mujeyf.cn" target="_blank">GeekDream</a>
+    </li>
+    
+    <li>
+        <a href="https://amadasy.gitee.io/" target="_blank">Amadasy</a>
+    </li>
+    
+    <li>
+        <a href="http://47.95.208.251:8081/niubi/dist/index.html#/blog" target="_blank">NIUBI</a>
+    </li>
+    
+    <li>
+        <a href="http://www.znbiscool.icu" target="_blank">宇智波问天</a>
+    </li>
+    
+    <li>
+        <a href="https://www.xsyyds.top" target="_blank">醉相生</a>
+    </li>
+    
+    <li>
+        <a href="http://60.205.188.140:8888/" target="_blank">那就孤雏</a>
+    </li>
+    
+    <li>
+        <a href="https://www.jauxgit.top" target="_blank">jaux署记</a>
+    </li>
+    
+    <li>
+        <a href="http://septzhang.link/" target="_blank">SeptZhangの小站</a>
+    </li>
+    
+    <li>
+        <a href="http://myblog.zhaixing.work/" target="_blank">星辰驿站</a>
+    </li>
+    
+    <li>
+        <a href="https://47.93.242.4:88" target="_blank">宇泽希</a>
+    </li>
+    
+    <li>
+        <a href="https://kwydy.gitee.io/" target="_blank">这个爱酱不太聪明</a>
+    </li>
+    
+    <li>
+        <a href="https://rivencabin.gitee.io/" target="_blank">Riven的小屋</a>
+    </li>
+    
+    <li>
+        <a href="https://rocpenghua.gitee.io/" target="_blank">小鹏驿站</a>
+    </li>
+    
+    <li>
+        <a href="https://budongfeng.gitee.io/weekly/" target="_blank">生活富能量</a>
+    </li>
+    
+    <li>
+        <a href="https://zygzyg.cloud/" target="_blank">Error&#39;s Blog</a>
+    </li>
+    
+</div>
+                
+                
+                <div class="links tab-pane nav bs-sidenav fade" id="sidebar-links">
+    
+    <li>
+        <a href="https://gitee.com/vampireachao/" target="_blank">Gitee</a>
+    </li>
+    
+</div>
+                
+            </div>
+        </div>
+    </aside>
+    
+</aside>
+            </div>
+        </div>
+    </div>
+    <footer id="gal-footer">
+    <div class="container">
+        Copyright © 2018 阿超 Powered by <a href="https://hexo.io/"
+                target="_blank">Hexo</a>.&nbsp;Theme by <a href="https://github.com/ZEROKISEKI"
+                target="_blank">AONOSORA</a>
+    </div>
+</footer>
+
+<!-- 回到顶端 -->
+<div id="gal-gotop">
+    <i class="fa fa-angle-up"></i>
+</div>
+<style>
+    #cursor-circle {
+        pointer-events: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid black;
+        background: white;
+        mix-blend-mode: exclusion;
+        position: absolute;
+        z-index: 99999
+    }
+</style>
+<div id="cursor-circle"></div>
+<div id="cursor-pointer"></div>
+<script type="application/javascript">
+    const cursorCircle = document.querySelector("#cursor-circle")
+    window.addEventListener('mousemove', e => {
+        cursorCircle.style.top = document.documentElement.scrollTop + e.clientY - 11 + 'px'
+        cursorCircle.style.left = document.documentElement.scrollLeft + e.clientX - 11 + 'px'
+    })
+</script>
+</body>
+
+<script src="/js/activate-power-mode.js"></script>
+
+<script>
+
+    // 配置highslide
+	hs.graphicsDir = '/js/highslide/graphics/'
+    hs.outlineType = "rounded-white";
+    hs.dimmingOpacity = 0.8;
+    hs.outlineWhileAnimating = true;
+    hs.showCredits = false;
+    hs.captionEval = "this.thumb.alt";
+    hs.numberPosition = "caption";
+    hs.align = "center";
+    hs.transitions = ["expand", "crossfade"];
+    hs.lang.number = '共%2张图, 当前是第%1张';
+    hs.addSlideshow({
+      interval: 5000,
+      repeat: true,
+      useControls: true,
+      fixedControls: "fit",
+      overlayOptions: {
+        opacity: 0.75,
+        position: "bottom center",
+        hideOnMouseOut: true
+      }
+    })
+
+    // 初始化aos
+    AOS.init({
+      duration: 1000,
+      delay: 0,
+      easing: 'ease-out-back'
+    });
+
+</script>
+<script>
+	POWERMODE.colorful = 'true';    // make power mode colorful
+	POWERMODE.shake = 'true';       // turn off shake
+	// TODO 这里根据具体情况修改
+	document.body.addEventListener('input', POWERMODE);
+</script>
+<script>
+    window.slideConfig = {
+      prefix: '/imgs/slide/background',
+      ext: 'jpg',
+      maxCount: '6'
+    }
+</script>
+
+<script src="/js/hs.js"></script>
+<script src="/js/blog.js"></script>
+
+
+
+
+</html>
