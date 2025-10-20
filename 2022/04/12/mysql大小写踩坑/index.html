@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="/imgs/favicon.ico" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="author" content="阿超">
+  
+  <meta name="description" content="​ 我的名字叫阿超 年龄23岁 家在四川省成都市 未婚 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度">
+  
+  
+  
+  
+  
+  
+  <title>mysql大小写踩坑 | 阿超</title>
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
+
+  
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/aos.css">
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<script src="/js/jquery.min.js"></script>
+
+  
+<script src="/js/bootstrap.min.js"></script>
+
+  
+<script src="/js/aos.js"></script>
+
+  
+<script src="/js/highslide/highslide-full.min.js"></script>
+
+  
+<link rel="stylesheet" href="/js/highslide/highslide.css">
+
+  <style type="text/css">
+    @media (max-width: 768px) {
+      body {
+        background-color: #f0f0f0;
+        background: url('/imgs/xsbg.jpg');
+        background-attachment: fixed;
+      }
+      .live2d-widget-container{
+        zoom: 0.5;
+      }
+      .live2d-achao{
+        width: 150px !important;
+      }
+    }
+  </style>
+  
+  <!--<script type="text/javascript">
+      if (document.images) {
+        var avatar = new Image();
+        avatar.src = '/imgs/head.png'
+        var previews = 't01d54a78939622a708.jpg,t01b5b4a7529cad373b.jpg,t01260c377a60ef55b8.jpg,t01b32959885c781013.jpg,t01c37e049c18d00e4c.jpg,t01e75d2d4734b2c35e.jpg,t013698845e810692d8.jpg,t012ec64f1e1eb1d23f.jpg,t012db749fb526b27cf.jpg,t01a2e705e6e2514c91.jpg,t0106a9c2522bdd29f7.jpg,t0192efea6a01252f4e.jpg,t01794a9e0bc4321c3c.jpg,t01d2ed30550310750e.jpg,t01a98dd6f6ea17e633.jpg,t0198fd348e2ec8b737.jpg,t0177a850faae7b42f4.jpg,t0106a5ab61a284dcb0.jpg,t01e87ea37c4903393c.jpg,t01fbcc933afdb7affd.jpg,t017299242a9d351de9.jpg,t01fd0d30d46b598a1d.jpg,t019ddfb8b5b89b8475.jpg,t019622fab8982a72ec.jpg,t01bb96bd256aaad950.jpg,t01ba97d26345750c04.jpg,t01bf50d8d5d76238c6.jpg,t01cb6096bf8cb0a285.jpg,t01c4e6c901e3efda72.jpg,t01b58ac4d441d1b546.jpg,t01f3c58eaac22c8544.jpg,t01a58e209bfdbf852b.jpg,t016ff89e6fa6041712.jpg,t0195d14f593431562a.jpg,t01c6d95214927e61c0.jpg,t019c86a25782a7044d.jpg,t014a0ca534d64adbba.jpg,t01b24e85dc07d47b0d.jpg,de1934eb4ac9abdb5e8391c829f94671.jpg'.split(',')
+        var previewsPreLoad = []
+        for(var i = 0; i < length; i++) {
+          previewsPreLoad.push(new Image())
+          previewsPreLoad[previewsPreLoad.length - 1].src = '/imgs/preview' + previews[i]
+        }
+      }
+    </script>-->
+  <script type="text/javascript">
+    // 使用message对象封装消息
+    var message = {
+      time: 0,
+      title: document.title,
+      timer: null,
+      // 显示新消息提示
+      show: function () {
+        var title = message.title.replace("【　　　】", "").replace("【新消息】", "");
+        // 定时器，设置消息切换频率闪烁效果就此产生
+        message.timer = setTimeout(function () {
+          message.time++;
+          message.show();
+          if (message.time % 2 == 0) {
+            document.title = "【新消息】" + title
+          } else {
+            document.title = "【　　　】" + title
+          };
+        }, 600);
+        return [message.timer, message.title];
+      },
+      // 取消新消息提示
+      clear: function () {
+        clearTimeout(message.timer);
+        document.title = message.title;
+      }
+    };
+    var hiddenProperty = 'hidden' in document ? 'hidden' :
+      'webkitHidden' in document ? 'webkitHidden' :
+        'mozHidden' in document ? 'mozHidden' : null;
+    var title = document.querySelector('title');
+    var visibilityChangeEvent = hiddenProperty.replace(/hidden/i, 'visibilitychange');
+    var onVisibilityChange = function () {
+      if (!document[hiddenProperty]) {
+        message.clear()
+      } else {
+        message.show()
+      }
+    }
+    document.addEventListener(visibilityChangeEvent, onVisibilityChange);
+
+
+    //随机字
+    $(function () {
+      var a_idx = 0,
+        b_idx = 0;
+      c_idx = 0;
+      jQuery(document).ready(function ($) {
+        $("body").click(function (e) {
+          var a = new Array("Daphne", "Ficus", "Iris", "Maackia", "Lythrum", "Myrica", "Sabia", "Flos", "あなたのことが好きです", "嬉しい", "頑張って！", "大丈夫です"),
+            b = new Array("#09ebfc", "#ff6651", "#ffb351", "#51ff65", "#5197ff", "#a551ff", "#ff51f7", "#ff518e", "#ff5163", "#efff51"),
+            c = new Array("12", "14", "16", "18", "20", "22", "24", "26", "28", "30");
+          var $i = $("<span/>").text(a[a_idx]);
+          a_idx = (a_idx + 1) % a.length;
+          b_idx = (b_idx + 1) % b.length;
+          c_idx = (c_idx + 1) % c.length;
+          var x = e.pageX,
+            y = e.pageY;
+          $i.css({
+            "z-index": 999,
+            "top": y - 20,
+            "left": x,
+            "position": "absolute",
+            "font-weight": "bold",
+            "font-size": c[c_idx] + "px",
+            "cursor": "url(/imgs/mouse1.cur),url(/imgs/mouse1.cur),auto",
+            "color": b[b_idx]
+          });
+          $("body").append($i);
+          $i.animate({
+            "top": y - 180,
+            "opacity": 0
+          }, 1500, function () {
+            $i.remove();
+          });
+        });
+      });
+      var _hmt = _hmt || [];
+    })
+  </script>
+  <!-- 引用看板娘交互所需的样式表 -->
+  <link href='https://VampireAchao.github.io/Pio/static/pio.css' rel='stylesheet' type='text/css'/>
+  <!-- 引用 Live2D 核心组件 -->
+  <script src='https://VampireAchao.github.io/Pio/static/l2d.js'></script>
+  <!-- 引用看板娘交互组件 -->
+  <script src='https://VampireAchao.github.io/Pio/static/pio.js'></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <!-- 背景轮播图功能 -->
+    <section class="hidden-xs">
+    <ul class="cb-slideshow">
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+    </ul>
+</section>
+    <!-- 欧尼酱功能, 谁用谁知道 -->
+    
+    <header class="navbar navbar-inverse" id="gal-header">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed"
+                    data-toggle="collapse" data-target=".bs-navbar-collapse"
+                    aria-expanded="false">
+                <span class="fa fa-lg fa-reorder"></span>
+            </button>
+            <a href="https://VampireAchao.github.io">
+                
+                    <style>
+                        #gal-header .navbar-brand {
+                            height: 54px;
+                            line-height: 24px;
+                            font-size: 28px;
+                            opacity: 1;
+                            background-color: rgba(0, 0, 0, 0);
+                            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #228DFF, 0 0 35px #228DFF, 0 0 40px #228DFF, 0 0 50px #228DFF, 0 0 75px #228DFF;
+                        }
+                    </style>
+                    <!-- 这里使用文字(navbar_text or config.title) -->
+                    <div class="navbar-brand">阿超</div>
+                
+            </a>
+        </div>
+        <div class="collapse navbar-collapse bs-navbar-collapse">
+            <ul class="nav navbar-nav" id="menu-gal">
+                
+                    
+                        <li class="">
+                            <a href="/">
+                                <i class="fa fa-home"></i>首页
+                            </a>
+                        </li>
+                    
+                
+                    
+                        <li class="">
+                            <a href="/archives">
+                                <i class="fa fa-archive"></i>文章
+                            </a>
+                        </li>
+                    
+                
+                    
+                        
+                            <li class="">
+                                <a href="/categories">
+                                    <i class="fa fa-list"></i>分类
+                                </a>
+                            </li>
+                        
+                    
+                
+                    
+                        
+                            <li class="dropdown">
+                                <!-- TODO 添加hover dropdown效果 -->
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                                   aria-haspopup="true" aria-expanded="false" data-hover="dropdown">
+                                    <i class="fa fa-tags"></i>标签
+                                </a>
+                                <ul class="dropdown-menu">
+                                    
+                                        
+                                            <li>
+                                                <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/">软件及插件</a>
+                                            </li>
+                                        
+                                            <li>
+                                                <a href="/tags/java/">java</a>
+                                            </li>
+                                        
+                                            <li>
+                                                <a href="/tags/ai/">ai</a>
+                                            </li>
+                                        
+                                        
+                                            <li>
+                                                <a href="/tags">...</a>
+                                            </li>
+                                        
+                                    
+                                </ul>
+                            </li>
+                        
+                    
+                
+                    
+                        <li class="">
+                            <a href="/2020/06/02/%E6%88%91%E7%9A%84%E5%9B%9E%E5%BF%86/">
+                                <i class="fa fa-user"></i>关于我
+                            </a>
+                        </li>
+                    
+                
+				<li>
+				    <a href="javascript:themeDbChange();">开关主题</a>
+				</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="pio-container right">
+        <div class="pio-action"></div>
+        <canvas id="pio" width="180" height="280"></canvas>
+    </div>
+    <!-- Live2DCubismCore script -->
+    <script src="https://VampireAchao.github.io/js/live2dcubismcore.js"></script>
+    <!-- Build script -->
+    <script src="https://VampireAchao.github.io/js/bundle.js"></script>
+    <canvas id="live2d" width="300" height="300" class="live2d live2d-achao"
+            style="position: fixed; opacity: 1; left: -45px;bottom: 0; z-index: 99999; pointer-events: none;"></canvas>
+    <script>
+        var pio = new Paul_Pio({
+            "mode": "fixed",
+            "hidden": false,
+            "content": {
+                "welcome": ["欢迎来到阿超的博客~", "欧尼酱！"],
+                "touch": ["今天也是元气满满的一天！", "欧尼酱！", "哈哈哈哈，不要戳了"],
+                "skin": ["想看看我的新服装吗？", "新衣服真漂亮~"],
+                "home": "点击这里回到首页！",
+                "link": "https://VampireAchao.github.io/2020/06/02/%E6%88%91%E7%9A%84%E5%9B%9E%E5%BF%86/",
+                "close": "QWQ 有缘再会吧~",
+                // "referer": "你通过 %t 来到了这里",
+                "custom": [
+                    {
+                        "selector": ".comment-form",
+                        "text": ["欢迎参与本文评论，别发小广告噢~", "快来参加本文的评论吧~"]
+                    }
+                ]
+            },
+            "model": ["https://VampireAchao.github.io/Pio/models/umaru/model.json"]
+        });
+        var resourcesPath = '/'; // 指定资源文件（模型）保存的路径
+        var backImageName = ''; // 指定背景图片
+        var modelDir = ['supa']; // 指定需要加载的模型
+        initDefine(resourcesPath, backImageName, modelDir); // 初始化模型
+        // window.localStorage.clear();    // 清理localStorage
+    </script>
+	<script>
+	function themeDbChange(){
+		let hideTheme = localStorage.getItem("hideTheme")
+		if(hideTheme != 'hideTheme'){
+
+			localStorage.setItem("hideTheme","hideTheme")
+		}else{
+			localStorage.setItem("hideTheme","disHideTheme")
+
+		}
+		themeChange()
+	}
+
+	function themeChange(){
+		let themeClass = [".cb-slideshow",".alert-gal",".pio-container",".live2d-widget-container",".live2d-achao"]
+		let themes = themeClass.map(c=>$(c))
+
+		let hideTheme = localStorage.getItem("hideTheme")
+		console.log({hideTheme})
+		if(hideTheme == 'hideTheme'){
+
+			themes.forEach(t=>t.hide())
+			$("head").children("link[href='/css/style.css']").attr('disabled', 'disabled')
+		}else{
+			themes.forEach(t=>t.show())
+			$("head").children("link[href='/css/style.css']").removeAttr('disabled')
+		}
+	}
+	$(themeChange)
+	</script>
+</header>
+
+    <div id="gal-body">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 gal-right" id="mainstay">
+                    
+<article class="article well article-body" id="article">
+    <div class="breadcrumb">
+        <i class="fa fa-home"></i>
+        <a href="https://VampireAchao.github.io">阿超</a>
+        >
+        <span>mysql大小写踩坑</span>
+    </div>
+    <!-- 大型设备详细文章 -->
+    <div class="hidden-xs">
+        <div class="title-article">
+            <h1>
+                <a href="/2022/04/12/mysql%E5%A4%A7%E5%B0%8F%E5%86%99%E8%B8%A9%E5%9D%91/">mysql大小写踩坑</a>
+            </h1>
+        </div>
+        <div class="tag-article">
+            
+            <span class="label label-gal">
+                <i class="fa fa-tags"></i>
+                
+                <a href="/tags/%E8%BF%90%E7%BB%B4/">运维</a>
+                
+            </span>
+            
+            <span class="label label-gal">
+                <i class="fa fa-calendar"></i> 2022-04-12
+            </span>
+            
+        </div>
+    </div>
+    <!-- 小型设备详细文章 -->
+    <div class="visible-xs">
+        <center>
+            <div class="title-article">
+                <h4>
+                    <a href="/2022/04/12/mysql%E5%A4%A7%E5%B0%8F%E5%86%99%E8%B8%A9%E5%9D%91/">mysql大小写踩坑</a>
+                </h4>
+            </div>
+            <p>
+                <i class="fa fa-calendar"></i> 2022-04-12
+            </p>
+            <p>
+                
+                <i class="fa fa-tags"></i>
+                
+                <a href="/tags/%E8%BF%90%E7%BB%B4/">运维</a>
+                
+                
+                
+            </p>
+        </center>
+    </div>
+    <div class="content-article">
+        <blockquote>
+<p>不求苍天俯就我的美意，但求永远恣意挥洒。——惠特曼《自我之歌》</p>
+</blockquote>
+<p>设置了<code>mysqld</code>下的配置</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cnf">[mysqld]<br>lower_case_table_names = 1<br></code></pre></td></tr></table></figure>
+<p><code>lower_case_table_names</code>的官方文档：</p>
+<p><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_lower_case_table_names">https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_lower_case_table_names</a></p>
+<p>描述为：</p>
+<blockquote>
+<p>If set to 0, table names are stored as specified and comparisons are case-sensitive. If set to 1, table names are stored in lowercase on disk and comparisons are not case-sensitive. If set to 2, table names are stored as given but compared in lowercase. This option also applies to database names and table aliases. For additional details, see <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/identifier-case-sensitivity.html">Section 9.2.3, “Identifier Case Sensitivity”</a>.</p>
+</blockquote>
+<p>翻译过来大致</p>
+<ol start="0">
+<li>按大小写敏感存储表名</li>
+<li>按小写形式存储表名
+<ul>
+<li>比较时不区分大小写</li>
+</ul>
+</li>
+<li>按大小写敏感存储表名
+<ul>
+<li>以小写字母进行比较</li>
+</ul>
+</li>
+</ol>
+<p>他们的默认值在不同系统下面有区分</p>
+<p><code>MacOS</code><sup>2</sup> <code>Unix</code><sup>0</sup> <code>Windows</code><sup>1</sup></p>
+<p>然后注意<code>ubuntu</code>下重启<code>mysql</code>服务不是<code>mysqld</code>而是<code>mysql</code>，下面是<code>ubuntu</code>的三种重启方式</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">重启服务</span><br>service mysql restart;<br><span class="hljs-meta prompt_"># </span><span class="language-bash">重启系统服务</span><br>systemctl restart mysql<br><span class="hljs-meta prompt_"># </span><span class="language-bash">重启mysql，请确认路径</span><br>/etc/init.d/mysql restart<br></code></pre></td></tr></table></figure>
+<p>修改后可以用这三个<code>sql</code>查询是否生效</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">select</span> @<span class="hljs-variable">@lower_case_table_names</span>;<br><span class="hljs-operator">+</span><span class="hljs-comment">--------------------------+</span><br><span class="hljs-operator">|</span> @<span class="hljs-variable">@lower_case_table_names</span> <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">--------------------------+</span><br><span class="hljs-operator">|</span>                        <span class="hljs-number">1</span> <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">--------------------------+</span><br><br><span class="hljs-keyword">show</span> variables <span class="hljs-keyword">like</span> <span class="hljs-string">&#x27;lower_case_table_names&#x27;</span>;<br><span class="hljs-operator">+</span><span class="hljs-comment">------------------------+-------+</span><br><span class="hljs-operator">|</span> Variable_name          <span class="hljs-operator">|</span> <span class="hljs-keyword">Value</span> <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">------------------------+-------+</span><br><span class="hljs-operator">|</span> lower_case_table_names <span class="hljs-operator">|</span> <span class="hljs-number">1</span>     <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">------------------------+-------+</span><br><br><span class="hljs-keyword">show</span> <span class="hljs-keyword">global</span> variables <span class="hljs-keyword">like</span> <span class="hljs-string">&#x27;%lower_case%&#x27;</span>;<br><span class="hljs-operator">+</span><span class="hljs-comment">------------------------+-------+</span><br><span class="hljs-operator">|</span> Variable_name          <span class="hljs-operator">|</span> <span class="hljs-keyword">Value</span> <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">------------------------+-------+</span><br><span class="hljs-operator">|</span> lower_case_file_system <span class="hljs-operator">|</span> OFF   <span class="hljs-operator">|</span><br><span class="hljs-operator">|</span> lower_case_table_names <span class="hljs-operator">|</span> <span class="hljs-number">1</span>     <span class="hljs-operator">|</span><br><span class="hljs-operator">+</span><span class="hljs-comment">------------------------+-------+</span><br></code></pre></td></tr></table></figure>
+<p>关键点来了，<code>quartz</code>查询<code>mysql</code>中的表是按照大写表名去查，而我们此处配置的，并不是查询时忽略表名大小写，而是全部以小写表名去查询</p>
+<p>因此配置了<code>lower_case_table_names = 1</code>后，大写表名用大写<code>sql</code>一律作废匹配不到</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> QRTZ_LOCKS<br></code></pre></td></tr></table></figure>
+<p>查询表名为大写<code>QRTZ_LOCKS</code>的表找不到</p>
+<p>但由于我<code>windows</code>开发环境下的表名又为小写<code>qrtz_locks</code></p>
+<p>此时就有以下方案：</p>
+<ul>
+<li>配置改回<code>lower_case_table_names = 0</code>或者移除掉该配置(<code>Unix</code>下默认为<code>0</code>)</li>
+<li>修改表名为小写</li>
+</ul>
+<p>百度有的说可以设置为<code>2</code></p>
+<p>官方文档表示：</p>
+<blockquote>
+<p>On Linux (and other Unix-like systems), setting the value to <code>2</code> is not supported; the server forces the value to <code>0</code> instead.</p>
+</blockquote>
+<p>翻译过来就是说<code>Linux</code>或者其他类似<code>Unix</code>的系统，不支持设置为<code>2</code><sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>，<code>mysql</code>服务端会强制使用<code>0</code>代替</p>
+<p>那么这么多表名，一个一个改不是很麻烦？</p>
+<p>这里我们可以使用<a href="https://VampireAchao.github.io/2022/02/10/mysql%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BF%A1%E6%81%AF%E5%87%BD%E6%95%B0/"><code>mysql</code>数据库信息函数</a>去按规则<sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup>查询出表名转换为小写，再拼接成多条<code>sql</code></p>
+<p>或者使用存储过程、代码处理等方式</p>
+<p>这里我使用以下<code>sql</code>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span><br>	CONCAT( <span class="hljs-string">&#x27;ALTER TABLE &#x27;</span>, table_name, <span class="hljs-string">&#x27; RENAME &#x27;</span>, <span class="hljs-built_in">LOWER</span>( table_name ), &quot;;&quot; ) <span class="hljs-keyword">AS</span> statement <br><span class="hljs-keyword">FROM</span><br>	information_schema.TABLES <br><span class="hljs-keyword">WHERE</span><br>	table_schema <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;改成你的库名&#x27;</span> <br>	<span class="hljs-keyword">AND</span> table_name <span class="hljs-keyword">LIKE</span> <span class="hljs-string">&#x27;QRTZ_%&#x27;</span>;<br></code></pre></td></tr></table></figure>
+<p>然后就会出现这样的结果：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs shell">+-----------------------------------------------------------------------+<br>| statement                                                             |<br>+-----------------------------------------------------------------------+<br>| ALTER TABLE QRTZ_BLOB_TRIGGERS RENAME qrtz_blob_triggers;             |<br>| ALTER TABLE QRTZ_CALENDARS RENAME qrtz_calendars;                     |<br>| ALTER TABLE QRTZ_CRON_TRIGGERS RENAME qrtz_cron_triggers;             |<br>| ALTER TABLE QRTZ_FIRED_TRIGGERS RENAME qrtz_fired_triggers;           |<br>| ALTER TABLE QRTZ_JOB_DETAILS RENAME qrtz_job_details;                 |<br>| ALTER TABLE QRTZ_LOCKS RENAME qrtz_locks;                             |<br>| ALTER TABLE QRTZ_PAUSED_TRIGGER_GRPS RENAME qrtz_paused_trigger_grps; |<br>| ALTER TABLE QRTZ_SCHEDULER_STATE RENAME qrtz_scheduler_state;         |<br>| ALTER TABLE QRTZ_SIMPLE_TRIGGERS RENAME qrtz_simple_triggers;         |<br>| ALTER TABLE QRTZ_SIMPROP_TRIGGERS RENAME qrtz_simprop_triggers;       |<br>| ALTER TABLE QRTZ_TRIGGERS RENAME qrtz_triggers;                       |<br>+-----------------------------------------------------------------------+<br></code></pre></td></tr></table></figure>
+<p>我们把结果中的<code>sql</code>复制下来再执行一遍即可</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_BLOB_TRIGGERS RENAME qrtz_blob_triggers;<br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_CALENDARS RENAME qrtz_calendars;<br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_CRON_TRIGGERS RENAME qrtz_cron_triggers;<br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_FIRED_TRIGGERS RENAME qrtz_fired_triggers;<br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_JOB_DETAILS RENAME qrtz_job_details;<br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_LOCKS RENAME qrtz_locks;<br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_PAUSED_TRIGGER_GRPS RENAME qrtz_paused_trigger_grps;<br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_SCHEDULER_STATE RENAME qrtz_scheduler_state;<br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_SIMPLE_TRIGGERS RENAME qrtz_simple_triggers;<br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_SIMPROP_TRIGGERS RENAME qrtz_simprop_triggers;<br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> QRTZ_TRIGGERS RENAME qrtz_triggers;<br></code></pre></td></tr></table></figure>
+<p>如果不知道这些表是怎么来的，可以查看这篇<a href="https://VampireAchao.github.io/2021/01/24/quartz/">quartz</a></p>
+<p>结束后，我们配置的<code>lower_case_table_names = 1</code>即可生效，可以用<code>show tables;</code>检查一下</p>
+<hr class="footnotes-sep" />
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>好坑，亏我还傻兮兮的试 <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p>此处为<code>QRTZ_</code>开头 <a href="#fnref2" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+
+    </div>
+</article>
+
+
+                </div>
+                <aside class="col-md-4 gal-left" id="sidebar">
+    <!-- 此为sidebar的搜索框, 非搜索结果页面 -->
+<aside id="sidebar-search">
+    <div class="search" data-aos="fade-up" data-aos-duration="2000">
+        <form class="form-inline clearfix" id="search-form" method="get"
+              action="/search/index.html">
+            <input type="text" name="s" class="form-control" id="searchInput" placeholder="搜索文章~" autocomplete="off">
+            <button class="btn btn-danger btn-gal" type="submit">
+                <i class="fa fa-search"></i>
+            </button>
+        </form>
+    </div>
+</aside>
+    <aside id="sidebar-author">
+    <div class="panel panel-gal" data-aos="flip-right" data-aos-duration="3000">
+        <div class="panel-heading" style="text-align: center">
+            <i class="fa fa-quote-left"></i>
+            阿超
+            <i class="fa fa-quote-right"></i>
+        </div>
+        <div class="author-panel text-center">
+            <div class="author-avatar">
+            <img src="/imgs/head.png"
+                             alt="个人头像" class="author-image">
+            </div>
+            <p class="author-description"><p>​ 我的名字叫阿超 年龄23岁 家在四川省成都市 未婚 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</p>
+</p>
+        </div>
+    </div>
+</aside>
+
+    
+    <aside id="sidebar-recent_comments">
+    <div class="panel panel-gal recent hidden-xs" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-comments"></i>
+            最新评论
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush"></ul>
+    </div>
+</aside>
+    
+    <!-- 要配置好leancloud才能开启此小工具 -->
+    
+    
+    <aside id="sidebar-recent_posts">
+    <div class="panel panel-gal recent hidden-xs" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-refresh"></i>
+            近期文章
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush">
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/20/symfony/">symfony</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/19/ollama/">ollama</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/18/free-for-dev/">free-for-dev</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/17/pathway/">pathway</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/16/meshery/">meshery</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/15/jekyll-theme-chirpy/">jekyll-theme-chirpy</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/14/ab-download-manager/">ab-download-manager</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/13/agent-framework/">agent-framework</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/12/weekly/">weekly</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/11/SDWebImage/">SDWebImage</a>
+                </span>
+            </li>
+            
+        </ul>
+    </div>
+</aside>
+    
+    
+    <aside id="sidebar-rand_posts">
+    <div class="panel panel-gal recent" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-refresh"></i>
+            随机文章
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush">
+            
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2023/03/14/BibiGPT/">BibiGPT</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2024/12/31/china-regions/">china_regions</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/05/21/css%E5%B1%9E%E6%80%A7%E9%80%89%E6%8B%A9%E5%99%A8/">css属性选择器</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/04/15/deskflow%E5%A4%9A%E8%AE%BE%E5%A4%87%E5%85%B1%E4%BA%AB%E9%94%AE%E9%BC%A0/">deskflow多设备共享键鼠</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/10/23/git%E6%9C%AC%E5%9C%B0%E5%85%B3%E8%81%94%E8%BF%9C%E7%AB%AF%E5%88%86%E6%94%AF/">git本地关联远端分支</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2023/06/21/hexo-bilibili-bangumi/">hexo-bilibili-bangumi</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2020/10/22/idea%E5%9B%9E%E6%BB%9Agit%E4%BB%93%E5%BA%93%E4%BB%A3%E7%A0%81/">idea回滚git仓库代码</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2021/03/09/openfeign%E8%BF%9C%E7%A8%8B%E8%B0%83%E7%94%A8/">openfeign远程调用</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2024/01/20/uni-app-x/">uni-app-x</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2020/06/24/%E4%B8%80%E4%BA%9B%E5%B7%A5%E5%85%B7%E7%B1%BB/">一些工具类</a>
+                </span>
+            </li>
+            
+        </ul>
+    </div>
+</aside>
+    
+    
+    <aside id="gal-sets">
+        <div class="panel panel-gal" data-aos="fade-up" data-aos-duration="2000">
+            <ul class="nav nav-pills pills-gal">
+
+                
+                <li>
+                    <a href="/2022/04/12/mysql%E5%A4%A7%E5%B0%8F%E5%86%99%E8%B8%A9%E5%9D%91/index.html#sidebar-tags" data-toggle="tab" id="tags-tab">热门标签</a>
+                </li>
+                
+                
+                <li>
+                    <a href="/2022/04/12/mysql%E5%A4%A7%E5%B0%8F%E5%86%99%E8%B8%A9%E5%9D%91/index.html#sidebar-friend-links" data-toggle="tab" id="friend-links-tab">友情链接</a>
+                </li>
+                
+                
+                <li>
+                    <a href="/2022/04/12/mysql%E5%A4%A7%E5%B0%8F%E5%86%99%E8%B8%A9%E5%9D%91/index.html#sidebar-links" data-toggle="tab" id="links-tab">个人链接</a>
+                </li>
+                
+            </ul>
+            <div class="tab-content">
+                
+                <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
+    
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.396524593970558px;" class="tag-cloud-link">软件及插件</a>
+    
+    <a href="/tags/java/" style="font-size: 16.047596299309895px;" class="tag-cloud-link">java</a>
+    
+    <a href="/tags/ai/" style="font-size: 10.369421836053952px;" class="tag-cloud-link">ai</a>
+    
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.23936123532636px;" class="tag-cloud-link">小技巧</a>
+    
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 8.542147168041097px;" class="tag-cloud-link">前端</a>
+    
+    <a href="/tags/android/" style="font-size: 14.75323861242127px;" class="tag-cloud-link">android</a>
+    
+    <a href="/tags/python/" style="font-size: 11.95780727232044px;" class="tag-cloud-link">python</a>
+    
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.582310963872334px;" class="tag-cloud-link">数据库</a>
+    
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.201327900604497px;" class="tag-cloud-link">运维</a>
+    
+    <a href="/tags/go/" style="font-size: 11.104213394553467px;" class="tag-cloud-link">go</a>
+    
+    <a href="/tags/ios/" style="font-size: 11.809931050295177px;" class="tag-cloud-link">ios</a>
+    
+    <a href="/tags/c/" style="font-size: 19.87214364614606px;" class="tag-cloud-link">c++</a>
+    
+    <a href="/tags/flutter/" style="font-size: 13.822835178467066px;" class="tag-cloud-link">flutter</a>
+    
+    <a href="/tags/Java/" style="font-size: 9.845057462151848px;" class="tag-cloud-link">Java</a>
+    
+    <a href="/tags/ruby/" style="font-size: 15.726797579032166px;" class="tag-cloud-link">ruby</a>
+    
+    <a href="/tags/c/" style="font-size: 14.346053627799334px;" class="tag-cloud-link">c</a>
+    
+    <a href="/tags/Clojure/" style="font-size: 18.56242717926661px;" class="tag-cloud-link">Clojure</a>
+    
+    <a href="/tags/bug/" style="font-size: 13.870869310833363px;" class="tag-cloud-link">bug</a>
+    
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 14.68689738289024px;" class="tag-cloud-link">其他</a>
+    
+    <a href="/tags/kotlin/" style="font-size: 8.217526386829723px;" class="tag-cloud-link">kotlin</a>
+    
+    <a href="/tags/lua/" style="font-size: 14.880451340970833px;" class="tag-cloud-link">lua</a>
+    
+    <a href="/tags/swift/" style="font-size: 11.751413023604236px;" class="tag-cloud-link">swift</a>
+    
+    <a href="/tags/minecraft/" style="font-size: 17.868510814105967px;" class="tag-cloud-link">minecraft</a>
+    
+    <a href="/tags/rust/" style="font-size: 14.52491050416894px;" class="tag-cloud-link">rust</a>
+    
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 10.373712661225177px;" class="tag-cloud-link">部署</a>
+    
+    <a href="/tags/flink/" style="font-size: 18.11424603124142px;" class="tag-cloud-link">flink</a>
+    
+    <a href="/tags/llvm/" style="font-size: 8.434750922739566px;" class="tag-cloud-link">llvm</a>
+    
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 17.230009226608423px;" class="tag-cloud-link">机器学习</a>
+    
+    <a href="/tags/php/" style="font-size: 8.571391710747367px;" class="tag-cloud-link">php</a>
+    
+    <a href="/tags/typescript/" style="font-size: 16.30994912399136px;" class="tag-cloud-link">typescript</a>
+    
+    <a href="/tags/redis/" style="font-size: 8.075273138979405px;" class="tag-cloud-link">redis</a>
+    
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.88138742916895px;" class="tag-cloud-link">设计模式</a>
+    
+    <a href="/tags/objective-c/" style="font-size: 16.79927460475713px;" class="tag-cloud-link">objective-c</a>
+    
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 9.044293138387754px;" class="tag-cloud-link">算法</a>
+    
+</div>
+                
+                
+                <div class="friend-links tab-pane nav bs-sidenav fade" id="sidebar-friend-links">
+    
+    <li>
+        <a href="https://mofan212.gitee.io/" target="_blank">Mofan</a>
+    </li>
+    
+    <li>
+        <a href="http://www.wwang.net" target="_blank">派派河鉴黄师</a>
+    </li>
+    
+    <li>
+        <a href="https://shrimp_study.gitee.io/" target="_blank">加油</a>
+    </li>
+    
+    <li>
+        <a href="https://howling.gitee.io/" target="_blank">嚎羸</a>
+    </li>
+    
+    <li>
+        <a href="https://techyang99.gitee.io/" target="_blank">Techyang</a>
+    </li>
+    
+    <li>
+        <a href="https://mujeyf.cn" target="_blank">GeekDream</a>
+    </li>
+    
+    <li>
+        <a href="https://amadasy.gitee.io/" target="_blank">Amadasy</a>
+    </li>
+    
+    <li>
+        <a href="http://47.95.208.251:8081/niubi/dist/index.html#/blog" target="_blank">NIUBI</a>
+    </li>
+    
+    <li>
+        <a href="http://www.znbiscool.icu" target="_blank">宇智波问天</a>
+    </li>
+    
+    <li>
+        <a href="https://www.xsyyds.top" target="_blank">醉相生</a>
+    </li>
+    
+    <li>
+        <a href="http://60.205.188.140:8888/" target="_blank">那就孤雏</a>
+    </li>
+    
+    <li>
+        <a href="https://www.jauxgit.top" target="_blank">jaux署记</a>
+    </li>
+    
+    <li>
+        <a href="http://septzhang.link/" target="_blank">SeptZhangの小站</a>
+    </li>
+    
+    <li>
+        <a href="http://myblog.zhaixing.work/" target="_blank">星辰驿站</a>
+    </li>
+    
+    <li>
+        <a href="https://47.93.242.4:88" target="_blank">宇泽希</a>
+    </li>
+    
+    <li>
+        <a href="https://kwydy.gitee.io/" target="_blank">这个爱酱不太聪明</a>
+    </li>
+    
+    <li>
+        <a href="https://rivencabin.gitee.io/" target="_blank">Riven的小屋</a>
+    </li>
+    
+    <li>
+        <a href="https://rocpenghua.gitee.io/" target="_blank">小鹏驿站</a>
+    </li>
+    
+    <li>
+        <a href="https://budongfeng.gitee.io/weekly/" target="_blank">生活富能量</a>
+    </li>
+    
+    <li>
+        <a href="https://zygzyg.cloud/" target="_blank">Error&#39;s Blog</a>
+    </li>
+    
+</div>
+                
+                
+                <div class="links tab-pane nav bs-sidenav fade" id="sidebar-links">
+    
+    <li>
+        <a href="https://gitee.com/vampireachao/" target="_blank">Gitee</a>
+    </li>
+    
+</div>
+                
+            </div>
+        </div>
+    </aside>
+    
+</aside>
+            </div>
+        </div>
+    </div>
+    <footer id="gal-footer">
+    <div class="container">
+        Copyright © 2018 阿超 Powered by <a href="https://hexo.io/"
+                target="_blank">Hexo</a>.&nbsp;Theme by <a href="https://github.com/ZEROKISEKI"
+                target="_blank">AONOSORA</a>
+    </div>
+</footer>
+
+<!-- 回到顶端 -->
+<div id="gal-gotop">
+    <i class="fa fa-angle-up"></i>
+</div>
+<style>
+    #cursor-circle {
+        pointer-events: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid black;
+        background: white;
+        mix-blend-mode: exclusion;
+        position: absolute;
+        z-index: 99999
+    }
+</style>
+<div id="cursor-circle"></div>
+<div id="cursor-pointer"></div>
+<script type="application/javascript">
+    const cursorCircle = document.querySelector("#cursor-circle")
+    window.addEventListener('mousemove', e => {
+        cursorCircle.style.top = document.documentElement.scrollTop + e.clientY - 11 + 'px'
+        cursorCircle.style.left = document.documentElement.scrollLeft + e.clientX - 11 + 'px'
+    })
+</script>
+</body>
+
+<script src="/js/activate-power-mode.js"></script>
+
+<script>
+
+    // 配置highslide
+	hs.graphicsDir = '/js/highslide/graphics/'
+    hs.outlineType = "rounded-white";
+    hs.dimmingOpacity = 0.8;
+    hs.outlineWhileAnimating = true;
+    hs.showCredits = false;
+    hs.captionEval = "this.thumb.alt";
+    hs.numberPosition = "caption";
+    hs.align = "center";
+    hs.transitions = ["expand", "crossfade"];
+    hs.lang.number = '共%2张图, 当前是第%1张';
+    hs.addSlideshow({
+      interval: 5000,
+      repeat: true,
+      useControls: true,
+      fixedControls: "fit",
+      overlayOptions: {
+        opacity: 0.75,
+        position: "bottom center",
+        hideOnMouseOut: true
+      }
+    })
+
+    // 初始化aos
+    AOS.init({
+      duration: 1000,
+      delay: 0,
+      easing: 'ease-out-back'
+    });
+
+</script>
+<script>
+	POWERMODE.colorful = 'true';    // make power mode colorful
+	POWERMODE.shake = 'true';       // turn off shake
+	// TODO 这里根据具体情况修改
+	document.body.addEventListener('input', POWERMODE);
+</script>
+<script>
+    window.slideConfig = {
+      prefix: '/imgs/slide/background',
+      ext: 'jpg',
+      maxCount: '6'
+    }
+</script>
+
+<script src="/js/hs.js"></script>
+<script src="/js/blog.js"></script>
+
+
+
+
+</html>

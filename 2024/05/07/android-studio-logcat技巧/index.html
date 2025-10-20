@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="/imgs/favicon.ico" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="author" content="阿超">
+  
+  <meta name="description" content="​ 我的名字叫阿超 年龄23岁 家在四川省成都市 未婚 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度">
+  
+  
+  
+  
+  
+  
+  <title>android studio logcat技巧 | 阿超</title>
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
+
+  
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/aos.css">
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<script src="/js/jquery.min.js"></script>
+
+  
+<script src="/js/bootstrap.min.js"></script>
+
+  
+<script src="/js/aos.js"></script>
+
+  
+<script src="/js/highslide/highslide-full.min.js"></script>
+
+  
+<link rel="stylesheet" href="/js/highslide/highslide.css">
+
+  <style type="text/css">
+    @media (max-width: 768px) {
+      body {
+        background-color: #f0f0f0;
+        background: url('/imgs/xsbg.jpg');
+        background-attachment: fixed;
+      }
+      .live2d-widget-container{
+        zoom: 0.5;
+      }
+      .live2d-achao{
+        width: 150px !important;
+      }
+    }
+  </style>
+  
+  <!--<script type="text/javascript">
+      if (document.images) {
+        var avatar = new Image();
+        avatar.src = '/imgs/head.png'
+        var previews = 't01d54a78939622a708.jpg,t01b5b4a7529cad373b.jpg,t01260c377a60ef55b8.jpg,t01b32959885c781013.jpg,t01c37e049c18d00e4c.jpg,t01e75d2d4734b2c35e.jpg,t013698845e810692d8.jpg,t012ec64f1e1eb1d23f.jpg,t012db749fb526b27cf.jpg,t01a2e705e6e2514c91.jpg,t0106a9c2522bdd29f7.jpg,t0192efea6a01252f4e.jpg,t01794a9e0bc4321c3c.jpg,t01d2ed30550310750e.jpg,t01a98dd6f6ea17e633.jpg,t0198fd348e2ec8b737.jpg,t0177a850faae7b42f4.jpg,t0106a5ab61a284dcb0.jpg,t01e87ea37c4903393c.jpg,t01fbcc933afdb7affd.jpg,t017299242a9d351de9.jpg,t01fd0d30d46b598a1d.jpg,t019ddfb8b5b89b8475.jpg,t019622fab8982a72ec.jpg,t01bb96bd256aaad950.jpg,t01ba97d26345750c04.jpg,t01bf50d8d5d76238c6.jpg,t01cb6096bf8cb0a285.jpg,t01c4e6c901e3efda72.jpg,t01b58ac4d441d1b546.jpg,t01f3c58eaac22c8544.jpg,t01a58e209bfdbf852b.jpg,t016ff89e6fa6041712.jpg,t0195d14f593431562a.jpg,t01c6d95214927e61c0.jpg,t019c86a25782a7044d.jpg,t014a0ca534d64adbba.jpg,t01b24e85dc07d47b0d.jpg,de1934eb4ac9abdb5e8391c829f94671.jpg'.split(',')
+        var previewsPreLoad = []
+        for(var i = 0; i < length; i++) {
+          previewsPreLoad.push(new Image())
+          previewsPreLoad[previewsPreLoad.length - 1].src = '/imgs/preview' + previews[i]
+        }
+      }
+    </script>-->
+  <script type="text/javascript">
+    // 使用message对象封装消息
+    var message = {
+      time: 0,
+      title: document.title,
+      timer: null,
+      // 显示新消息提示
+      show: function () {
+        var title = message.title.replace("【　　　】", "").replace("【新消息】", "");
+        // 定时器，设置消息切换频率闪烁效果就此产生
+        message.timer = setTimeout(function () {
+          message.time++;
+          message.show();
+          if (message.time % 2 == 0) {
+            document.title = "【新消息】" + title
+          } else {
+            document.title = "【　　　】" + title
+          };
+        }, 600);
+        return [message.timer, message.title];
+      },
+      // 取消新消息提示
+      clear: function () {
+        clearTimeout(message.timer);
+        document.title = message.title;
+      }
+    };
+    var hiddenProperty = 'hidden' in document ? 'hidden' :
+      'webkitHidden' in document ? 'webkitHidden' :
+        'mozHidden' in document ? 'mozHidden' : null;
+    var title = document.querySelector('title');
+    var visibilityChangeEvent = hiddenProperty.replace(/hidden/i, 'visibilitychange');
+    var onVisibilityChange = function () {
+      if (!document[hiddenProperty]) {
+        message.clear()
+      } else {
+        message.show()
+      }
+    }
+    document.addEventListener(visibilityChangeEvent, onVisibilityChange);
+
+
+    //随机字
+    $(function () {
+      var a_idx = 0,
+        b_idx = 0;
+      c_idx = 0;
+      jQuery(document).ready(function ($) {
+        $("body").click(function (e) {
+          var a = new Array("Daphne", "Ficus", "Iris", "Maackia", "Lythrum", "Myrica", "Sabia", "Flos", "あなたのことが好きです", "嬉しい", "頑張って！", "大丈夫です"),
+            b = new Array("#09ebfc", "#ff6651", "#ffb351", "#51ff65", "#5197ff", "#a551ff", "#ff51f7", "#ff518e", "#ff5163", "#efff51"),
+            c = new Array("12", "14", "16", "18", "20", "22", "24", "26", "28", "30");
+          var $i = $("<span/>").text(a[a_idx]);
+          a_idx = (a_idx + 1) % a.length;
+          b_idx = (b_idx + 1) % b.length;
+          c_idx = (c_idx + 1) % c.length;
+          var x = e.pageX,
+            y = e.pageY;
+          $i.css({
+            "z-index": 999,
+            "top": y - 20,
+            "left": x,
+            "position": "absolute",
+            "font-weight": "bold",
+            "font-size": c[c_idx] + "px",
+            "cursor": "url(/imgs/mouse1.cur),url(/imgs/mouse1.cur),auto",
+            "color": b[b_idx]
+          });
+          $("body").append($i);
+          $i.animate({
+            "top": y - 180,
+            "opacity": 0
+          }, 1500, function () {
+            $i.remove();
+          });
+        });
+      });
+      var _hmt = _hmt || [];
+    })
+  </script>
+  <!-- 引用看板娘交互所需的样式表 -->
+  <link href='https://VampireAchao.github.io/Pio/static/pio.css' rel='stylesheet' type='text/css'/>
+  <!-- 引用 Live2D 核心组件 -->
+  <script src='https://VampireAchao.github.io/Pio/static/l2d.js'></script>
+  <!-- 引用看板娘交互组件 -->
+  <script src='https://VampireAchao.github.io/Pio/static/pio.js'></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <!-- 背景轮播图功能 -->
+    <section class="hidden-xs">
+    <ul class="cb-slideshow">
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+    </ul>
+</section>
+    <!-- 欧尼酱功能, 谁用谁知道 -->
+    
+    <header class="navbar navbar-inverse" id="gal-header">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed"
+                    data-toggle="collapse" data-target=".bs-navbar-collapse"
+                    aria-expanded="false">
+                <span class="fa fa-lg fa-reorder"></span>
+            </button>
+            <a href="https://VampireAchao.github.io">
+                
+                    <style>
+                        #gal-header .navbar-brand {
+                            height: 54px;
+                            line-height: 24px;
+                            font-size: 28px;
+                            opacity: 1;
+                            background-color: rgba(0, 0, 0, 0);
+                            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #228DFF, 0 0 35px #228DFF, 0 0 40px #228DFF, 0 0 50px #228DFF, 0 0 75px #228DFF;
+                        }
+                    </style>
+                    <!-- 这里使用文字(navbar_text or config.title) -->
+                    <div class="navbar-brand">阿超</div>
+                
+            </a>
+        </div>
+        <div class="collapse navbar-collapse bs-navbar-collapse">
+            <ul class="nav navbar-nav" id="menu-gal">
+                
+                    
+                        <li class="">
+                            <a href="/">
+                                <i class="fa fa-home"></i>首页
+                            </a>
+                        </li>
+                    
+                
+                    
+                        <li class="">
+                            <a href="/archives">
+                                <i class="fa fa-archive"></i>文章
+                            </a>
+                        </li>
+                    
+                
+                    
+                        
+                            <li class="">
+                                <a href="/categories">
+                                    <i class="fa fa-list"></i>分类
+                                </a>
+                            </li>
+                        
+                    
+                
+                    
+                        
+                            <li class="dropdown">
+                                <!-- TODO 添加hover dropdown效果 -->
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                                   aria-haspopup="true" aria-expanded="false" data-hover="dropdown">
+                                    <i class="fa fa-tags"></i>标签
+                                </a>
+                                <ul class="dropdown-menu">
+                                    
+                                        
+                                            <li>
+                                                <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/">软件及插件</a>
+                                            </li>
+                                        
+                                            <li>
+                                                <a href="/tags/java/">java</a>
+                                            </li>
+                                        
+                                            <li>
+                                                <a href="/tags/ai/">ai</a>
+                                            </li>
+                                        
+                                        
+                                            <li>
+                                                <a href="/tags">...</a>
+                                            </li>
+                                        
+                                    
+                                </ul>
+                            </li>
+                        
+                    
+                
+                    
+                        <li class="">
+                            <a href="/2020/06/02/%E6%88%91%E7%9A%84%E5%9B%9E%E5%BF%86/">
+                                <i class="fa fa-user"></i>关于我
+                            </a>
+                        </li>
+                    
+                
+				<li>
+				    <a href="javascript:themeDbChange();">开关主题</a>
+				</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="pio-container right">
+        <div class="pio-action"></div>
+        <canvas id="pio" width="180" height="280"></canvas>
+    </div>
+    <!-- Live2DCubismCore script -->
+    <script src="https://VampireAchao.github.io/js/live2dcubismcore.js"></script>
+    <!-- Build script -->
+    <script src="https://VampireAchao.github.io/js/bundle.js"></script>
+    <canvas id="live2d" width="300" height="300" class="live2d live2d-achao"
+            style="position: fixed; opacity: 1; left: -45px;bottom: 0; z-index: 99999; pointer-events: none;"></canvas>
+    <script>
+        var pio = new Paul_Pio({
+            "mode": "fixed",
+            "hidden": false,
+            "content": {
+                "welcome": ["欢迎来到阿超的博客~", "欧尼酱！"],
+                "touch": ["今天也是元气满满的一天！", "欧尼酱！", "哈哈哈哈，不要戳了"],
+                "skin": ["想看看我的新服装吗？", "新衣服真漂亮~"],
+                "home": "点击这里回到首页！",
+                "link": "https://VampireAchao.github.io/2020/06/02/%E6%88%91%E7%9A%84%E5%9B%9E%E5%BF%86/",
+                "close": "QWQ 有缘再会吧~",
+                // "referer": "你通过 %t 来到了这里",
+                "custom": [
+                    {
+                        "selector": ".comment-form",
+                        "text": ["欢迎参与本文评论，别发小广告噢~", "快来参加本文的评论吧~"]
+                    }
+                ]
+            },
+            "model": ["https://VampireAchao.github.io/Pio/models/umaru/model.json"]
+        });
+        var resourcesPath = '/'; // 指定资源文件（模型）保存的路径
+        var backImageName = ''; // 指定背景图片
+        var modelDir = ['supa']; // 指定需要加载的模型
+        initDefine(resourcesPath, backImageName, modelDir); // 初始化模型
+        // window.localStorage.clear();    // 清理localStorage
+    </script>
+	<script>
+	function themeDbChange(){
+		let hideTheme = localStorage.getItem("hideTheme")
+		if(hideTheme != 'hideTheme'){
+
+			localStorage.setItem("hideTheme","hideTheme")
+		}else{
+			localStorage.setItem("hideTheme","disHideTheme")
+
+		}
+		themeChange()
+	}
+
+	function themeChange(){
+		let themeClass = [".cb-slideshow",".alert-gal",".pio-container",".live2d-widget-container",".live2d-achao"]
+		let themes = themeClass.map(c=>$(c))
+
+		let hideTheme = localStorage.getItem("hideTheme")
+		console.log({hideTheme})
+		if(hideTheme == 'hideTheme'){
+
+			themes.forEach(t=>t.hide())
+			$("head").children("link[href='/css/style.css']").attr('disabled', 'disabled')
+		}else{
+			themes.forEach(t=>t.show())
+			$("head").children("link[href='/css/style.css']").removeAttr('disabled')
+		}
+	}
+	$(themeChange)
+	</script>
+</header>
+
+    <div id="gal-body">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 gal-right" id="mainstay">
+                    
+<article class="article well article-body" id="article">
+    <div class="breadcrumb">
+        <i class="fa fa-home"></i>
+        <a href="https://VampireAchao.github.io">阿超</a>
+        >
+        <span>android studio logcat技巧</span>
+    </div>
+    <!-- 大型设备详细文章 -->
+    <div class="hidden-xs">
+        <div class="title-article">
+            <h1>
+                <a href="/2024/05/07/android-studio-logcat%E6%8A%80%E5%B7%A7/">android studio logcat技巧</a>
+            </h1>
+        </div>
+        <div class="tag-article">
+            
+            <span class="label label-gal">
+                <i class="fa fa-tags"></i>
+                
+                <a href="/tags/android/">android</a>
+                
+            </span>
+            
+            <span class="label label-gal">
+                <i class="fa fa-calendar"></i> 2024-05-07
+            </span>
+            
+        </div>
+    </div>
+    <!-- 小型设备详细文章 -->
+    <div class="visible-xs">
+        <center>
+            <div class="title-article">
+                <h4>
+                    <a href="/2024/05/07/android-studio-logcat%E6%8A%80%E5%B7%A7/">android studio logcat技巧</a>
+                </h4>
+            </div>
+            <p>
+                <i class="fa fa-calendar"></i> 2024-05-07
+            </p>
+            <p>
+                
+                <i class="fa fa-tags"></i>
+                
+                <a href="/tags/android/">android</a>
+                
+                
+                
+            </p>
+        </center>
+    </div>
+    <div class="content-article">
+        <blockquote>
+<p>对人民来说，唯一的权利是法律，对个人来说唯一的权利是良心。——雨果</p>
+</blockquote>
+<p>很多朋友不会用 <code>LogCat</code> 看日志</p>
+<p><a target="_blank" rel="noopener" href="https://developer.android.google.cn/studio/debug/logcat">View logs with Logcat  |  Android Studio  |  Android Developers</a></p>
+<p>这个是官方文档，例如这里可以反向筛选：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">level:error -tag:DeviceDoctorHandler -tag:AndroidRuntime -tag:OOMEventManager -tag:MiuiFastConnectService -tag:.gms.persisten -tag:ANDR-PERF -tag:SELinux -tag:GCM -tag:libc<br></code></pre></td></tr></table></figure>
+<p>这里就是筛选出除了后面一大串 <code>Tag</code> 的 <code>Error</code> 等级日志</p>
+<p>译文：</p>
+<h1 id="使用logcat查看日志"><a class="markdownIt-Anchor" href="#使用logcat查看日志"></a> 使用Logcat查看日志</h1>
+<p>Android Studio 中的 Logcat 窗口通过实时显示来自设备的日志来帮助您调试应用程序，例如，使用 <code>Log</code> 类添加到应用程序的消息、来自在 Android 上运行的服务的消息、或系统消息，例如发生垃圾收集时。当应用程序引发异常时，Logcat 会显示一条消息，后跟包含该代码行链接的关联堆栈跟踪。</p>
+<h2 id="logcat-窗口入门"><a class="markdownIt-Anchor" href="#logcat-窗口入门"></a> Logcat 窗口入门</h2>
+<p>要查看应用程序的日志消息，请执行以下操作。</p>
+<ol>
+<li>在 Android Studio 中，在物理设备或模拟器上构建并运行您的应用。</li>
+<li>从菜单栏中选择“视图”&gt;“工具窗口”&gt;“Logcat”。</li>
+</ol>
+<p>默认情况下，Logcat 滚动到末尾。单击 Logcat 视图或使用鼠标滚轮向上滚动可关闭此功能。要重新打开它，请从工具栏中单击滚动到末尾 <img src="https://developer.android.google.cn/static/studio/images/buttons/logcat-scroll-end.png" alt="Scroll to the End icon" /> 。您还可以使用工具栏清除、暂停或重新启动 Logcat。</p>
+<p><img src="https://developer.android.google.cn/static/studio/images/debug/logcat-window.png" alt="The Logcat window UI" /></p>
+<p>图 1.Logcat 格式化日志，以便更轻松地扫描有用信息（例如标签和消息）并识别不同类型的日志（例如警告和错误）。</p>
+<h3 id="如何读取日志"><a class="markdownIt-Anchor" href="#如何读取日志"></a> 如何读取日志</h3>
+<p>每个日志都有一个日期、时间戳、进程和线程 ID、标签、包名称、优先级以及与其关联的消息。不同的标签具有独特的颜色，有助于识别日志的类型。每个日志条目的优先级为 <code>FATAL</code> 、 <code>ERROR</code> 、 <code>WARNING</code> 、 <code>INFO</code> 、 <code>DEBUG</code> 或 <code>VERBOSE</code> 。</p>
+<p>例如，以下日志消息的优先级为 <code>DEBUG</code> ，标签为 <code>ProfileInstaller</code> ：</p>
+<p>2022-12-29 04:00:18.823 30249-30321 ProfileInstaller        com.google.samples.apps.sunflower    D  Installing profile for com.google.samples.apps.sunflower</p>
+<h3 id="配置日志视图"><a class="markdownIt-Anchor" href="#配置日志视图"></a> 配置日志视图</h3>
+<p>标准日志视图显示每个日志的日期、时间、进程和线程 ID、标签、包名称、优先级以及与其关联的消息。默认情况下，消息行不会在日志视图中换行，但您可以使用 Logcat 工具栏中的 Soft-Wrap <img src="https://developer.android.google.cn/static/studio/images/buttons/logcat-soft-wrap.png" alt="Soft-Wrap icon" /> 选项。</p>
+<p>您可以通过单击 Logcat 工具栏中的配置 Logcat 格式选项 <img src="https://developer.android.google.cn/static/studio/images/buttons/logcat-formatting-options.png" alt="" /> 切换到默认显示信息较少的紧凑视图。</p>
+<p>要进一步配置要显示的信息量，请选择“修改视图”，然后选择是否要查看显示的时间戳、标签、进程 ID 或包名称。</p>
+<h4 id="更改配色方案"><a class="markdownIt-Anchor" href="#更改配色方案"></a> 更改配色方案</h4>
+<p>要更改配色方案，请导航至 Android Studio &gt; 设置 &gt; 编辑器 &gt; 配色方案。要更改日志视图的配色方案，请选择 Android Logcat。要更改过滤器的配色方案，请选择 Logcat 过滤器。</p>
+<h4 id="附加配置选项"><a class="markdownIt-Anchor" href="#附加配置选项"></a> 附加配置选项</h4>
+<p>有关其他配置选项，请导航至 Android Studio &gt; 设置 &gt; 工具 &gt; Logcat。从这里，您可以选择 Logcat 循环缓冲区大小、新 Logcat 窗口的默认过滤器，以及是否要将历史过滤器添加到自动完成。</p>
+<h3 id="在多个窗口中使用logcat"><a class="markdownIt-Anchor" href="#在多个窗口中使用logcat"></a> 在多个窗口中使用Logcat</h3>
+<p>选项卡可帮助您轻松在不同设备或查询之间切换。您可以通过单击新建选项卡 <img src="https://developer.android.google.cn/static/studio/images/buttons/logcat-new-tab.png" alt="New Tab icon" /> 创建多个 Logcat 选项卡。右键单击选项卡可以对其进行重命名和重新排列。</p>
+<p>此外，您可以在选项卡中拆分视图，以帮助您更轻松地比较两组日志。要创建拆分，请在日志视图中右键单击或单击工具栏中的“拆分面板”选项，然后选择“向右拆分”或“向下拆分”。要关闭拆分，请右键单击并选择关闭。每个拆分都允许您设置自己的设备连接、查看选项和查询。</p>
+<p><img src="https://developer.android.google.cn/static/studio/images/debug/logcat-split-view.png" alt="Multiple Logcat windows" /> 图 2. Android Studio 中的拆分 Logcat 窗口。</p>
+<p>在 Logcat 工具栏中，您可以滚动到日志末尾，也可以单击特定行以保持该行可见。</p>
+<p>在 Android Studio 中，您可以直接从主查询字段生成键值搜索。该查询系统提供您想要查询的内容的准确性，并根据键值排除日志。虽然您可以选择使用正则表达式，但您不必依赖它们进行查询。要查看建议，请在查询字段中按 <code>Ctrl</code> + <code>Space</code> 。</p>
+<p><img src="https://developer.android.google.cn/static/studio/images/debug/logcat-query-suggestions.png" alt="List of suggestions in the query field" /> 图 3. 在查询字段中按 <code>Ctrl</code> + <code>Space</code> 可查看建议查询的列表。</p>
+<p>以下是您可以在查询中使用的键的一些示例：</p>
+<ul>
+<li><code>tag</code> ：与日志条目的 <code>tag</code> 字段匹配。</li>
+<li><code>package</code> ：与日志记录应用程序的包名称匹配。</li>
+<li><code>process</code> ：与日志记录应用程序的进程名称匹配。</li>
+<li><code>message</code> ：与日志条目的消息部分匹配。</li>
+<li><code>level</code> ：匹配指定或更高的严重日志级别 - 例如， <code>DEBUG</code> 。</li>
+<li><code>age</code> ：如果条目时间戳是最近的，则匹配。值指定为数字后跟指定时间单位的字母： <code>s</code> 表示秒， <code>m</code> 表示分钟， <code>h</code> 表示小时， <code>d</code> 仅过滤过去 5 分钟内记录的消息。</li>
+</ul>
+<p>以下字段支持否定和正则表达式匹配： <code>tag</code> 、 <code>package</code> 、 <code>message</code> 和 <code>line</code> 。</p>
+<p>通过在字段名称前添加 <code>-</code> 来表示否定。例如， <code>-tag:MyTag</code> 匹配 <code>tag</code> 不包含字符串 <code>MyTag</code> 的日志条目。</p>
+<p>正则表达式匹配是通过在字段名后附加 <code>~</code> 来表示的。例如， <code>tag~:My.*Tag</code> 。</p>
+<p>否定和正则表达式修饰符可以组合使用。例如， <code>-tag~:My.*Tag</code> 。</p>
+<h3 id="logical-operators-and-parentheses"><a class="markdownIt-Anchor" href="#logical-operators-and-parentheses"></a> Logical operators and parentheses</h3>
+<p>查询语言支持由 <code>&amp;</code> 和 <code>|</code> 以及括号表示的 <code>AND</code> 和 <code>OR</code> 运算符。例如：</p>
+<p><code>(tag:foo | level:ERROR) &amp; package:mine</code></p>
+<p>请注意，强制执行正常的运算符优先级，因此如下：</p>
+<p><code>tag:foo | level:ERROR &amp; package:mine</code></p>
+<p>被评价为：</p>
+<p><code>tag:foo | (level:ERROR &amp; package:mine)</code></p>
+<h3 id="implicit-logical-operators"><a class="markdownIt-Anchor" href="#implicit-logical-operators"></a> Implicit logical operators</h3>
+<p>如果未应用逻辑运算符，则查询语言会自动评估多个非否定 <code>key-value</code> 过滤条件，其键与 <code>OR</code> 相同，而其他所有内容均具有 <code>AND</code> .</p>
+<p>例如：</p>
+<p><code>tag:foo tag:bar package:myapp</code></p>
+<p>被评价为：</p>
+<p><code>(tag:foo | tag:bar) &amp; package:myapp</code></p>
+<p>但：</p>
+<p><code>tag:foo -tag:bar package:myapp</code></p>
+<p>被评价为：</p>
+<p><code>tag:foo &amp; -tag:bar &amp; package:myapp</code></p>
+<p>如果多个查询项由空格分隔且没有逻辑运算符，则它们将被视为具有低优先级的 AND。例如，术语 <code>foo bar tag:bar1 | tag:bar2</code> 相当于 <code>'foo bar' &amp; (tag: bar1 | tag: bar2)</code> 。</p>
+<h3 id="special-queries"><a class="markdownIt-Anchor" href="#special-queries"></a> Special queries</h3>
+<p><strong><code>package:mine</code></strong></p>
+<p>包密钥支持特殊值 <code>mine</code> 。此特殊值与打开的项目中包含的任何包名称相匹配。</p>
+<p><strong><code>level</code></strong></p>
+<p><code>level</code> 查询与 Logcat 消息的日志级别匹配，其中日志条目级别大于或等于查询级别。</p>
+<p>例如， <code>level:INFO</code> 匹配日志级别为 <code>INFO</code> 、 <code>WARN</code> 、 <code>ERROR</code> 或 <code>ASSERT</code> 的任何日志条目。级别不区分大小写。有效级别为： <code>VERBOSE</code> 、 <code>DEBUG</code> 、 <code>INFO</code> 、 <code>WARN</code> 、 <code>ERROR</code> 和 <code>ASSERT</code> .</p>
+<p><strong><code>age</code></strong></p>
+<p><code>age</code> 查询根据时间戳匹配条目，格式为 <code>age:&lt;number&gt;&lt;unit&gt;</code> ，其中</p>
+<ul>
+<li><code>&lt;number&gt;</code> 是一个整数</li>
+<li><code>&lt;unit&gt;</code> 是 <code>s</code> 、 <code>m</code> 、 <code>h</code> 和 <code>d</code> 之一（秒、分钟、小时和天）。</li>
+</ul>
+<p>给定以下列表， <code>age</code> 查询将匹配时间戳在值所描述的范围内的日志消息。例如：查询 <code>age:5m</code> 匹配时间戳不早于 5 分钟前的条目。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">age:30sage:5mage:3hage:1d<br></code></pre></td></tr></table></figure>
+<p>请注意，时间戳是与主机的时间戳进行比较，而不是与连接的设备的时间戳进行比较。如果设备的时间设置不正确，则此查询可能无法按预期工作。</p>
+<p><strong><code>is</code> 键</strong></p>
+<p>您可以按如下方式使用 <code>is</code> 键：</p>
+<ul>
+<li><code>is:crash</code> 匹配表示应用程序崩溃（本机或 Java）的日志条目。</li>
+<li><code>is:stacktrace</code> 匹配代表任何看起来像 Java 堆栈跟踪的日志条目，无论日志级别如何。</li>
+</ul>
+<p><strong><code>name</code> 键</strong></p>
+<p><code>name</code> 键可让您为已保存的过滤器提供唯一的名称，以便在过滤器历史记录下拉列表中轻松识别它。尽管多次指定 <code>name</code> 不会出现错误，但 IDE 仅在查询中使用 <code>name</code> 最后指定的值。</p>
+<h3 id="view-query-history"><a class="markdownIt-Anchor" href="#view-query-history"></a> View query history</h3>
+<p>您可以通过单击查询字段旁边的显示历史记录 <img src="https://developer.android.google.cn/static/studio/images/buttons/logcat-filter-icon.png" alt="Filter icon" /> 来查看查询历史记录。要收藏某个查询，使其位于所有工作室项目列表的顶部，请单击它旁边的星号。您还可以使用 <code>name:</code> 键使收藏夹查询更易于识别。有关详细信息，请参阅特殊查询。</p>
+<p><img src="https://developer.android.google.cn/static/studio/images/debug/logcat-fav-query.png" alt="UI for favoriting a query" /></p>
+<p>图 4. 通过单击查询旁边的星号来收藏该查询。</p>
+<h2 id="track-logs-across-app-crashes-and-restarts"><a class="markdownIt-Anchor" href="#track-logs-across-app-crashes-and-restarts"></a> Track logs across app crashes and restarts</h2>
+<p>当 Logcat 注意到您的应用程序进程已停止并重新启动时，它会在输出中显示一条消息，例如 <code>PROCESS ENDED</code> 和 <code>PROCESS STARTED</code> 。重新启动 Logcat 会保留您的会话配置，例如选项卡拆分、筛选器和视图选项，以便您可以轻松地继续会话。</p>
+<p><img src="https://developer.android.google.cn/static/studio/images/debug/logcat-track-crashes.png" alt="Logcat window for app crashes" /></p>
+<p>图 5. 当您的应用程序进程重新启动时，Logcat 会打印一条消息，表明该进程已结束然后又开始。</p>
+
+    </div>
+</article>
+
+
+                </div>
+                <aside class="col-md-4 gal-left" id="sidebar">
+    <!-- 此为sidebar的搜索框, 非搜索结果页面 -->
+<aside id="sidebar-search">
+    <div class="search" data-aos="fade-up" data-aos-duration="2000">
+        <form class="form-inline clearfix" id="search-form" method="get"
+              action="/search/index.html">
+            <input type="text" name="s" class="form-control" id="searchInput" placeholder="搜索文章~" autocomplete="off">
+            <button class="btn btn-danger btn-gal" type="submit">
+                <i class="fa fa-search"></i>
+            </button>
+        </form>
+    </div>
+</aside>
+    <aside id="sidebar-author">
+    <div class="panel panel-gal" data-aos="flip-right" data-aos-duration="3000">
+        <div class="panel-heading" style="text-align: center">
+            <i class="fa fa-quote-left"></i>
+            阿超
+            <i class="fa fa-quote-right"></i>
+        </div>
+        <div class="author-panel text-center">
+            <div class="author-avatar">
+            <img src="/imgs/head.png"
+                             alt="个人头像" class="author-image">
+            </div>
+            <p class="author-description"><p>​ 我的名字叫阿超 年龄23岁 家在四川省成都市 未婚 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</p>
+</p>
+        </div>
+    </div>
+</aside>
+
+    
+    <aside id="sidebar-recent_comments">
+    <div class="panel panel-gal recent hidden-xs" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-comments"></i>
+            最新评论
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush"></ul>
+    </div>
+</aside>
+    
+    <!-- 要配置好leancloud才能开启此小工具 -->
+    
+    
+    <aside id="sidebar-recent_posts">
+    <div class="panel panel-gal recent hidden-xs" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-refresh"></i>
+            近期文章
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush">
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/20/symfony/">symfony</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/19/ollama/">ollama</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/18/free-for-dev/">free-for-dev</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/17/pathway/">pathway</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/16/meshery/">meshery</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/15/jekyll-theme-chirpy/">jekyll-theme-chirpy</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/14/ab-download-manager/">ab-download-manager</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/13/agent-framework/">agent-framework</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/12/weekly/">weekly</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/11/SDWebImage/">SDWebImage</a>
+                </span>
+            </li>
+            
+        </ul>
+    </div>
+</aside>
+    
+    
+    <aside id="sidebar-rand_posts">
+    <div class="panel panel-gal recent" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-refresh"></i>
+            随机文章
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush">
+            
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2020/09/30/docker%E5%90%AF%E5%8A%A8%E6%97%B6%E6%8C%87%E5%AE%9A%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F/">docker启动时指定环境变量</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/03/07/dvajs/">dvajs</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2020/07/11/js%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E5%8C%85%E5%90%AB%E6%9F%90%E4%B8%AA%E5%80%BC/">js判断是否包含某个值</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2024/07/24/js%E6%97%A5%E6%9C%9F%E5%BA%93moment/">js日期库moment</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2024/01/06/like-concat-%E5%85%BC%E5%AE%B9h2%E3%80%81mysql%E3%80%81pgsql%E8%AF%AD%E6%B3%95/">like concat 兼容h2、mysql、pgsql语法</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2021/06/28/mybatis-plus%E8%87%AA%E5%8A%A8%E5%A1%AB%E5%85%85/">mybatis-plus自动填充</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2024/06/30/nativeShare-js/">nativeShare.js</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/02/24/raylib/">raylib</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/04/18/ubuntu%E4%BF%AE%E6%94%B9jenkins%E7%AB%AF%E5%8F%A3%E9%97%AE%E9%A2%98/">ubuntu修改jenkins端口问题</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2023/09/08/%E7%94%B3%E8%AF%B7%E5%8F%91%E5%B8%83maven%E4%B8%AD%E5%A4%AE%E4%BB%93%E5%BA%93%E7%9A%84%E8%B4%A6%E5%8F%B7/">申请发布maven中央仓库的账号</a>
+                </span>
+            </li>
+            
+        </ul>
+    </div>
+</aside>
+    
+    
+    <aside id="gal-sets">
+        <div class="panel panel-gal" data-aos="fade-up" data-aos-duration="2000">
+            <ul class="nav nav-pills pills-gal">
+
+                
+                <li>
+                    <a href="/2024/05/07/android-studio-logcat%E6%8A%80%E5%B7%A7/index.html#sidebar-tags" data-toggle="tab" id="tags-tab">热门标签</a>
+                </li>
+                
+                
+                <li>
+                    <a href="/2024/05/07/android-studio-logcat%E6%8A%80%E5%B7%A7/index.html#sidebar-friend-links" data-toggle="tab" id="friend-links-tab">友情链接</a>
+                </li>
+                
+                
+                <li>
+                    <a href="/2024/05/07/android-studio-logcat%E6%8A%80%E5%B7%A7/index.html#sidebar-links" data-toggle="tab" id="links-tab">个人链接</a>
+                </li>
+                
+            </ul>
+            <div class="tab-content">
+                
+                <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
+    
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.742730097389302px;" class="tag-cloud-link">软件及插件</a>
+    
+    <a href="/tags/java/" style="font-size: 12.003422081219538px;" class="tag-cloud-link">java</a>
+    
+    <a href="/tags/ai/" style="font-size: 9.88844780795873px;" class="tag-cloud-link">ai</a>
+    
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 8.19061776169764px;" class="tag-cloud-link">小技巧</a>
+    
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.521847554581253px;" class="tag-cloud-link">前端</a>
+    
+    <a href="/tags/android/" style="font-size: 12.56224408677188px;" class="tag-cloud-link">android</a>
+    
+    <a href="/tags/python/" style="font-size: 12.152190590407471px;" class="tag-cloud-link">python</a>
+    
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.201557936501747px;" class="tag-cloud-link">数据库</a>
+    
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 15.308933884952445px;" class="tag-cloud-link">运维</a>
+    
+    <a href="/tags/go/" style="font-size: 10.425395648650243px;" class="tag-cloud-link">go</a>
+    
+    <a href="/tags/ios/" style="font-size: 18.766244370473466px;" class="tag-cloud-link">ios</a>
+    
+    <a href="/tags/c/" style="font-size: 14.8839320211761px;" class="tag-cloud-link">c++</a>
+    
+    <a href="/tags/flutter/" style="font-size: 17.134264530556397px;" class="tag-cloud-link">flutter</a>
+    
+    <a href="/tags/Java/" style="font-size: 10.35559661468145px;" class="tag-cloud-link">Java</a>
+    
+    <a href="/tags/ruby/" style="font-size: 12.608359203606664px;" class="tag-cloud-link">ruby</a>
+    
+    <a href="/tags/c/" style="font-size: 8.83399857081373px;" class="tag-cloud-link">c</a>
+    
+    <a href="/tags/Clojure/" style="font-size: 13.16845815133749px;" class="tag-cloud-link">Clojure</a>
+    
+    <a href="/tags/bug/" style="font-size: 13.099062550685908px;" class="tag-cloud-link">bug</a>
+    
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 12.293782255309049px;" class="tag-cloud-link">其他</a>
+    
+    <a href="/tags/kotlin/" style="font-size: 10.914677195843058px;" class="tag-cloud-link">kotlin</a>
+    
+    <a href="/tags/lua/" style="font-size: 17.71321821121658px;" class="tag-cloud-link">lua</a>
+    
+    <a href="/tags/swift/" style="font-size: 18.716776968122346px;" class="tag-cloud-link">swift</a>
+    
+    <a href="/tags/minecraft/" style="font-size: 10.35100426651712px;" class="tag-cloud-link">minecraft</a>
+    
+    <a href="/tags/rust/" style="font-size: 10.741505038553376px;" class="tag-cloud-link">rust</a>
+    
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 14.998246116915562px;" class="tag-cloud-link">部署</a>
+    
+    <a href="/tags/flink/" style="font-size: 14.048928042340293px;" class="tag-cloud-link">flink</a>
+    
+    <a href="/tags/llvm/" style="font-size: 19.593318300714994px;" class="tag-cloud-link">llvm</a>
+    
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.817549328285757px;" class="tag-cloud-link">机器学习</a>
+    
+    <a href="/tags/php/" style="font-size: 16.512596598191752px;" class="tag-cloud-link">php</a>
+    
+    <a href="/tags/typescript/" style="font-size: 18.90316147608985px;" class="tag-cloud-link">typescript</a>
+    
+    <a href="/tags/redis/" style="font-size: 11.996836231726027px;" class="tag-cloud-link">redis</a>
+    
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 8.256184179332791px;" class="tag-cloud-link">设计模式</a>
+    
+    <a href="/tags/objective-c/" style="font-size: 16.42171557772156px;" class="tag-cloud-link">objective-c</a>
+    
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 15.119276709349863px;" class="tag-cloud-link">算法</a>
+    
+</div>
+                
+                
+                <div class="friend-links tab-pane nav bs-sidenav fade" id="sidebar-friend-links">
+    
+    <li>
+        <a href="https://mofan212.gitee.io/" target="_blank">Mofan</a>
+    </li>
+    
+    <li>
+        <a href="http://www.wwang.net" target="_blank">派派河鉴黄师</a>
+    </li>
+    
+    <li>
+        <a href="https://shrimp_study.gitee.io/" target="_blank">加油</a>
+    </li>
+    
+    <li>
+        <a href="https://howling.gitee.io/" target="_blank">嚎羸</a>
+    </li>
+    
+    <li>
+        <a href="https://techyang99.gitee.io/" target="_blank">Techyang</a>
+    </li>
+    
+    <li>
+        <a href="https://mujeyf.cn" target="_blank">GeekDream</a>
+    </li>
+    
+    <li>
+        <a href="https://amadasy.gitee.io/" target="_blank">Amadasy</a>
+    </li>
+    
+    <li>
+        <a href="http://47.95.208.251:8081/niubi/dist/index.html#/blog" target="_blank">NIUBI</a>
+    </li>
+    
+    <li>
+        <a href="http://www.znbiscool.icu" target="_blank">宇智波问天</a>
+    </li>
+    
+    <li>
+        <a href="https://www.xsyyds.top" target="_blank">醉相生</a>
+    </li>
+    
+    <li>
+        <a href="http://60.205.188.140:8888/" target="_blank">那就孤雏</a>
+    </li>
+    
+    <li>
+        <a href="https://www.jauxgit.top" target="_blank">jaux署记</a>
+    </li>
+    
+    <li>
+        <a href="http://septzhang.link/" target="_blank">SeptZhangの小站</a>
+    </li>
+    
+    <li>
+        <a href="http://myblog.zhaixing.work/" target="_blank">星辰驿站</a>
+    </li>
+    
+    <li>
+        <a href="https://47.93.242.4:88" target="_blank">宇泽希</a>
+    </li>
+    
+    <li>
+        <a href="https://kwydy.gitee.io/" target="_blank">这个爱酱不太聪明</a>
+    </li>
+    
+    <li>
+        <a href="https://rivencabin.gitee.io/" target="_blank">Riven的小屋</a>
+    </li>
+    
+    <li>
+        <a href="https://rocpenghua.gitee.io/" target="_blank">小鹏驿站</a>
+    </li>
+    
+    <li>
+        <a href="https://budongfeng.gitee.io/weekly/" target="_blank">生活富能量</a>
+    </li>
+    
+    <li>
+        <a href="https://zygzyg.cloud/" target="_blank">Error&#39;s Blog</a>
+    </li>
+    
+</div>
+                
+                
+                <div class="links tab-pane nav bs-sidenav fade" id="sidebar-links">
+    
+    <li>
+        <a href="https://gitee.com/vampireachao/" target="_blank">Gitee</a>
+    </li>
+    
+</div>
+                
+            </div>
+        </div>
+    </aside>
+    
+</aside>
+            </div>
+        </div>
+    </div>
+    <footer id="gal-footer">
+    <div class="container">
+        Copyright © 2018 阿超 Powered by <a href="https://hexo.io/"
+                target="_blank">Hexo</a>.&nbsp;Theme by <a href="https://github.com/ZEROKISEKI"
+                target="_blank">AONOSORA</a>
+    </div>
+</footer>
+
+<!-- 回到顶端 -->
+<div id="gal-gotop">
+    <i class="fa fa-angle-up"></i>
+</div>
+<style>
+    #cursor-circle {
+        pointer-events: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid black;
+        background: white;
+        mix-blend-mode: exclusion;
+        position: absolute;
+        z-index: 99999
+    }
+</style>
+<div id="cursor-circle"></div>
+<div id="cursor-pointer"></div>
+<script type="application/javascript">
+    const cursorCircle = document.querySelector("#cursor-circle")
+    window.addEventListener('mousemove', e => {
+        cursorCircle.style.top = document.documentElement.scrollTop + e.clientY - 11 + 'px'
+        cursorCircle.style.left = document.documentElement.scrollLeft + e.clientX - 11 + 'px'
+    })
+</script>
+</body>
+
+<script src="/js/activate-power-mode.js"></script>
+
+<script>
+
+    // 配置highslide
+	hs.graphicsDir = '/js/highslide/graphics/'
+    hs.outlineType = "rounded-white";
+    hs.dimmingOpacity = 0.8;
+    hs.outlineWhileAnimating = true;
+    hs.showCredits = false;
+    hs.captionEval = "this.thumb.alt";
+    hs.numberPosition = "caption";
+    hs.align = "center";
+    hs.transitions = ["expand", "crossfade"];
+    hs.lang.number = '共%2张图, 当前是第%1张';
+    hs.addSlideshow({
+      interval: 5000,
+      repeat: true,
+      useControls: true,
+      fixedControls: "fit",
+      overlayOptions: {
+        opacity: 0.75,
+        position: "bottom center",
+        hideOnMouseOut: true
+      }
+    })
+
+    // 初始化aos
+    AOS.init({
+      duration: 1000,
+      delay: 0,
+      easing: 'ease-out-back'
+    });
+
+</script>
+<script>
+	POWERMODE.colorful = 'true';    // make power mode colorful
+	POWERMODE.shake = 'true';       // turn off shake
+	// TODO 这里根据具体情况修改
+	document.body.addEventListener('input', POWERMODE);
+</script>
+<script>
+    window.slideConfig = {
+      prefix: '/imgs/slide/background',
+      ext: 'jpg',
+      maxCount: '6'
+    }
+</script>
+
+<script src="/js/hs.js"></script>
+<script src="/js/blog.js"></script>
+
+
+
+
+</html>
