@@ -15,7 +15,7 @@
   
   
   <title>mysql单条sql批量更新封装 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>mysql单条sql批量更新封装</span>
     </div>
@@ -399,7 +399,7 @@
         <blockquote>
 <p>要成就大事业，就要趁青年时代——歌德</p>
 </blockquote>
-<p>之前写了：<a href="https://VampireAchao.github.io/2022/07/28/mysql%E5%8D%95%E6%9D%A1sql%E6%89%B9%E9%87%8F%E6%96%B0%E5%A2%9E%E5%B0%81%E8%A3%85/">mysql单条sql批量新增封装</a></p>
+<p>之前写了：<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2022/07/28/mysql%E5%8D%95%E6%9D%A1sql%E6%89%B9%E9%87%8F%E6%96%B0%E5%A2%9E%E5%B0%81%E8%A3%85/">mysql单条sql批量新增封装</a></p>
 <p>现在写个批量更新的，<a target="_blank" rel="noopener" href="https://gitee.com/VampireAchao/stream-query/blob/master/stream-plugin/stream-plugin-mybatis-plus/src/main/java/io/github/vampireachao/stream/plugin/mybatisplus/engine/methods/UpdateOneSql.java">源码地址</a></p>
 <p>目前还不支持乐观锁，主要代码如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> io.github.vampireachao.stream.plugin.mybatisplus.engine.methods;<br><br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.injector.AbstractMethod;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.metadata.TableInfo;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.toolkit.sql.SqlScriptUtils;<br><span class="hljs-keyword">import</span> io.github.vampireachao.stream.core.stream.Steam;<br><span class="hljs-keyword">import</span> io.github.vampireachao.stream.plugin.mybatisplus.engine.constant.PluginConst;<br><span class="hljs-keyword">import</span> io.github.vampireachao.stream.plugin.mybatisplus.engine.enumration.SqlMethodEnum;<br><span class="hljs-keyword">import</span> org.apache.ibatis.mapping.MappedStatement;<br><span class="hljs-keyword">import</span> org.apache.ibatis.mapping.SqlSource;<br><br><span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> com.baomidou.mybatisplus.core.enums.SqlKeyword.IN;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 修改多条数据（mysql语法批量）</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> sikadai VampireAchao</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UpdateOneSql</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">AbstractMethod</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PluginConst</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">UpdateOneSql</span><span class="hljs-params">(String methodName)</span> &#123;<br>        <span class="hljs-built_in">super</span>(methodName);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 注入自定义 MappedStatement</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> mapperClass mapper 接口</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> modelClass  mapper 泛型</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> tableInfo   数据库表反射信息</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> MappedStatement</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> MappedStatement <span class="hljs-title function_">injectMappedStatement</span><span class="hljs-params">(Class&lt;?&gt; mapperClass, Class&lt;?&gt; modelClass, TableInfo tableInfo)</span> &#123;<br>        <span class="hljs-type">SqlMethodEnum</span> <span class="hljs-variable">sqlMethod</span> <span class="hljs-operator">=</span> SqlMethodEnum.UPDATE_ONE_SQL;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">caseWhenScript</span> <span class="hljs-operator">=</span> buildCaseWhen(tableInfo);<br>        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">whereScript</span> <span class="hljs-operator">=</span> buildWhereSql(tableInfo);<br>        <span class="hljs-type">String</span> <span class="hljs-variable">sql</span> <span class="hljs-operator">=</span> String.format(sqlMethod.getSql(), tableInfo.getTableName(), caseWhenScript, whereScript);<br>        <span class="hljs-type">SqlSource</span> <span class="hljs-variable">sqlSource</span> <span class="hljs-operator">=</span> languageDriver.createSqlSource(configuration, sql, modelClass);<br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>.addUpdateMappedStatement(mapperClass, modelClass, sqlSource);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * &lt;p&gt;</span><br><span class="hljs-comment">     * 构建caseWhen的更新语句</span><br><span class="hljs-comment">     * &lt;/p&gt;</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> tableInfo 表信息</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> caseWhen的更新语句</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@author</span> VampireAchao sikadai</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@since</span> 2022/8/24 18:42</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String <span class="hljs-title function_">buildCaseWhen</span><span class="hljs-params">(TableInfo tableInfo)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">safeKeyProperty</span> <span class="hljs-operator">=</span> SqlScriptUtils.safeParam(ENTITY_DOT + tableInfo.getKeyProperty());<br>        <span class="hljs-keyword">return</span> Steam.of(tableInfo.getFieldList())<br>                .filter(i -&gt; !i.isLogicDelete())<br>                .map(i -&gt; i.getColumn() + EQUALS + CASE + SPACE + tableInfo.getKeyColumn() + NEWLINE +<br>                        SqlScriptUtils.convertForeach(SqlScriptUtils.convertChoose(<br>                                String.format(NON_NULL_CONDITION, ENTITY, ENTITY_DOT + i.getProperty())<br>                                , String.format(WHEN_THEN, safeKeyProperty, SqlScriptUtils.safeParam(ENTITY_DOT + i.getProperty())),<br>                                String.format(WHEN_THEN, safeKeyProperty, i.getColumn())), COLLECTION_PARAM_NAME, <span class="hljs-literal">null</span>, ENTITY, <span class="hljs-literal">null</span>)<br>                        + END<br>                )<br>                .join(COMMA + NEWLINE) + NEWLINE;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * &lt;p&gt;</span><br><span class="hljs-comment">     * 构建where的批量更新</span><br><span class="hljs-comment">     * &lt;/p&gt;</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> tableInfo 表信息</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> java.lang.StringBuilder</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@author</span> VampireAchao sikadai</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@since</span> 2022/8/24 18:43</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> StringBuilder <span class="hljs-title function_">buildWhereSql</span><span class="hljs-params">(TableInfo tableInfo)</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>().append(NEWLINE)<br>                .append(tableInfo.getKeyColumn()).append(SPACE).append(IN.getSqlSegment()).append(NEWLINE)<br>                .append(LEFT_BRACKET)<br>                .append(SqlScriptUtils.convertForeach(SqlScriptUtils.safeParam(ENTITY_DOT + tableInfo.getKeyProperty()),<br>                        COLLECTION_PARAM_NAME, <span class="hljs-literal">null</span>, ENTITY, COMMA))<br>                .append(RIGHT_BRACKET).append(NEWLINE)<br>                .append(tableInfo.getLogicDeleteSql(<span class="hljs-literal">true</span>, <span class="hljs-literal">true</span>));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
@@ -470,6 +470,24 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/11/10/MaxKB/">MaxKB</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/11/09/LocalAI/">LocalAI</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/11/08/nano-vllm/">nano-vllm</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/11/07/apache-shenyu%E5%AF%B9%E6%8E%A5mcp-server-swagger-import/">apache-shenyu对接mcp-server-swagger-import</a>
                 </span>
             </li>
@@ -510,24 +528,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/10/31/uptime-kuma/">uptime-kuma</a>
-                </span>
-            </li>
-            
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/10/30/awesome-math/">awesome-math</a>
-                </span>
-            </li>
-            
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/10/29/apache-shenyu%E5%A4%84%E7%90%86discoveryType%E9%97%AE%E9%A2%98/">apache-shenyu处理discoveryType问题</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -546,61 +546,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/04/21/HowToCook%E2%80%94%E2%80%94%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E5%B1%85%E5%AE%B6%E7%83%B9%E9%A5%AA%E6%8C%87%E5%8D%97/">HowToCook——程序员的居家烹饪指南</a>
+                    <a href="/2025/08/15/Android-DataBackup/">Android-DataBackup</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/03/04/MP%E6%89%B9%E6%8F%92%E4%BC%98%E5%8C%96/">MP批插优化</a>
+                    <a href="/2025/07/02/Context7-MCP/">Context7 MCP</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/25/jackson%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/">jackson时区问题</a>
+                    <a href="/2022/04/01/antdv%E5%8A%A8%E6%80%81%E8%A1%A8%E5%8D%95%E7%BB%84%E4%BB%B6/">antdv动态表单组件</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/12/14/kong/">kong</a>
+                    <a href="/2022/09/03/canvas%E8%A7%86%E9%A2%91%E6%88%AA%E5%B8%A7/">canvas视频截帧</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/02/16/mysql-having%E6%8A%A5%E9%94%99this-is-incompatible-with-sql-mode-only-full-group-by/">mysql having报错this is incompatible with sql_mode=only_full_group_by</a>
+                    <a href="/2023/02/24/css%E7%BB%98%E5%88%B6%E4%B8%89%E8%A7%92%E5%BD%A2/">css绘制三角形</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/12/11/order-by-field/">order by field</a>
+                    <a href="/2023/09/24/docusaurus%E5%9B%BD%E9%99%85%E5%8C%96%E5%9D%91/">docusaurus国际化坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/06/16/react%E5%9C%A8ts%E4%B8%AD%E6%8F%90%E7%A4%BAref%E9%97%AE%E9%A2%98/">react在ts中提示ref问题</a>
+                    <a href="/2025/01/06/gh-proxy/">gh-proxy</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/10/08/server/">server</a>
+                    <a href="/2022/12/27/hexo%E4%B8%BB%E9%A2%98%E9%9B%86%E6%88%90pug/">hexo主题集成pug</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/11/03/vue%E9%A1%B9%E7%9B%AE%E5%90%AF%E5%8A%A8%E5%90%8E%E8%87%AA%E5%8A%A8%E6%89%93%E5%BC%80/">vue项目启动后自动打开</a>
+                    <a href="/2024/10/27/typescript-exercises%EF%BC%88%E4%B8%80%EF%BC%89/">typescript-exercises（一）</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/03/25/you-might-not-need-peek/">you might not need peek</a>
+                    <a href="/2021/07/19/%E6%96%B0%E7%89%88Optional/">新版Optional</a>
                 </span>
             </li>
             
@@ -633,73 +633,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 10.422707859206206px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.611718203464704px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/java/" style="font-size: 15.943456154422257px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 13.30362109313917px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/ai/" style="font-size: 18.298318274730242px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 8.293757794489048px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.925310205772469px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 14.725608304719584px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 14.31011363985763px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.716722743382395px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 8.195206679379432px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 19.960057016941377px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 19.03129827539147px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 9.353026789072366px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10.98589918464895px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.791691335426847px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.029414659779807px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 14.142455305507259px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 9.215329578134797px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 11.039330694257448px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 18.84085822495283px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 17.694298817207653px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 17.641926574143557px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 14.56982137027223px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 11.40559775936558px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 9.041201112056047px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 17.4420299034802px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 14.88823895652027px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/c/" style="font-size: 10.5868049351452px;" class="tag-cloud-link">c</a>
+    <a href="/tags/ruby/" style="font-size: 14.217273237557801px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/Clojure/" style="font-size: 11.417791910427157px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/c/" style="font-size: 15.455016903686218px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/bug/" style="font-size: 15.61992816598163px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/Clojure/" style="font-size: 13.785987441136125px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.113505827161832px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/bug/" style="font-size: 16.227798885982175px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/kotlin/" style="font-size: 9.204261315971141px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.821068555649532px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/lua/" style="font-size: 13.572562414581576px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/kotlin/" style="font-size: 15.191848379200529px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/swift/" style="font-size: 12.43096236423666px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/lua/" style="font-size: 10.398661589774495px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/minecraft/" style="font-size: 11.687183954626715px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/swift/" style="font-size: 12.014018058236779px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/rust/" style="font-size: 9.15612082480158px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/minecraft/" style="font-size: 10.534805271396575px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/ruby/" style="font-size: 19.989392275614296px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/rust/" style="font-size: 17.0069460473462px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 18.189293255229984px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.922941894412403px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 16.31026114419127px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 13.058698373817037px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 8.941159941385951px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 18.682189023454175px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 11.776573124130655px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10.46112308949202px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 11.662780344284384px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 8.945018429074873px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 14.2865394540935px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 9.727149511351055px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 12.345462675449896px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 10.583890005572522px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 15.254578950359914px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.072912335376934px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 10.388311798784514px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 14.028294241465144px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 10.117775707213164px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 18.086888288444367px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
