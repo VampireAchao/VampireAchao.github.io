@@ -15,7 +15,7 @@
   
   
   <title>feign发起url请求日期序列化问题 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -241,7 +241,7 @@
                                             </li>
                                         
                                             <li>
-                                                <a href="/tags/ai/">ai</a>
+                                                <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/">小技巧</a>
                                             </li>
                                         
                                         
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>feign发起url请求日期序列化问题</span>
     </div>
@@ -399,12 +399,12 @@
         <blockquote>
 <p>人生得一知己足矣，斯世当以同怀视之。——鲁迅</p>
 </blockquote>
-<p>今天在<code>open-feign</code>使用中踩坑，前两天介绍了<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2023/11/25/feign%E4%BD%BF%E7%94%A8url%E5%8F%82%E6%95%B0%E4%BC%A0%E5%8F%82-SpringQueryMap%E4%BD%BF%E7%94%A8/">feign使用url参数传参@SpringQueryMap使用</a></p>
+<p>今天在<code>open-feign</code>使用中踩坑，前两天介绍了<a href="https://VampireAchao.github.io/2023/11/25/feign%E4%BD%BF%E7%94%A8url%E5%8F%82%E6%95%B0%E4%BC%A0%E5%8F%82-SpringQueryMap%E4%BD%BF%E7%94%A8/">feign使用url参数传参@SpringQueryMap使用</a></p>
 <p>然后在进行时间类型的传输过程中发现默认的时间时区有误导致相差<code>8</code>小时，且格式不是我们规定的格式</p>
 <p>首先我们需要配置：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Bean</span><br><span class="hljs-keyword">public</span> QueryMapEncoder <span class="hljs-title function_">queryMapEncoder</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FieldQueryMapEncoder</span>() &#123;<br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-keyword">public</span> Map&lt;String, Object&gt; <span class="hljs-title function_">encode</span><span class="hljs-params">(Object object)</span> <span class="hljs-keyword">throws</span> EncodeException &#123;<br>            Map&lt;String, Object&gt; result = <span class="hljs-built_in">super</span>.encode(object);<br>            <span class="hljs-type">var</span> <span class="hljs-variable">map</span> <span class="hljs-operator">=</span> (Map&lt;Class&lt;?&gt;, Object&gt;) ReflectUtil.getFieldValue(<span class="hljs-built_in">this</span>, <span class="hljs-string">&quot;classToMetadata&quot;</span>);<br>            <span class="hljs-type">var</span> <span class="hljs-variable">fields</span> <span class="hljs-operator">=</span> (List&lt;Field&gt;) ReflectUtil.getFieldValue(map.get(object.getClass()), <span class="hljs-string">&quot;objectFields&quot;</span>);<br>            <span class="hljs-type">var</span> <span class="hljs-variable">typeFieldsMap</span> <span class="hljs-operator">=</span> Steam.of(fields).group(Field::getType);<br>            Steam.of(typeFieldsMap.get(Date.class)).forEach((SerCons&lt;Field&gt;) dateField -&gt; result.put(dateField.getName(), DateUtils.format((Date) dateField.get(object))));<br>            Steam.of(typeFieldsMap.get(LocalDate.class)).forEach((SerCons&lt;Field&gt;) dateField -&gt; result.put(dateField.getName(), DateUtils.format((LocalDate) dateField.get(object))));<br>            Steam.of(typeFieldsMap.get(LocalDateTime.class)).forEach((SerCons&lt;Field&gt;) dateField -&gt; result.put(dateField.getName(), DateUtils.format((LocalDateTime) dateField.get(object))));<br>            <span class="hljs-keyword">return</span> result;<br>        &#125;<br>    &#125;;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>这里是让其解析完毕后再用反射去实现，实际并不是最优解，主要是注入自己实现的<code>QueryMapEncoder</code></p>
-<p>然后日期序列化：<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2021/04/04/%E5%85%A8%E5%B1%80%E6%97%A5%E6%9C%9F%E8%AF%B7%E6%B1%82%E8%BD%AC%E6%8D%A2%E5%A4%84%E7%90%86/">全局日期请求转换处理</a></p>
+<p>然后日期序列化：<a href="https://VampireAchao.github.io/2021/04/04/%E5%85%A8%E5%B1%80%E6%97%A5%E6%9C%9F%E8%AF%B7%E6%B1%82%E8%BD%AC%E6%8D%A2%E5%A4%84%E7%90%86/">全局日期请求转换处理</a></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> lombok.SneakyThrows;<br><span class="hljs-keyword">import</span> lombok.extern.slf4j.Slf4j;<br><span class="hljs-keyword">import</span> org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.WebDataBinder;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.InitBinder;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RestControllerAdvice;<br><br><span class="hljs-keyword">import</span> java.beans.PropertyEditorSupport;<br><span class="hljs-keyword">import</span> java.time.LocalDate;<br><span class="hljs-keyword">import</span> java.time.LocalDateTime;<br><span class="hljs-keyword">import</span> java.util.Date;<br><br><span class="hljs-meta">@Slf4j</span><br><span class="hljs-meta">@RestControllerAdvice</span><br><span class="hljs-meta">@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)</span> <span class="hljs-comment">// 仅当为WebMvc应用时激活</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">GlobalUrlParamResolveHandler</span> &#123;<br><br>    <span class="hljs-meta">@InitBinder</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">initBinder</span><span class="hljs-params">(WebDataBinder binder)</span> &#123;<br>        <span class="hljs-comment">// Date 类型转换</span><br>        binder.registerCustomEditor(Date.class, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PropertyEditorSupport</span>() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-meta">@SneakyThrows</span><br>            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setAsText</span><span class="hljs-params">(String text)</span> &#123;<br>                setValue(DateUtils.textToDate(text));<br>            &#125;<br>        &#125;);<br>        <span class="hljs-comment">// LocalDate类型转换</span><br>        binder.registerCustomEditor(LocalDate.class, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PropertyEditorSupport</span>() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setAsText</span><span class="hljs-params">(String text)</span> &#123;<br>                setValue(DateUtils.textToLocalDate(text));<br>            &#125;<br>        &#125;);<br>        <span class="hljs-comment">// LocalDateTime类型转换</span><br>        binder.registerCustomEditor(LocalDateTime.class, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PropertyEditorSupport</span>() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setAsText</span><span class="hljs-params">(String text)</span> &#123;<br>                setValue(DateUtils.textToLocalDateTime(text));<br>            &#125;<br>        &#125;);<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
 <p>成功解决！</p>
 
@@ -548,61 +548,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/09/01/chatgpt-on-wechat/">chatgpt-on-wechat</a>
+                    <a href="/2024/10/14/Apache-ShenYu%E5%8A%A8%E6%80%81%E6%89%A9%E7%BC%A9%E5%AE%B9%E5%89%8D%E7%AB%AF%E5%AF%B9%E6%8E%A5/">Apache-ShenYu动态扩缩容前端对接</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/10/28/docker%E5%AE%89%E8%A3%85zookeeper/">docker安装zookeeper</a>
+                    <a href="/2023/07/08/bboss/">bboss</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/02/19/fabric-photo/">fabric photo</a>
+                    <a href="/2020/09/30/docker%E5%90%AF%E5%8A%A8%E6%97%B6%E6%8C%87%E5%AE%9A%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F/">docker启动时指定环境变量</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/25/github%E5%85%8B%E9%9A%86%E6%85%A2/">github克隆慢</a>
+                    <a href="/2020/11/13/js%E5%BD%93%E5%89%8D%E5%87%BD%E6%95%B0%E8%8E%B7%E5%8F%96%E8%B0%83%E7%94%A8%E5%AE%83%E7%9A%84%E5%87%BD%E6%95%B0/">js当前函数获取调用它的函数</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/24/introjs/">introjs</a>
+                    <a href="/2024/12/11/poppy-docs/">poppy-docs</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/05/18/js%E4%B8%ADjson%E4%B8%8E%E5%AF%B9%E8%B1%A1%E4%BA%92%E8%BD%AC/">js中json与对象互转</a>
+                    <a href="/2021/07/04/qq%E6%8E%A8%E5%B9%BF/">qq推广</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/02/20/paperword%E8%AE%BA%E6%96%87%E6%9F%A5%E9%87%8D/">paperword论文查重</a>
+                    <a href="/2025/05/21/%E5%8D%87%E7%BA%A7%E9%A1%B9%E7%9B%AE%E4%B8%BAtypescript/">升级项目为typescript</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/02/23/servo/">servo</a>
+                    <a href="/2024/03/09/%E8%AE%A2%E5%8D%95%E7%A1%AE%E8%AE%A4%E6%8C%89%E9%92%AE%E5%8A%A8%E7%94%BB/">订单确认按钮动画</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/25/svgator/">svgator</a>
+                    <a href="/2020/06/06/%E9%98%BF%E9%87%8C%E4%BA%91sms%E5%8F%91%E9%80%81%E7%9F%AD%E4%BF%A1/">阿里云sms发送短信（新）</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/03/28/%E8%8E%B7%E5%8F%96%E4%B8%8D%E5%90%8C%E6%97%B6%E5%8C%BA%E7%9A%84%E6%97%B6%E9%97%B4/">获取不同时区的时间</a>
+                    <a href="/2024/09/25/%E9%AB%98%E9%A2%9C%E5%80%BCpostman%E2%80%94%E2%80%94posting/">高颜值postman——posting</a>
                 </span>
             </li>
             
@@ -635,73 +635,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 14.051100699891816px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.900068465457082px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/java/" style="font-size: 8.961587921749718px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 10.037252443206778px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/ai/" style="font-size: 18.00331390436033px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 8.593768415609015px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.559818562597005px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/ai/" style="font-size: 10.59053477992094px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 16.819000438102638px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10.302105011190601px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 9.279786955331641px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 17.318833473533168px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 15.081861766875729px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 18.739371881592014px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.280245477187645px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.248477780003668px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.864495693650792px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.208723044718493px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 16.627842215084584px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 16.977659173287492px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 11.576607455594983px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 8.50256112948864px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 8.510941497849657px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 17.41113256273811px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 9.64290437281003px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 12.119582058628655px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 15.020835497469081px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 8.547580595345789px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 19.890373174388206px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 15.957048357744537px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 14.081825132381555px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 14.431823019009432px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.263197981987283px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 10.08257443798237px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 14.209087492922293px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 18.675378241948952px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 12.23731962342078px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.045831884016113px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 14.500256058227478px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 10.041633327998627px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 16.55927715252637px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 16.885167824009294px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 11.654346624866266px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 19.57205302004064px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 14.303612454361607px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 18.805714148148546px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 9.53592861050653px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 13.409332353100066px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 10.978464505842279px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.048152205876491px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 16.81855054628932px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 16.488159459761953px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 14.939168108442598px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 18.81987885276776px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 14.021391378878892px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 12.286315203578617px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 12.739114918138242px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 11.347558469230695px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 10.378276600425297px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 10.26936222119764px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 8.791902940289965px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 11.876390190952954px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 18.433954697896404px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.36471697563179px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 17.67947775223919px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 11.461605828309432px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 19.65576710582574px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 9.457692003043586px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
