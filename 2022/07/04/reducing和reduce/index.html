@@ -15,7 +15,7 @@
   
   
   <title>reducing和reduce | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -233,15 +233,15 @@
                                     
                                         
                                             <li>
-                                                <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/">软件及插件</a>
+                                                <a href="/tags/java/">java</a>
+                                            </li>
+                                        
+                                            <li>
+                                                <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/">小技巧</a>
                                             </li>
                                         
                                             <li>
                                                 <a href="/tags/ai/">ai</a>
-                                            </li>
-                                        
-                                            <li>
-                                                <a href="/tags/java/">java</a>
                                             </li>
                                         
                                         
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>reducing和reduce</span>
     </div>
@@ -412,7 +412,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">sumDecimal</span> <span class="hljs-operator">=</span> Stream.iterate(<span class="hljs-number">0</span>, i -&gt; ++i).limit(<span class="hljs-number">10</span>).collect(<br>        reducing(BigDecimal.ZERO, BigDecimal::<span class="hljs-keyword">new</span>, BigDecimal::add));<br>System.out.println(sumDecimal); <span class="hljs-comment">// 45</span><br>sumDecimal = Stream.iterate(<span class="hljs-number">0</span>, i -&gt; ++i).limit(<span class="hljs-number">10</span>)<br>        .reduce(BigDecimal.ZERO, (d, i) -&gt; d.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(i)), BigDecimal::add);<br>System.out.println(sumDecimal); <span class="hljs-comment">// 45</span><br></code></pre></td></tr></table></figure>
 <p>可以看出我们的<code>Collectors.reducing</code>第二个参数是一个<code>Function&lt;Integer,BigDecimal&gt;</code>，入参为<code>Integer</code>返回值为<code>BigDecimal</code>，并没有进行聚合运算，而是进行了一个转换，此处是由<code>Integer</code>去生成一个<code>BigDecimal</code>，调用的<code>java.math.BigDecimal#BigDecimal(int)</code>这个构造，而第三个参数才是我们的累加操作</p>
 <p>但<code>Stream#reduce</code>中，第二个参数是一个<code>BiFunction&lt;BigDecimal, Integer, BigDecimal&gt;</code>，入参变为两个参数<code>BigDecimal</code>(已经累加的结果，并行流下值不可控)和<code>Integer</code>(本次参与运算的值)，返回值为<code>BigDecimal</code>(运算结果)，第三个参数是个<code>BinaryOperator&lt;BigDecimal&gt;</code>只在并行流场景下会用到，之前讲过，这里就不再表了，贴上链接：</p>
-<p><a href="https://VampireAchao.github.io/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/">reduce补充二</a></p>
+<p><a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/">reduce补充二</a></p>
 <p>第三个参数区别：</p>
 <p>也就是说，我们在串行流中哪怕将<code>Stream#reduce</code>的第三个参数，改为任意操作，他都是不影响结果执行的，例如我们这里取最大值</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">BigDecimal</span> <span class="hljs-variable">sumDecimal</span> <span class="hljs-operator">=</span> Stream.iterate(<span class="hljs-number">0</span>, i -&gt; ++i).limit(<span class="hljs-number">10</span>).collect(<br>                reducing(BigDecimal.ZERO, BigDecimal::<span class="hljs-keyword">new</span>, BinaryOperator.maxBy(BigDecimal::compareTo)));<br>        System.out.println(sumDecimal); <span class="hljs-comment">// 9</span><br>        sumDecimal = Stream.iterate(<span class="hljs-number">0</span>, i -&gt; ++i).limit(<span class="hljs-number">10</span>)<br>                .reduce(BigDecimal.ZERO, (d, i) -&gt; d.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(i)), BinaryOperator.maxBy(BigDecimal::compareTo));<br>        System.out.println(sumDecimal); <span class="hljs-comment">// 45</span><br></code></pre></td></tr></table></figure>
@@ -488,6 +488,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/11/12/TrendRadar/">TrendRadar</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/11/11/How-To-Secure-A-Linux-Server/">How-To-Secure-A-Linux-Server</a>
                 </span>
             </li>
@@ -540,12 +546,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/11/02/torchforge/">torchforge</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -564,61 +564,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/03/11/PTFakeTouch/">PTFakeTouch</a>
+                    <a href="/2020/07/17/Centos7%E9%98%B2%E7%81%AB%E5%A2%99%E5%91%BD%E4%BB%A4/">Centos7防火墙命令</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/10/25/android%E9%80%89%E6%8B%A9%E6%A1%86/">android选择框</a>
+                    <a href="/2025/01/07/GitHub%E6%96%87%E4%BB%B6%E5%8A%A0%E9%80%9F%EF%BC%88%E4%BA%8C%EF%BC%89/">GitHub文件加速（二）</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/12/01/debug%E3%81%AEChrome%E7%AF%87/">debugのChrome篇</a>
+                    <a href="/2023/11/06/Hello-%E7%AE%97%E6%B3%95/">Hello 算法</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/02/09/he3/">he3</a>
+                    <a href="/2024/04/14/android-agent-web%E4%B8%ADjs-bridge%E6%A1%88%E4%BE%8B/">android-agent-web中js-bridge案例</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/01/minio%E4%B8%B4%E6%97%B6%E5%87%AD%E8%AF%81%E7%9B%B4%E4%BC%A0%E5%88%87%E6%8D%A2%E5%88%B0%E9%98%BF%E9%87%8C%E4%BA%91oss/">minio临时凭证直传切换到阿里云oss</a>
+                    <a href="/2020/12/20/jvisualvm%E5%AE%89%E8%A3%85%E5%B9%B6%E6%9F%A5%E7%9C%8BGC%E8%BF%87%E7%A8%8B/">jvisualvm安装并查看GC过程</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/09/16/tldraw/">tldraw</a>
+                    <a href="/2023/04/20/kotlin%E7%9A%84KProperty/">kotlin的KProperty</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/09/25/vue%E6%B7%B1%E5%BA%A6%E4%BD%9C%E7%94%A8%E9%80%89%E6%8B%A9%E5%99%A8/">vue深度作用选择器</a>
+                    <a href="/2021/08/28/mybatis-plus%E9%83%A8%E5%88%86%E6%9B%B4%E6%96%B0/">mybatis-plus部分更新</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/10/25/%E4%B8%80%E4%B8%AA%E8%87%AA%E5%B8%A6%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%99%A8%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%BC%95%E6%93%8Ewarmflow/">一个自带流程设计器的工作流引擎warmflow</a>
+                    <a href="/2022/04/28/python%E8%AF%BB%E5%8F%96oss%E7%9A%84psd%E5%B9%B6%E4%B8%8A%E4%BC%A0jpg/">python读取oss的psd并上传jpg</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/04/01/%E5%A4%9A%E6%A8%A1%E5%9D%97install%E6%97%B6%E6%8A%A5%E5%8C%85%E4%B8%8D%E5%AD%98%E5%9C%A8/">多模块install时报包不存在</a>
+                    <a href="/2022/08/08/%E4%B9%BE%E5%9D%A4/">乾坤</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/30/%E9%A2%9C%E8%89%B2%E6%8B%BE%E5%8F%96%E5%99%A8/">颜色拾取器</a>
+                    <a href="/2021/10/24/%E5%8A%A8%E6%80%81%E5%8F%82%E6%95%B0-reduce%E7%B4%AF%E5%8A%A0stream/">动态参数+reduce累加stream</a>
                 </span>
             </li>
             
@@ -651,73 +651,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.845547581520652px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/java/" style="font-size: 8.298215149033467px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/ai/" style="font-size: 10.905388021697872px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 16.0697338937184px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/java/" style="font-size: 18.90403867467214px;" class="tag-cloud-link">java</a>
+    <a href="/tags/ai/" style="font-size: 18.0503637571324px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 10.31961765035869px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 16.693561214350368px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.626394222839469px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.720437234337222px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 15.609014871489821px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 13.664848892632113px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 12.624764522489574px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 8.748029937714604px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.15385927486394px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 15.722940675503253px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 19.147693171527358px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.27807715781587px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 9.719599346940537px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 14.67732743526307px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/c/" style="font-size: 8.27660484200484px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/ios/" style="font-size: 13.00184799500745px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/ios/" style="font-size: 15.12746008448952px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/c/" style="font-size: 18.17813133789407px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 15.449826257444915px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 19.59519424733746px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 14.757789977581101px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 10.80034506559474px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 15.080068494031593px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 14.994645143935578px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 11.826190955006865px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 11.757907860074283px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 18.46277394305084px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 14.608811791630778px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 18.199083814407626px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 18.99612314027382px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 17.4116479963424px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 12.16726767212386px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 18.395470808818473px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 18.62538192163324px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 19.823417536242804px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 13.854961551791657px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 11.812847290164349px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 18.93854684604744px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 13.233741895087013px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 10.129318793194068px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 16.95278525383489px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 11.790984985832946px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 18.256708686724842px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.49435930245518px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 16.599317777499373px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 9.488049117900644px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 8.897480718421352px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 8.171280733407253px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.366620977510324px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.865036091366052px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 19.019956588065742px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 17.840018869684794px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 19.738732941408113px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 18.641991320607087px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 17.550383359820348px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 16.100272108627365px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.601576482782104px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 9.06874992524888px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 12.171324816091397px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 16.994379553323697px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 14.93022475751774px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.881788349996052px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
