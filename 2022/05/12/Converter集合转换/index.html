@@ -15,7 +15,7 @@
   
   
   <title>Converter集合转换 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>Converter集合转换</span>
     </div>
@@ -399,13 +399,13 @@
         <blockquote>
 <p>只因生命在继续才盲目地产生信念，这种信念是空的。——乔桑塔亚那</p>
 </blockquote>
-<p>前两天写了<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2022/05/01/mapstruct%E7%9A%84spring%E6%8B%93%E5%B1%95/">mapstruct的spring拓展</a></p>
+<p>前两天写了<a href="https://VampireAchao.github.io/2022/05/01/mapstruct%E7%9A%84spring%E6%8B%93%E5%B1%95/">mapstruct的spring拓展</a></p>
 <p>里面提到了一个<code>Converter</code></p>
 <p>一般我们是对象之间互转，如果是集合的话，可以用<code>Stream#map</code>去一个一个转换</p>
 <p>实际上<code>org.springframework.core.convert.ConversionService</code>也为我们提供了参数为<code>org.springframework.core.convert.TypeDescriptor</code>的转换</p>
 <p>例如我这里封装一个集合之间的转换</p>
 <blockquote>
-<p><a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2020/11/12/spring%E8%8E%B7%E5%8F%96bean%E7%9A%84%E7%AC%AC%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/"><code>SpringContextHolder</code>工具类</a></p>
+<p><a href="https://VampireAchao.github.io/2020/11/12/spring%E8%8E%B7%E5%8F%96bean%E7%9A%84%E7%AC%AC%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/"><code>SpringContextHolder</code>工具类</a></p>
 </blockquote>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> java.util.ArrayList;<br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-keyword">import</span> org.springframework.core.convert.ConversionService;<br><span class="hljs-keyword">import</span> org.springframework.core.convert.TypeDescriptor;<br><span class="hljs-keyword">import</span> org.springframework.lang.NonNull;<br><span class="hljs-keyword">import</span> org.springframework.lang.Nullable;<br><span class="hljs-keyword">import</span> org.springframework.util.CollectionUtils;<br><br><span class="hljs-keyword">import</span> lombok.experimental.UtilityClass;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 转换工具类</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/5/7 18:56</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@UtilityClass</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ConvertUtil</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ConversionService</span> <span class="hljs-variable">CONVERSION_SERVICE</span> <span class="hljs-operator">=</span> SpringContextHolder.getBean(ConversionService.class);<br><br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; T <span class="hljs-title function_">convert</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> Object source, Class&lt;T&gt; targetType)</span> &#123;<br>        <span class="hljs-keyword">return</span> CONVERSION_SERVICE.convert(source, targetType);<br>    &#125;<br><br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title function_">convert</span><span class="hljs-params">(<span class="hljs-meta">@NonNull</span> Object source, <span class="hljs-meta">@Nullable</span> TypeDescriptor sourceType, TypeDescriptor targetType)</span> &#123;<br>        <span class="hljs-keyword">return</span> CONVERSION_SERVICE.convert(source, sourceType, targetType);<br>    &#125;<br><br>    <span class="hljs-meta">@SuppressWarnings(&quot;unchecked&quot;)</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T, R&gt; List&lt;R&gt; <span class="hljs-title function_">convertList</span><span class="hljs-params">(List&lt;T&gt; source, Class&lt;R&gt; targetClass)</span> &#123;<br>        <span class="hljs-keyword">if</span> (CollectionUtils.isEmpty(source)) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        &#125;<br>        <span class="hljs-keyword">return</span> (List&lt;R&gt;) convert(source, TypeDescriptor.collection(List.class,<br>                        TypeDescriptor.valueOf(source.get(<span class="hljs-number">0</span>).getClass())),<br>                TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(targetClass)));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>使用起来只需要：</p>
@@ -553,61 +553,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/09/19/android-studio%E6%89%93%E5%8C%85apk/">android studio打包apk</a>
+                    <a href="/2021/11/29/TransmittableThreadLocal%E5%9D%91/">TransmittableThreadLocal坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/11/25/feign%E4%BD%BF%E7%94%A8url%E5%8F%82%E6%95%B0%E4%BC%A0%E5%8F%82-SpringQueryMap%E4%BD%BF%E7%94%A8/">feign使用url参数传参@SpringQueryMap使用</a>
+                    <a href="/2024/08/23/apache-shenyu%E9%80%82%E9%85%8Doceanbase/">apache-shenyu适配oceanbase</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/01/29/jackson%E5%BA%8F%E5%88%97%E5%8C%96%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/">jackson序列化时区问题</a>
+                    <a href="/2024/07/09/css%E9%80%8F%E8%A7%86%E6%95%88%E6%9E%9C%E4%BD%8D%E7%BD%AEperspective-origin/">css透视效果位置perspective-origin</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/19/java%E8%AF%BB%E5%8F%96%E6%9C%AC%E5%9C%B0%E7%9B%AE%E5%BD%95%E7%9A%84%E6%96%87%E4%BB%B6%E8%BD%AC%E6%8D%A2%E4%B8%BAlist/">java读取本地目录的文件转换为list</a>
+                    <a href="/2023/01/21/easy-trans/">easy-trans</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/11/23/js%E6%89%93%E5%AD%97%E6%9C%BA%E5%8A%A8%E7%94%BB%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0/">js打字机动画效果实现</a>
+                    <a href="/2020/11/24/elementUI%E9%9A%90%E8%97%8F%E7%BB%84%E4%BB%B6/">elementUI隐藏组件</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/11/27/springboot%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">springboot单元测试</a>
+                    <a href="/2022/12/29/html%E5%AD%97%E7%AC%A6%E8%BD%AC%E7%A0%81%E8%A1%A8/">html字符转码表</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/06/21/ts%E8%A3%85%E9%A5%B0%E5%99%A8-%E6%B3%A8%E8%A7%A3/">ts装饰器(注解)</a>
+                    <a href="/2021/05/15/splice/">splice</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/04/15/vueuse/">vueuse</a>
+                    <a href="/2021/08/06/%E4%BB%A3%E7%A0%81%E6%96%B9%E5%BC%8F%E5%BC%95%E5%85%A5iconfont%E5%9B%BE%E6%A0%87/">代码方式引入iconfont图标</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/02/07/windows%E7%AA%97%E5%8F%A3%E5%BD%92%E4%BD%8D/">windows窗口归位</a>
+                    <a href="/2023/08/04/%E5%87%A0%E4%B8%AAjava%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83%E9%93%BE%E6%8E%A5/">几个java代码规范链接</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/24/%E7%80%91%E5%B8%83%E6%B5%81%E7%BB%84%E4%BB%B6vue-waterfall/">瀑布流组件vue-waterfall</a>
+                    <a href="/2024/06/09/%E5%BE%AE%E4%BF%A1Markdown%E7%BC%96%E8%BE%91%E5%99%A8/">微信Markdown编辑器</a>
                 </span>
             </li>
             
@@ -640,73 +640,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 19.413169901380478px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.035527033116889px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/java/" style="font-size: 13.69734126604664px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 10.261816504523297px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/ai/" style="font-size: 18.720588346581778px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 11.677922600638365px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 8.116837914610514px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 9.82941295874236px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.804805352620853px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/android/" style="font-size: 17.541642623010535px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/android/" style="font-size: 17.353214142068232px;" class="tag-cloud-link">android</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.496558640822638px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/python/" style="font-size: 8.905229840029463px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 10.306687862644134px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.749258789642221px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.48959140010239px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.369044562294679px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.388275840414646px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 16.73406151943354px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 17.571574962876223px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 14.67799667278954px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 11.36731649084169px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 8.731317853949228px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 15.662486303029908px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 15.613046367786307px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 12.423357101079796px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 19.535692630740378px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 15.30845365727658px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 14.839133811885878px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 12.16920225287809px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 16.863985331196258px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 15.728201492369234px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 19.490229870426244px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/bug/" style="font-size: 14.394006425237176px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/bug/" style="font-size: 11.499716296906929px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/Clojure/" style="font-size: 10.60793128855628px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 16.460183686402594px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.928732643360222px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 14.629767587827503px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 14.307595100309708px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 9.980762112883422px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 10.164706596304832px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 17.624267219560654px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 16.44628493053554px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 18.443280543313552px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 15.0097022925283px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 14.474462890160545px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 12.765077017293066px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 12.358106181990628px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 18.125838495387917px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 14.301000091543887px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 16.579405103138043px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 10.348888266220573px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 11.284375897098585px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 13.489664681737857px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 12.835188274410397px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 9.673108186725443px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 11.683295873782736px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 12.508014029963288px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 8.154937507477719px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 9.817302316625248px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 12.995912771421914px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10.581126850085344px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 15.772700973096002px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 15.510018865859792px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 9.417768218458374px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 18.14758535865445px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 10.420474814067873px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
