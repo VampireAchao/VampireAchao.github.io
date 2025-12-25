@@ -15,7 +15,7 @@
   
   
   <title>spring-gateway跨域坑 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>spring-gateway跨域坑</span>
     </div>
@@ -402,10 +402,12 @@
 <p>今天发现一个问题，前端跨域，这个我已经解决无数次了，但上了个网关，还是踩坑了</p>
 <p>首先是网关配置了跨域</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Bean</span><br><span class="hljs-keyword">public</span> CorsWebFilter <span class="hljs-title function_">corsFilter</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">CorsConfiguration</span> <span class="hljs-variable">config</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CorsConfiguration</span>();<br>    config.addAllowedOriginPattern(<span class="hljs-string">&quot;*&quot;</span>);<br>    config.addAllowedHeader(<span class="hljs-string">&quot;*&quot;</span>);<br>    config.addAllowedMethod(<span class="hljs-string">&quot;*&quot;</span>);<br>    <span class="hljs-type">UrlBasedCorsConfigurationSource</span> <span class="hljs-variable">source</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UrlBasedCorsConfigurationSource</span>();<br>    source.registerCorsConfiguration(<span class="hljs-string">&quot;/**&quot;</span>, config);<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CorsWebFilter</span>(source);<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>然后报错提示重复的<code>Access-Control-Allow-Origin</code>请求头</p>
 <p>注释掉又报错跨域</p>
 <p>最后发现是网关路由到的子服务也配置了允许跨域。。。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Licensed to the Apache Software Foundation (ASF) under one or more</span><br><span class="hljs-comment"> * contributor license agreements.  See the NOTICE file distributed with</span><br><span class="hljs-comment"> * this work for additional information regarding copyright ownership.</span><br><span class="hljs-comment"> * The ASF licenses this file to You under the Apache License, Version 2.0</span><br><span class="hljs-comment"> * (the &quot;License&quot;); you may not use this file except in compliance with</span><br><span class="hljs-comment"> * the License.  You may obtain a copy of the License at</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> *    http://www.apache.org/licenses/LICENSE-2.0</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Unless required by applicable law or agreed to in writing, software</span><br><span class="hljs-comment"> * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="hljs-comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="hljs-comment"> * See the License for the specific language governing permissions and</span><br><span class="hljs-comment"> * limitations under the License.</span><br><span class="hljs-comment"> */</span><br><br><span class="hljs-keyword">import</span> jakarta.annotation.Resource;<br><span class="hljs-keyword">import</span> org.dromara.streamquery.stream.core.stream.Steam;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Configuration;<br><span class="hljs-keyword">import</span> org.springframework.http.HttpMethod;<br><span class="hljs-keyword">import</span> org.springframework.http.converter.ByteArrayHttpMessageConverter;<br><span class="hljs-keyword">import</span> org.springframework.http.converter.HttpMessageConverter;<br><span class="hljs-keyword">import</span> org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.config.annotation.CorsRegistry;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.config.annotation.InterceptorRegistry;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.config.annotation.WebMvcConfigurer;<br><br><span class="hljs-keyword">import</span> java.util.Collections;<br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">WebMvcConfig</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">WebMvcConfigurer</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String[] CORS_MAPPINGS_ALLOWED_METHODS = &#123;<br>            HttpMethod.POST.name(),<br>            HttpMethod.GET.name(),<br>            HttpMethod.PUT.name(),<br>            HttpMethod.OPTIONS.name(),<br>            HttpMethod.DELETE.name()<br>    &#125;;<br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> Jackson2HttpMessageConverter jackson2HttpMessageConverter;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">extendMessageConverters</span><span class="hljs-params">(List&lt;HttpMessageConverter&lt;?&gt;&gt; converters)</span> &#123;<br>        <span class="hljs-comment">// 将MappingJackson2HttpMessageConverter放到第一个</span><br>        converters.removeIf(converter -&gt; converter <span class="hljs-keyword">instanceof</span> MappingJackson2HttpMessageConverter);<br>        converters.add(jackson2HttpMessageConverter);<br>        Collections.reverse(converters);<br>        <span class="hljs-type">Integer</span> <span class="hljs-variable">byteConverterIdx</span> <span class="hljs-operator">=</span> Steam.of(converters).findFirstIdx(c -&gt; c <span class="hljs-keyword">instanceof</span> ByteArrayHttpMessageConverter);<br>        converters.add(<span class="hljs-number">0</span>, converters.get(byteConverterIdx));<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">addCorsMappings</span><span class="hljs-params">(CorsRegistry registry)</span> &#123;<br>        registry<br>                .addMapping(<span class="hljs-string">&quot;/**&quot;</span>)<br>                .allowedOriginPatterns(<span class="hljs-string">&quot;*&quot;</span>)<br>                .allowedMethods(CORS_MAPPINGS_ALLOWED_METHODS)<br>                .allowedHeaders(<span class="hljs-string">&quot;*&quot;</span>)<br>                .allowCredentials(<span class="hljs-literal">true</span>)<br>                .maxAge(<span class="hljs-number">3600</span>);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">addInterceptors</span><span class="hljs-params">(InterceptorRegistry registry)</span> &#123;<br>        WebMvcConfigurer.<span class="hljs-built_in">super</span>.addInterceptors(registry);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>取消掉<code>addCorsMappings</code>的配置即可</p>
 
     </div>
@@ -548,61 +550,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/01/14/Linux%E4%B8%8B%E6%96%87%E4%BB%B6%E6%90%9C%E7%B4%A2%E3%80%81%E6%9F%A5%E6%89%BE%E3%80%81%E6%9F%A5%E7%9C%8B%E5%91%BD%E4%BB%A4/">Linux下文件搜索、查找、查看命令</a>
+                    <a href="/2021/10/09/Sa-Token%E4%B8%ADSerializationException/">Sa-Token中SerializationException</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/06/03/acme-sh/">acme-sh</a>
+                    <a href="/2024/02/24/datagrip%E4%BF%9D%E6%8C%81%E8%BF%9E%E6%8E%A5%E6%B4%BB%E8%B7%83/">datagrip保持连接活跃</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/01/03/buttons/">buttons</a>
+                    <a href="/2020/09/14/java%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%BF%90%E8%A1%8C%E7%B1%BB%E5%90%8D%E3%80%81%E6%96%B9%E6%B3%95%E5%90%8D%E3%80%81%E8%A1%8C%E5%8F%B7/">java获取当前运行类名、方法名、行号</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/11/10/css%E4%B8%AD%E7%9A%84/">css中的&amp;</a>
+                    <a href="/2025/10/19/ollama/">ollama</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/04/22/css%E5%AE%9E%E7%8E%B0%E9%BC%A0%E6%A0%87%E5%88%92%E5%85%A5%E6%98%BE%E7%A4%BA%E6%8B%96%E5%8A%A8%E6%9D%A1/">css实现鼠标划入显示拖动条</a>
+                    <a href="/2025/10/27/paperless-ngx/">paperless-ngx</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/10/08/idea%E8%A7%A3%E5%86%B3git%E5%86%B2%E7%AA%81/">idea解决git冲突</a>
+                    <a href="/2022/03/17/vue-scroll%E4%BA%8B%E4%BB%B6%E5%A4%B1%E6%95%88/">vue scroll事件失效</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/05/19/jq%E8%8E%B7%E5%8F%96%E5%AE%9E%E6%97%B6%E5%AE%BD%E5%BA%A6/">jq获取实时宽度</a>
+                    <a href="/2021/02/27/%E5%A6%82%E4%BD%95%E7%BB%99%E5%8D%9A%E5%AE%A2%E6%B7%BB%E5%8A%A0%E7%9C%8B%E6%9D%BF%E5%A8%98%EF%BC%88%E4%BA%8C%EF%BC%89/">如何给博客添加看板娘（二）</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/06/js%E7%94%9F%E6%88%90%E4%BA%8C%E7%BB%B4%E7%A0%81/">js生成二维码</a>
+                    <a href="/2024/07/04/%E6%8B%89%E5%8F%96%E4%BB%A3%E7%A0%81%E6%8F%90%E7%A4%BAEnter-passphrase-for-key-%E2%80%98-Users-achao-ssh-id-rsa%E2%80%98/">报错Enter passphrase for key ‘/Users/achao/.ssh/id_rsa‘</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/09/29/relation-graph/">relation-graph</a>
+                    <a href="/2022/05/04/%E6%B3%9B%E5%9E%8B%E7%9A%84super%E5%92%8Cextends/">泛型的super和extends</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/09/20/vinejs/">vinejs</a>
+                    <a href="/2021/03/28/%E8%8E%B7%E5%8F%96%E4%B8%8D%E5%90%8C%E6%97%B6%E5%8C%BA%E7%9A%84%E6%97%B6%E9%97%B4/">获取不同时区的时间</a>
                 </span>
             </li>
             
@@ -635,73 +637,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 18.899446426952537px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 8.659925193465117px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 19.896388816482748px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.699993046629595px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 8.022393345146257px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 13.814863545607245px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.842518574061291px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.918810912320186px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 12.420014574600295px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.30131941480531px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 14.98953159129223px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 18.478507413448398px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 15.59416686743098px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 11.770655983435272px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 15.062785098495851px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 16.7995126783576px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 16.07727517743838px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.10863081661833px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 14.347639666419667px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 15.147220219862133px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 12.628776484288895px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 16.000119854675898px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 9.061782766782894px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.400427009142138px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 13.094530720535769px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 11.795884592608793px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 10.594597771682372px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 9.545201558194035px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 15.656080204833188px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 17.42720611990294px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 14.617167136559155px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 15.154111542505095px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 15.914344109539497px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 13.591614939964973px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 8.891785452013224px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 16.785246368877317px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.283423249050223px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.808461070318433px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 8.244534707796237px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 17.90700908741261px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 17.705192058579634px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 18.259293819216715px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 18.830236687612636px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 11.203523593916145px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 19.105758336887398px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 19.418974055336374px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 19.81666703490452px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 18.160491610226863px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 12.560607114923933px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 12.425592600543164px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 13.00486464574257px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 19.460561917173173px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 16.48264801208248px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 13.326082979580509px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 11.266399299430352px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 9.12141595439686px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 17.85384102594395px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 14.492121584986174px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 10.302599406952744px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 10.561978343153548px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 11.993349616034092px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 16.84619283886095px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10.605046263374717px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 14.730170280937482px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 8.376677155504375px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 12.179195519805951px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 15.966703778690535px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.911185058396022px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

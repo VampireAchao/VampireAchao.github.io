@@ -15,7 +15,7 @@
   
   
   <title>SimpleQuery优化 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>SimpleQuery优化</span>
     </div>
@@ -411,8 +411,7 @@
 <th>name</th>
 </tr>
 </thead>
-<tbody>
-<tr>
+<tbody><tr>
 <td>1</td>
 <td>ruben</td>
 </tr>
@@ -420,47 +419,50 @@
 <td>2</td>
 <td>null</td>
 </tr>
-</tbody>
-</table>
+</tbody></table>
 <p>我们构建一个<code>Enitity</code>(向<code>miemie</code>大佬致敬)</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.baomidou.mybatisplus.test.rewrite;<br><br><span class="hljs-keyword">import</span> lombok.Data;<br><br><span class="hljs-keyword">import</span> java.io.Serializable;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> miemie</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2020-06-23</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Data</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Entity</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Serializable</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">serialVersionUID</span> <span class="hljs-operator">=</span> <span class="hljs-number">6962439201546719734L</span>;<br><br>    <span class="hljs-keyword">private</span> Long id;<br><br>    <span class="hljs-keyword">private</span> String name;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>使用<code>SimplerQuery</code>进行查询</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Map&lt;Long, String&gt; idNameMap = SimpleQuery.map(Wrappers.lambdaQuery(), Entity::getId, Entity::getName);<br></code></pre></td></tr></table></figure>
+
 <p>期望的数据格式如下：</p>
-<p><img src="/imgs/oss/picGo/154819_90b81853_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/154819_90b81853_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>这样我就可以通过<code>idNameMap.get(1L)</code>获取到<code>id</code>为<code>1L</code>对应的表数据中<code>name</code>字段的值，非常便利</p>
 <p>但是如果是之前的版本，则会抛出<code>NullPointerException</code>(下方简称<code>NPE</code>)</p>
-<p><img src="/imgs/oss/picGo/155225_453cbe05_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/155225_453cbe05_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>原因是因为默认使用<code>Collectors#toMap</code>这个函数</p>
-<p><img src="/imgs/oss/picGo/155432_c36cf60a_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/155432_c36cf60a_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>它调用的是<code>HashMap#merge</code></p>
-<p><img src="/imgs/oss/picGo/155546_560409c6_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/155546_560409c6_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>其中判断了如果<code>value</code>为空，则抛出<code>NPE</code></p>
-<p><img src="/imgs/oss/picGo/155801_73c37965_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/155801_73c37965_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>而此处我期望的数据，它是允许<code>name</code>为<code>null</code>的</p>
 <p>因此我进行了一点小修改：</p>
-<p><img src="/imgs/oss/picGo/160026_253210fa_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
-<p><img src="/imgs/oss/picGo/160013_b8658c9a_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/160026_253210fa_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
+<p><img src="/imgs/oss/picGo/160013_b8658c9a_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>然后再次执行，成功得到我们期望的值</p>
-<p><img src="/imgs/oss/picGo/160129_642fad16_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/160129_642fad16_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>还有一处修改，也是相同的道理，我期望得到如下结果：</p>
 <p>这里获取到的<code>map</code>，<code>key</code>为表中的<code>name</code>，<code>value</code>则是对应<code>key</code>中<code>name</code>相同的数据组成的集合</p>
 <p>为了方便测试，我再新增了一条数据：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// SqlHelper#getMapper是根据`entity`获取对应`mapper`的方法</span><br>BaseMapper&lt;Entity&gt; mapper = SqlHelper.getMapper(Entity.class);<br><span class="hljs-type">Entity</span> <span class="hljs-variable">entity</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Entity</span>();<br>entity.setId(<span class="hljs-number">3L</span>);<br>entity.setName(<span class="hljs-string">&quot;ruben&quot;</span>);<br>mapper.insert(entity);<br></code></pre></td></tr></table></figure>
+
 <p>开始查询：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Map&lt;String, List&lt;Entity&gt;&gt; nameUsersMap = SimpleQuery.group(Wrappers.lambdaQuery(), Entity::getName);<br></code></pre></td></tr></table></figure>
+
 <p>期望结果如下：</p>
-<p><img src="/imgs/oss/picGo/160700_1224d336_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/160700_1224d336_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>实际还是抛出了<code>NPE</code>：</p>
-<p><img src="/imgs/oss/picGo/161143_7d2c5c59_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/161143_7d2c5c59_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>这是因为原来使用的<code>Collectors#groupingBy</code>，它也对<code>key</code>进行了判空处理，实际上我们并不想丢掉这些数据</p>
-<p><img src="/imgs/oss/picGo/161644_f4c61188_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
-<p><img src="/imgs/oss/picGo/161400_3eb7a778_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/161644_f4c61188_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
+<p><img src="/imgs/oss/picGo/161400_3eb7a778_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>因为可以根据<code>nameUsersMap.get(null)</code>去顺带获取<code>name</code>为<code>null</code>的数据，最起码，个别<code>name</code>为<code>null</code>的数据不能影响我取其他的值，说白了就是你别给我抛出<code>NPE</code>…</p>
 <p>所以我又施展了一点小修改：</p>
-<p><img src="/imgs/oss/picGo/161807_e7fa6996_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/161807_e7fa6996_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 <p>测试成功通过！</p>
-<p><img src="/imgs/oss/picGo/161912_07bffb1e_7413431.png" alt="输入图片说明" title="屏幕截图.png" /></p>
+<p><img src="/imgs/oss/picGo/161912_07bffb1e_7413431.png" alt="输入图片说明" title="屏幕截图.png"></p>
 
     </div>
 </article>
@@ -602,61 +604,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/04/01/AniPortrait/">AniPortrait</a>
+                    <a href="/2022/10/30/designMode/">designMode</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/03/20/apache%E9%82%AE%E7%AE%B1%E7%94%B3%E8%AF%B7jetbrains%E5%85%8D%E8%B4%B9%E5%BC%80%E6%BA%90%E8%AE%B8%E5%8F%AF%E8%AF%81/">apache邮箱申请jetbrains免费开源许可证</a>
+                    <a href="/2023/02/03/kotlin%E6%B3%9B%E5%9E%8B%E5%A4%9A%E4%B8%AA%E4%B8%8A%E7%95%8C/">kotlin泛型多个上界</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/01/11/byte-buddy%E5%AE%9E%E7%8E%B0mybatis-plus%E5%8A%A8%E6%80%81mapper/">byte-buddy实现mybatis-plus动态mapper</a>
+                    <a href="/2022/03/23/mapstruct/">mapstruct</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/25/jackson%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/">jackson时区问题</a>
+                    <a href="/2021/11/30/mysql%E8%BF%9E%E6%8E%A5%E6%95%B0%E6%BB%A1%E4%BA%86%E6%80%8E%E4%B9%88%E8%B0%83%E5%A4%A7/">mysql连接数满了怎么调大</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/07/31/jenkins%E3%81%AEPipeline%E9%A1%B9%E7%9B%AE%E6%9E%84%E5%BB%BA/">jenkinsのPipeline项目构建</a>
+                    <a href="/2023/12/02/openssl%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5/">openssl生成密钥</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/12/26/pug/">pug</a>
+                    <a href="/2022/04/26/python%E5%AF%B9%E6%8E%A5oss%E4%B8%8A%E4%BC%A0%E5%92%8C%E4%B8%8B%E8%BD%BD/">python对接oss上传和下载</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/31/unicode%E6%8D%A2%E8%A1%8C%E7%AC%A6/">unicode换行符</a>
+                    <a href="/2023/11/21/rabbitmq%E5%8A%A8%E6%80%81%E5%88%9B%E5%BB%BA%E9%98%9F%E5%88%97/">rabbitmq动态创建队列</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/06/26/%E4%BA%8B%E5%8A%A1%E5%90%8C%E6%AD%A5%E5%99%A8/">事务同步器</a>
+                    <a href="/2022/04/04/vercel/">vercel</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/06/04/%E5%B0%86%E5%9B%BE%E7%89%87%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%83%8F%E7%B4%A0%E9%A3%8Esvg/">将图片转换为像素风svg</a>
+                    <a href="/2022/07/15/vuera/">vuera</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/06/21/apacheLDAP%E7%9B%AE%E5%BD%95json/">apacheLDAP目录json</a>
+                    <a href="/2020/12/31/%E4%BD%BF%E7%94%A8Stream%E4%B8%80%E8%A1%8C%E8%8E%B7%E5%8F%9626%E4%B8%AA%E8%8B%B1%E6%96%87%E5%AD%97%E6%AF%8D/">使用Stream一行获取26个英文字母</a>
                 </span>
             </li>
             
@@ -689,73 +691,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 11.482003587581115px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 11.481885923488182px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.941223886373159px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.301143916131252px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 19.791621538732336px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 12.58911682927754px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 9.280129966358263px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 12.919789400855066px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.694013024091356px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10.09842893762265px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 16.903710701944412px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 13.997844553190264px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 12.655228792803381px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 8.292176721869202px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.067162333942573px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.282058595470538px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.916844882614626px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.436389617290576px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 11.336725908199268px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 11.294446998703624px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 9.851405671278975px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 18.378069545850128px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 15.63048519156552px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.805327844915507px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 8.659150427502382px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 18.980503538500685px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 13.608066831117462px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 18.024386903828802px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 15.103383441345587px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 11.239094941951613px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 18.769880327889183px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 8.915961522347049px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 10.80519621947829px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 10.755038389942147px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 14.372881915026468px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 8.164008376388306px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 8.324495405424504px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.106612443664286px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 15.98557305670446px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 11.92853460600902px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 13.465344683373605px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 18.67454866614536px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 10.31433000944093px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 9.243255616829677px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 19.80424701096973px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 9.972722279810752px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 17.627216383392906px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 13.309184919066483px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 8.182607948812214px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 14.96144077085987px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 19.82236079886615px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 12.011755974945007px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 10.812348031550384px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 14.19781723534961px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 9.703331311864282px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 12.236972636388263px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 9.194049396442175px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 13.838335947162808px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 13.289717156256678px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 14.839988777544447px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 16.341117637123197px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 15.708427360724741px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 14.829010459738287px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 9.1527407302924px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 14.906686352778063px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 17.505232994270017px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.798285093040105px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 19.391143031345898px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

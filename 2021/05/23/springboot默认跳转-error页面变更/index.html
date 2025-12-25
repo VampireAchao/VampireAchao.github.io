@@ -15,7 +15,7 @@
   
   
   <title>springboot默认跳转/error页面变更 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>springboot默认跳转/error页面变更</span>
     </div>
@@ -403,32 +403,35 @@
 <p>宁鸣而死，不默而生。——胡适</p>
 </blockquote>
 <p>在开发中我们经常看到这样一个页面</p>
-<p><img src="/imgs/oss/picGo/image-20210524175626562.png" alt="image-20210524175626562" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524175626562.png" alt="image-20210524175626562"></p>
 <p>意思是告诉你，没有映射到<code>/error</code>对应的视图</p>
 <p>这个是从哪里出现的呢？</p>
 <p>我们找到<code>org.springframework.boot.autoconfigure.web.servlet.error</code>包下面</p>
-<p><img src="/imgs/oss/picGo/image-20210524175936141.png" alt="image-20210524175936141" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524175936141.png" alt="image-20210524175936141"></p>
 <p>这里我们看到<code>ErrorMvcAutoConfiguration</code>，因为<code>springboot</code>自动装配就是这些<code>xxxAutoConfiguration</code>去完成的</p>
 <p>打开一看，发现：诶？！这里有这样一段代码</p>
-<p><img src="/imgs/oss/picGo/image-20210524180251487.png" alt="image-20210524180251487" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524180251487.png" alt="image-20210524180251487"></p>
 <p>这段代码告诉我们，如果在没注入<code>ErrorViewResolver</code>并且注入了<code>DispatcherServlet</code>这个<code>bean</code>的情况下，则注入一个叫<code>DefaultErrorViewResolver</code>的<code>bean</code></p>
 <p>如果你现在就想知道怎么修改默认的<code>/error</code>路径映射？</p>
 <p>那可以直接注入一个<code>ErrorViewResolver</code></p>
 <p>在你的任意一个配置类中，我建议是放到<code>Mvc</code>配置类中</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * web配置类</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/5/18 0018 14:52</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Configuration</span><br><span class="hljs-meta">@EnableWebMvc</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">WebConfig</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">WebMvcConfigurer</span> &#123;<br>    <br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 不要默认跳转error页面配置</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> org.springframework.boot.autoconfigure.web.servlet.error.ErrorViewResolver</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@since</span> 2021/5/22 0022 21:59</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> ErrorViewResolver <span class="hljs-title function_">errorViewResolver</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">return</span> (request, status, model) -&gt; &#123;<br>            <span class="hljs-comment">// 进行你的配置，如我这里是抛出异常然后统一处理，根据实际业务需求去做</span><br>            <span class="hljs-comment">// throw new MybatisPlusException(&quot;无法解析视图&quot;);</span><br>        &#125;;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>那我们接着来探讨，为什么默认会跳转到<code>/error</code>页面呢？</p>
 <p>因为我们如果没注入<code>ErrorViewResolver</code>的话，<code>ErrorMvcAutoConfiguration</code>里</p>
 <p>里注入了<code>DefaultErrorViewResolver</code></p>
 <p>而里面对于<code>ErrorViewResolver</code>接口的实现是</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> ModelAndView <span class="hljs-title function_">resolveErrorView</span><span class="hljs-params">(HttpServletRequest request, HttpStatus status, Map&lt;String, Object&gt; model)</span> &#123;<br>       <span class="hljs-comment">// 找到对应状态码的 error/xxx 页面,例如找到 error/404 </span><br>	<span class="hljs-type">ModelAndView</span> <span class="hljs-variable">modelAndView</span> <span class="hljs-operator">=</span> resolve(String.valueOf(status.value()), model);<br>	<span class="hljs-keyword">if</span> (modelAndView == <span class="hljs-literal">null</span> &amp;&amp; SERIES_VIEWS.containsKey(status.series())) &#123;<br>           <span class="hljs-comment">// 如果没找到上面的页面，并且status.series等于4或者5的时候，则找4xx或者5xx视图</span><br>		modelAndView = resolve(SERIES_VIEWS.get(status.series()), model);<br>	&#125;<br>       <span class="hljs-comment">// 然后返回</span><br>	<span class="hljs-keyword">return</span> modelAndView;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>找不到这些页面的话</p>
-<p><img src="/imgs/oss/picGo/image-20210524190730947.png" alt="image-20210524190730947" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524190730947.png" alt="image-20210524190730947"></p>
 <p>自然而然就会返回默认的<code>org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration.StaticView</code></p>
 <p>而里面的实现</p>
-<p><img src="/imgs/oss/picGo/image-20210524190656122.png" alt="image-20210524190656122" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524190656122.png" alt="image-20210524190656122"></p>
 <p>正好是我们一开始看到的错误页面啦~</p>
 <p><strong>所以再说一遍，配置如下即可</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * web配置类</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/5/18 0018 14:52</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Configuration</span><br><span class="hljs-meta">@EnableWebMvc</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">WebConfig</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">WebMvcConfigurer</span> &#123;<br>    <br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 不要默认跳转error页面配置</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> org.springframework.boot.autoconfigure.web.servlet.error.ErrorViewResolver</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@since</span> 2021/5/22 0022 21:59</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> ErrorViewResolver <span class="hljs-title function_">errorViewResolver</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">return</span> (request, status, model) -&gt; &#123;<br>            <span class="hljs-comment">// 进行你的配置，如我这里是抛出异常然后统一处理，根据实际业务需求去做</span><br>            <span class="hljs-comment">// throw new MybatisPlusException(&quot;无法解析视图&quot;);</span><br>        &#125;;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 
     </div>
 </article>
@@ -570,61 +573,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/08/JSONStream/">JSONStream</a>
+                    <a href="/2023/09/02/TreeMap%E8%B8%A9%E5%9D%91/">TreeMap踩坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/10/03/TradingAgents-CN/">TradingAgents-CN</a>
+                    <a href="/2020/08/13/fastjson%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/">fastjson基本使用</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/02/16/animejs/">animejs</a>
+                    <a href="/2022/09/04/maven%E7%89%88%E6%9C%AC%E5%8F%B7%E6%8F%92%E4%BB%B6/">maven版本号插件</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/10/20/eCapture%E6%8A%93%E5%8C%85%E6%A1%86%E6%9E%B6/">eCapture抓包框架</a>
+                    <a href="/2024/07/23/mdn%E5%AD%A6%E4%B9%A0web%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/">mdn学习web游戏开发</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/07/idea%E5%90%AF%E5%8A%A8%E6%97%B6%E9%BB%98%E8%AE%A4%E9%80%89%E6%8B%A9%E9%A1%B9%E7%9B%AE/">idea启动时默认选择项目</a>
+                    <a href="/2021/12/26/mybatis-plus%E5%85%81%E8%AE%B8%E8%87%AA%E5%AE%9A%E4%B9%89handlerType%E7%9A%84set/">mybatis-plus允许自定义handlerType的set</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/11/30/springboot%E4%BD%BF%E7%94%A8%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1/">springboot使用异步任务</a>
+                    <a href="/2022/02/20/paperword%E8%AE%BA%E6%96%87%E6%9F%A5%E9%87%8D/">paperword论文查重</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/03/24/vue%E4%B8%ADimg%E9%94%99%E8%AF%AF%E9%BB%98%E8%AE%A4%E5%9B%BE%E7%89%87/">vue中img错误默认图片</a>
+                    <a href="/2020/09/03/vue2-0%E9%85%8D%E7%BD%AE%E8%B7%AF%E7%94%B1/">vue2.0配置路由</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/10/01/webclient%E8%BF%9C%E7%A8%8B%E8%B0%83%E7%94%A8/">webclient远程调用</a>
+                    <a href="/2024/08/11/whimsy%E5%9C%A8macos%E5%AE%89%E8%A3%85/">whimsy在macos安装</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/03/26/%E6%9E%9A%E4%B8%BE%E5%B7%A5%E5%85%B7%E7%B1%BB/">枚举工具类</a>
+                    <a href="/2024/06/29/%E8%B0%88%E8%B0%88%E6%88%91%E5%AF%B9%E5%AE%9E%E6%97%B6%E8%AE%A1%E7%AE%97%E7%9A%84%E7%90%86%E8%A7%A3/">谈谈我对实时计算的理解</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/09/26/pipx%E5%9C%A8%E9%9A%94%E7%A6%BB%E7%8E%AF%E5%A2%83%E4%B8%AD%E8%BF%90%E8%A1%8Cpython%E5%BA%94%E7%94%A8/">pipx在隔离环境中运行python应用</a>
+                    <a href="/2021/02/11/%E9%87%8D%E5%A4%8D%E6%B3%A8%E8%A7%A3/">重复注解</a>
                 </span>
             </li>
             
@@ -657,73 +660,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 12.578776190665774px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 11.471373630056874px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.054489426002533px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 10.620840056143429px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 19.612156640237743px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 15.638981158266514px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 17.273248362915538px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 12.977245803116809px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 12.47109998610488px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.219345555748466px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 8.696360940633355px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 19.613834902259047px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 19.1343513514457px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 10.676420209070116px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10.705780775741667px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 12.776604655600513px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 13.751283667062197px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 14.7550580030167px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 14.866769530571743px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 19.141076700654207px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 17.721970779817887px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 17.03988371846181px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 12.262270495095947px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 18.057362533985568px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 15.28169258793314px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 8.360873799194993px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 13.130134117570977px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 13.135425668379087px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 10.742237280966192px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 9.519914565500425px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 13.804995783507373px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 8.179529627119695px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 13.040945292621341px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 13.06682631196696px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 15.155005743696663px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 17.14212943313424px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 16.190967605895732px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.189079532440768px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 15.629662391842398px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 12.987989707779334px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 19.56788536921554px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 12.417662770811457px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 9.496465630145375px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 18.28519573383683px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 18.319637117955118px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 14.476924029011407px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 19.967356066384696px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 11.659687694147646px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 9.665707593165699px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 9.555329172293671px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 9.751827204244865px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 19.79185998086791px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 14.129952691888967px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 15.344907198493928px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.90908398619977px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10.335407742836937px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 11.254922116529556px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 16.12346696954426px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 15.686144369821633px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 16.635288443335682px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 8.429709819889434px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 18.419051352098446px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 8.129479393737254px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.65873699694567px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 8.995892220214095px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 12.05327728682446px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 18.707039406244956px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.838032062881187px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

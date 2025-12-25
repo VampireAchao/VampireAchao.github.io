@@ -15,7 +15,7 @@
   
   
   <title>centos内存过满排查+解决 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>centos内存过满排查+解决</span>
     </div>
@@ -401,43 +401,52 @@
 </blockquote>
 <p>今天突然发现程序执行<code>insert</code>的<code>sql</code>语句执行不了，查询正常，根据数据库死锁排查步骤排查了下无果</p>
 <p>后来登上宝塔面板发现磁盘爆满。。。</p>
-<p><img src="/imgs/oss/picGo/image-20210524150317680.png" alt="image-20210524150317680" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524150317680.png" alt="image-20210524150317680"></p>
 <p>首先看看磁盘使用情况</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">查看磁盘使用情况统计(disk free)，这里-h表示以M/G等单位显示</span><br>df -h<br></code></pre></td></tr></table></figure>
+
 <p>可以看到我这里最大的是<code>/dev/vda1</code>这个磁盘，也就是我现在使用的这个盘占用了几乎爆满</p>
-<p><img src="/imgs/oss/picGo/image-20210524150412390.png" alt="image-20210524150412390" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524150412390.png" alt="image-20210524150412390"></p>
 <p>然后我们列出该磁盘下文件大小</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">显示目录或文件大小(disk usage)，-s表示仅显示总计 -h同上</span><br>du -sh /*<br></code></pre></td></tr></table></figure>
+
 <p>看到最大的是这个<code>28G</code>的<code>/var</code></p>
-<p><img src="/imgs/oss/picGo/image-20210524151122778.png" alt="image-20210524151122778" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524151122778.png" alt="image-20210524151122778"></p>
 <p>再进一步查看该目录下的</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">du -sh /var/*<br></code></pre></td></tr></table></figure>
-<p><img src="/imgs/oss/picGo/image-20210524151153772.png" alt="image-20210524151153772" /></p>
+
+<p><img src="/imgs/oss/picGo/image-20210524151153772.png" alt="image-20210524151153772"></p>
 <p>这样一步一步到最后发现是<code>/var/log</code>下的一个叫<code>messages</code>的文件占用<code>23G</code></p>
-<p><img src="/imgs/oss/picGo/image-20210524151704143.png" alt="image-20210524151704143" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524151704143.png" alt="image-20210524151704143"></p>
 <p>这个文件是存放我们系统日志的文件，例如一些服务日志之类的会往里写</p>
 <p>我们清理一下</p>
 <p>先列出打开这个文件的进程</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">列出当前系统打开文件(list open files)，使用“|”管道符将左边lsof的输出作为右边命令grep message的输入</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">grep 命令是用于查找文件里符合条件的字符串</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">这里 lsof 还可以这样使用： lsof -i:80 （查看端口占用情况）</span><br>lsof | grep messages<br></code></pre></td></tr></table></figure>
-<p><img src="/imgs/oss/picGo/image-20210524153309983.png" alt="image-20210524153309983" /></p>
+
+<p><img src="/imgs/oss/picGo/image-20210524153309983.png" alt="image-20210524153309983"></p>
 <p>我们杀掉进程试试？</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">终止进程号为1002的进程(-9表示强制终止)</span><br>kill -9 1002<br></code></pre></td></tr></table></figure>
+
 <p>然后发现进程还在。。。</p>
-<p><img src="/imgs/oss/picGo/image-20210524153903645.png" alt="image-20210524153903645" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524153903645.png" alt="image-20210524153903645"></p>
 <p>那就关一下这个叫<code>rsyslogd</code>的服务好了</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">系统服务 关闭 [服务名]</span><br>systemctl stop rsyslog<br></code></pre></td></tr></table></figure>
-<p><img src="/imgs/oss/picGo/image-20210524154136398.png" alt="image-20210524154136398" /></p>
+
+<p><img src="/imgs/oss/picGo/image-20210524154136398.png" alt="image-20210524154136398"></p>
 <p>然后再次<code>lsof</code>发现没有了</p>
 <p>我们再清空日志</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">输出 /dev/null 这个文件中的内容 覆盖 /var/log/messages</span><br>cat /dev/null &gt; /var/log/messages<br></code></pre></td></tr></table></figure>
+
 <p>然后再次查看文件大小</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">du -sh /var/log/*<br></code></pre></td></tr></table></figure>
+
 <p>发现已被清空</p>
-<p><img src="/imgs/oss/picGo/image-20210524154718736.png" alt="image-20210524154718736" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524154718736.png" alt="image-20210524154718736"></p>
 <p>然后重启</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">reboot<br></code></pre></td></tr></table></figure>
+
 <p>成功瘦身！<code>Yes</code>！！！</p>
-<p><img src="/imgs/oss/picGo/image-20210524154815500.png" alt="image-20210524154815500" /></p>
+<p><img src="/imgs/oss/picGo/image-20210524154815500.png" alt="image-20210524154815500"></p>
 
     </div>
 </article>
@@ -579,61 +588,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/07/23/apache-incubator-streampark%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C%EF%BC%88%E5%9B%9B%EF%BC%89/">apache-incubator-streampark源码编译本地运行（四）</a>
+                    <a href="/2021/02/03/Gson%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/">Gson基本使用</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/12/06/claude-cookbooks/">claude-cookbooks</a>
+                    <a href="/2025/09/04/RapidOCR/">RapidOCR</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/06/05/javadoc-plugin/">javadoc-plugin</a>
+                    <a href="/2021/10/22/ThreadLocal/">ThreadLocal</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/05/18/js%E4%B8%ADjson%E4%B8%8E%E5%AF%B9%E8%B1%A1%E4%BA%92%E8%BD%AC/">js中json与对象互转</a>
+                    <a href="/2025/11/08/nano-vllm/">nano-vllm</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/12/08/minimind/">minimind</a>
+                    <a href="/2025/04/06/outline/">outline</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/06/07/vue%E6%9F%A5%E7%9C%8B%E7%BB%84%E4%BB%B6/">vue查看组件</a>
+                    <a href="/2025/06/05/overscroll-decor/">overscroll-decor</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/07/26/%E4%BD%BF%E7%94%A8Console-Importer%E5%AE%89%E8%A3%85lodash%E5%B9%B6%E4%BD%BF%E7%94%A8/">使用Console Importer安装lodash并使用</a>
+                    <a href="/2021/07/02/redisson%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">redisson实现分布式锁</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/07/22/%E5%88%9B%E5%BB%BA%E5%8F%AA%E8%AF%BB%E9%9B%86%E5%90%88/">创建只读集合</a>
+                    <a href="/2024/02/29/satoken-webflux%E8%8E%B7%E5%8F%96header%E4%BB%A5%E5%8F%8Abody/">satoken+webflux获取header以及body</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/11/07/%E9%80%BB%E8%BE%91%E5%88%A0%E9%99%A4%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%86%B2%E7%AA%81%E5%A4%84%E7%90%86%EF%BC%88%E4%BA%8C%EF%BC%89/">逻辑删除与联合索引冲突处理（二）</a>
+                    <a href="/2021/09/23/sessionStorage/">sessionStorage</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/09/26/pipx%E5%9C%A8%E9%9A%94%E7%A6%BB%E7%8E%AF%E5%A2%83%E4%B8%AD%E8%BF%90%E8%A1%8Cpython%E5%BA%94%E7%94%A8/">pipx在隔离环境中运行python应用</a>
+                    <a href="/2021/03/02/%E5%AD%A6%E4%B9%A0%E5%BF%83%E5%BE%97/">职场心得</a>
                 </span>
             </li>
             
@@ -666,73 +675,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 10.007257579933293px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 8.73438887570435px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 14.291324124913476px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 19.747206416529785px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 12.537164398583405px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 16.932789271494315px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.837532589987903px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.116431227940474px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.608693230550923px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.328550069868673px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 16.913310723345695px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 10.323827629257222px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 9.869277571849366px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 17.431999293815228px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 12.293898714853654px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 16.65077960580254px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.826869516716364px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.247931180209461px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 10.362870658059284px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 13.930237907573176px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 16.385182833947038px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 8.589803408980327px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 12.330964846159645px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 10.606674106161698px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 19.96327314727121px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 17.504921833767188px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 12.233109474821745px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 13.079160546990591px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 17.56234319177304px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 13.276754621704885px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 13.141558625475552px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 8.105064088241715px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 10.694887097046704px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 9.237423051834304px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 14.350832691494958px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 12.841539616147049px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.36685320262998px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 14.986641207862238px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 10.237252617724476px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 17.396782181360777px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 19.15802315460636px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 15.923166687550408px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 12.112948779311502px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 17.77008966232458px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 18.789553222825276px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 19.608288132430722px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 11.515964000899762px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 17.15214046632142px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 12.579408835331803px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.935112338936225px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 14.642668226858152px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 12.281622832304556px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 13.355382372993954px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 14.250754434541278px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.309334837674868px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.99562425482963px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 9.841133558586243px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 18.235065882507836px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 17.89936545402773px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 10.073964172382599px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 9.305355934547258px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 14.251897978894124px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.74737934223762px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 15.325377761310225px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 13.35209224010794px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 19.547736551231875px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.402604162459355px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 15.635044267355829px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

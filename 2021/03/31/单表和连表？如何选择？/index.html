@@ -15,7 +15,7 @@
   
   
   <title>单表和连表？如何选择？ | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>单表和连表？如何选择？</span>
     </div>
@@ -401,21 +401,25 @@
 </blockquote>
 <p>今天做了个小测试啊</p>
 <p>我自己造了一百万多条(<code>1029708</code>条)数据</p>
-<p><img src="/imgs/oss/picGo/image-20210331232927571.png" alt="image-20210331232927571" /></p>
-<p><img src="/imgs/oss/picGo/image-20210331233010944.png" alt="image-20210331233010944" /></p>
+<p><img src="/imgs/oss/picGo/image-20210331232927571.png" alt="image-20210331232927571"></p>
+<p><img src="/imgs/oss/picGo/image-20210331233010944.png" alt="image-20210331233010944"></p>
 <p>这里测试呢我们首先是编写了一个<code>LEFT JOIN</code></p>
 <p>连表<code>SQL</code>如下</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span><br><span class="hljs-keyword">FROM</span> `film`<br>         <span class="hljs-keyword">LEFT</span> <span class="hljs-keyword">JOIN</span> `<span class="hljs-keyword">language</span>` <span class="hljs-keyword">ON</span> `film`.language_id <span class="hljs-operator">=</span> `<span class="hljs-keyword">language</span>`.language_id<br></code></pre></td></tr></table></figure>
+
 <p>我们查询一百万多条后耗时为<code>33457.8317 ms</code>，大约<code>30</code>来秒，这是没有加索引的情况下</p>
 <p>我们使用单表查询，然后再拼装</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">long</span> <span class="hljs-variable">startTime</span> <span class="hljs-operator">=</span> System.nanoTime();<br>List&lt;Film&gt; films = filmMapper.selectList(Wrappers.lambdaQuery());<br>List&lt;Integer&gt; languageIds = films.parallelStream().map(Film::getLanguageId).distinct().collect(Collectors.toList());<br><span class="hljs-keyword">final</span> Map&lt;Integer, Language&gt; languageMap = languageMapper.selectList(Wrappers.lambdaQuery(Language.builder().build()).in(Language::getLanguageId, languageIds)).parallelStream().collect(Collectors.toMap(Language::getLanguageId, Function.identity(), (v1, v2) -&gt; v2));<br>List&lt;Map&lt;String, Object&gt;&gt; collect = films.stream().map(film -&gt; &#123;<br>    Map&lt;String, Object&gt; map = BeanUtils.beanToMap(film);<br>    Optional.ofNullable(film).map(Film::getLanguageId).map(languageMap::get).map(BeanUtils::beanToMap).ifPresent(map::putAll);<br>    <span class="hljs-keyword">return</span> map;<br>&#125;).collect(Collectors.toList());<br><span class="hljs-type">long</span> <span class="hljs-variable">endTime</span> <span class="hljs-operator">=</span> System.nanoTime();<br>System.out.println(<span class="hljs-string">&quot;耗时：&quot;</span> + ((endTime - startTime) / (<span class="hljs-number">1000.0</span> * <span class="hljs-number">1000.0</span>)) + <span class="hljs-string">&quot; ms&quot;</span>); <br></code></pre></td></tr></table></figure>
+
 <p>最后耗时为<code>22289.5385 ms</code>，大约<code>20</code>来秒，可以看到明显比上面的连表查询要快</p>
 <p>那么如果再连一次呢，模拟两个<code>LEFT JOIN</code>的场景</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span><br><span class="hljs-keyword">FROM</span> `film`<br>         <span class="hljs-keyword">LEFT</span> <span class="hljs-keyword">JOIN</span> `<span class="hljs-keyword">language</span>` <span class="hljs-keyword">ON</span> `film`.language_id <span class="hljs-operator">=</span> `<span class="hljs-keyword">language</span>`.language_id<br>         <span class="hljs-keyword">LEFT</span> <span class="hljs-keyword">JOIN</span> `<span class="hljs-keyword">language</span>` <span class="hljs-keyword">AS</span> language1 <span class="hljs-keyword">ON</span> `film`.language_id <span class="hljs-operator">=</span> language1.language_id<br></code></pre></td></tr></table></figure>
+
 <p>这里耗时<code>37053.9295 ms</code>，因为我们<code>language</code>表数据量较小，所以再连一次差别也并不是特别大</p>
 <p>但可以明显看出，多了<code>4</code>秒左右</p>
 <p>我们写成单表的话</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">long</span> <span class="hljs-variable">startTime</span> <span class="hljs-operator">=</span> System.nanoTime();<br>     List&lt;Film&gt; films = filmMapper.selectList(Wrappers.lambdaQuery());<br>     List&lt;Integer&gt; languageIds = films.parallelStream().map(Film::getLanguageId).distinct().collect(Collectors.toList());<br>     CompletableFuture&lt;Map&lt;Integer, Language&gt;&gt; languageMapFuture = CompletableFuture.supplyAsync(() -&gt; languageMapper.selectList(Wrappers.lambdaQuery(Language.builder().build()).in(Language::getLanguageId, languageIds)).parallelStream().collect(Collectors.toMap(Language::getLanguageId, Function.identity(), (v1, v2) -&gt; v2)));<br>     CompletableFuture&lt;Map&lt;Integer, Language&gt;&gt; languageMapFuture1 = CompletableFuture.supplyAsync(() -&gt; languageMapper.selectList(Wrappers.lambdaQuery(Language.builder().build()).in(Language::getLanguageId, languageIds)).parallelStream().collect(Collectors.toMap(Language::getLanguageId, Function.identity(), (v1, v2) -&gt; v2)));<br>     CompletableFuture.allOf(languageMapFuture, languageMapFuture1).get();<br>     Map&lt;Integer, Language&gt; languageMap = languageMapFuture.get();<br>     Map&lt;Integer, Language&gt; languageMap1 = languageMapFuture1.get();<br>     List&lt;Map&lt;String, Object&gt;&gt; collect = films.stream().map(film -&gt; &#123;<br>         Map&lt;String, Object&gt; map = BeanUtils.beanToMap(film);<br>         Optional.ofNullable(film).map(Film::getLanguageId).map(languageMap::get).map(BeanUtils::beanToMap).ifPresent(map::putAll);<br>         Optional.ofNullable(film).map(Film::getLanguageId).map(languageMap1::get).map(BeanUtils::beanToMap).ifPresent(map::putAll);<br>         <span class="hljs-keyword">return</span> map;<br>     &#125;).collect(Collectors.toList());<br>     <span class="hljs-type">long</span> <span class="hljs-variable">endTime</span> <span class="hljs-operator">=</span> System.nanoTime();<br>     System.out.println(<span class="hljs-string">&quot;耗时：&quot;</span> + ((endTime - startTime) / (<span class="hljs-number">1000.0</span> * <span class="hljs-number">1000.0</span>)) + <span class="hljs-string">&quot; ms&quot;</span>); <br></code></pre></td></tr></table></figure>
+
 <p>执行后耗时<code>23362.9739 ms</code>！！发现仅仅多了一秒左右啊</p>
 <p>上面的连表<code>SQL</code>，就算在<code>language</code>表的<code>language_id</code>上加了索引，也是耗时<code>35314.184 ms</code></p>
 <p>也远远没有我们的单表快</p>
@@ -565,61 +569,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/06/android-studio%E6%9F%A5%E7%9C%8B%E5%BD%93%E5%89%8D%E6%89%80%E5%9C%A8Activity/">android-studio查看当前所在Activity</a>
+                    <a href="/2024/10/18/Apache-general%E9%82%AE%E4%BB%B6%E8%AE%A2%E9%98%85/">Apache-general邮件订阅</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/02/28/mysql%E5%8E%BB%E6%8E%89decimal%E6%9C%AB%E5%B0%BE%E7%9A%840/">mysql去掉decimal末尾的0</a>
+                    <a href="/2025/04/20/freeCodeCamp/">freeCodeCamp</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/05/22/officegen/">officegen</a>
+                    <a href="/2024/01/16/gmail%E7%BB%91%E5%AE%9Aapache%E9%82%AE%E7%AE%B1/">gmail绑定apache邮箱</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/29/orderBy%E6%8E%92%E5%BA%8F%EF%BC%8Cnull%E5%9C%A8%E6%9C%80%E5%90%8E/">orderBy排序，null在最后</a>
+                    <a href="/2023/08/22/hugegraph/">hugegraph</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/11/23/toastify-js/">toastify-js</a>
+                    <a href="/2023/04/30/iconify/">iconify</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/07/15/vuera/">vuera</a>
+                    <a href="/2025/06/15/mqcloud/">mqcloud</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/12/26/%E7%9C%8B%E6%9D%BF%E5%A8%98%E8%A2%AB%E5%85%B3%E6%8E%89%E4%BA%86%E6%80%8E%E4%B9%88%E9%87%8D%E6%96%B0%E6%98%BE%E7%A4%BA/">看板娘被关掉了怎么重新显示</a>
+                    <a href="/2020/08/07/spring%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95AOP/">spring实现简单AOP</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/06/%E7%BC%96%E5%86%99mybatis%E8%84%B1%E6%95%8F%E6%8F%92%E4%BB%B6/">编写mybatis脱敏插件</a>
+                    <a href="/2025/09/23/yakit/">yakit</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/12/18/%E8%8E%B7%E5%8F%96lambda/">获取lambda</a>
+                    <a href="/2021/06/16/%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E7%B1%BB%E6%98%AF%E5%90%A6%E5%8F%A6%E4%B8%80%E4%B8%AA%E7%B1%BB%E7%9A%84%E7%88%B6%E7%B1%BB/">判断一个类是否另一个类的父类</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/04/%E9%87%91%E6%9C%B5%E5%B8%8C%E7%9A%84%E8%B0%9C%E9%A2%98/">金朵希的谜题</a>
+                    <a href="/2023/09/29/%E5%A4%9A%E6%A8%A1%E5%9D%97spring%E6%B3%A8%E5%85%A5%E5%A4%84%E7%90%86/">多模块spring注入处理</a>
                 </span>
             </li>
             
@@ -652,73 +656,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 9.696390746851723px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 18.841162556344095px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.518252189726361px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 15.877612267443162px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 16.53430829717591px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 19.208354415383766px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 10.6305517013019px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 10.07335818091031px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 16.72434622346912px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.798010212170638px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 16.215337529360795px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 13.310547898347298px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 14.559113435599949px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 14.778180633673205px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.71210778291104px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.838840038764785px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.28531231056167px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.803302009009041px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 16.208868359514103px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 14.58851642169008px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 18.497790524622136px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 18.05727298075174px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 9.988844900418412px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 19.84148309353115px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 8.771337363403516px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 8.393332197076884px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 19.590657428081663px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 15.479126577007516px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 17.293116279534928px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 14.627951770419836px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 10.938151923938458px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 11.185247397591786px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 14.07485648316681px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 15.685539380034276px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 9.231475324103435px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 8.625684157237988px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.239433818169221px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 13.406882572674071px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 13.414107237078074px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 17.326841434313284px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 14.40362429349697px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 19.438350090628774px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 16.887504971710314px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 11.161619820957439px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 18.855825170351025px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 18.02416808912719px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 18.996668848704594px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 12.971754055845057px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 10.062949365295157px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 10.764575748890348px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 16.549611246173114px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 19.000903216778052px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 18.368756692855px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 16.714653605975347px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.54672185897341px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.81207214705631px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 13.014598259408334px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 19.34161703964461px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 14.17809742346331px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 14.471077084658692px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 19.76098023995463px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 13.851656000181636px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.249067076384485px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 9.95560913931353px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 18.429357830719386px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 14.795989187002348px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 9.736888881045292px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 14.984794387150451px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

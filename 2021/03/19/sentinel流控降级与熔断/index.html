@@ -15,7 +15,7 @@
   
   
   <title>sentinel流控降级与熔断 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>sentinel流控降级与熔断</span>
     </div>
@@ -401,54 +401,62 @@
 </blockquote>
 <p>引入依赖</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-comment">&lt;!--    sentinel 降级熔断    --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.alibaba.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-sentinel<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-comment">&lt;!--    与sentinel控制台进行通信    --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.alibaba.csp<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>sentinel-transport-simple-http<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.7.1<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
 <p>下载客户端<a href="/imgs/oss/picGo/sentinel-dashboard.jar">jar包</a></p>
 <p>然后输入命令运行</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">java -Dserver.port=9000 -Dcsp.sentinel.dashboard.server=localhost:9000 -Dproject.name=sentinel-dashboard -jar sentinel-dashboard.jar<br></code></pre></td></tr></table></figure>
+
 <blockquote>
 <p>若您的应用使用了 Spring AOP，您需要通过配置的方式将 <code>SentinelResourceAspect</code> 注册为一个 Spring Bean：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SentinelAspectConfiguration</span> &#123;<br><br> 	<span class="hljs-meta">@Bean</span><br> 	<span class="hljs-keyword">public</span> SentinelResourceAspect <span class="hljs-title function_">sentinelResourceAspect</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SentinelResourceAspect</span>();<br> 	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 </blockquote>
 <p>然后在配置文件配置</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">sentinel:</span><br>  <span class="hljs-attr">transport:</span><br>    <span class="hljs-attr">port:</span> <span class="hljs-number">9001</span><br>    <span class="hljs-attr">dashboard:</span> <span class="hljs-string">localhost:9000</span><br>  <span class="hljs-attr">filter:</span><br>    <span class="hljs-attr">enabled:</span> <span class="hljs-literal">true</span><br>    <span class="hljs-attr">url-patterns:</span> <span class="hljs-string">/**</span><br></code></pre></td></tr></table></figure>
+
 <p>因为我们可以看到运行后输出的</p>
 <blockquote>
-<p>2021-03-16 23:24:49.986  INFO 18604 — [           main] c.a.c.s.SentinelWebAutoConfiguration     : [Sentinel Starter] register SentinelWebInterceptor with urlPatterns: [/*].</p>
+<p>2021-03-16 23:24:49.986  INFO 18604 — [           main] c.a.c.s.SentinelWebAutoConfiguration     : [Sentinel Starter] register SentinelWebInterceptor with urlPatterns: [&#x2F;*].</p>
 </blockquote>
 <p>所以需要配置<code>url-patterns: /**</code>否则只有一层<code>url</code>会被监控到</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 登录成功时调用该接口，传入一句话</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> word 参数 例子：?word=登录成功！</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 返回json格式的map</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@GetMapping(&quot;say&quot;)</span><br>    <span class="hljs-keyword">public</span> AjaxJson <span class="hljs-title function_">say</span><span class="hljs-params">(<span class="hljs-meta">@RequestParam</span> String word)</span> &#123;<br>        <span class="hljs-keyword">return</span> AjaxJson.success().put(<span class="hljs-string">&quot;data&quot;</span>, word);<br>    &#125;<br></code></pre></td></tr></table></figure>
+
 <p>访问控制台<code>localhost:9000</code>(上面配置的9000端口)</p>
 <p>输入默认用户名密码<code>sentinel</code></p>
 <p>然后找到我们需要限流的接口点击流控</p>
-<p><img src="/imgs/oss/picGo/image-20210315223724526.png" alt="image-20210315223724526" /></p>
-<p><img src="/imgs/oss/picGo/image-20210315223743891.png" alt="image-20210315223743891" /></p>
+<p><img src="/imgs/oss/picGo/image-20210315223724526.png" alt="image-20210315223724526"></p>
+<p><img src="/imgs/oss/picGo/image-20210315223743891.png" alt="image-20210315223743891"></p>
 <p>然后我们每秒就只能访问一次了</p>
-<p><img src="/imgs/oss/picGo/image-20210315223811400.png" alt="image-20210315223811400" /></p>
+<p><img src="/imgs/oss/picGo/image-20210315223811400.png" alt="image-20210315223811400"></p>
 <p>接下来是服务降级</p>
 <p>我们可以在配置文件开启</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">feign:</span><br>  <span class="hljs-attr">sentinel:</span><br>    <span class="hljs-attr">enabled:</span> <span class="hljs-literal">true</span><br></code></pre></td></tr></table></figure>
+
 <p>然后实现我们的<code>feign</code>接口</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.feign.fallback;<br><br><span class="hljs-keyword">import</span> com.ruben.feign.ConsumerService;<br><span class="hljs-keyword">import</span> com.ruben.pojo.dto.PageDTO;<br><span class="hljs-keyword">import</span> com.ruben.utils.AjaxJson;<br><span class="hljs-keyword">import</span> lombok.extern.slf4j.Slf4j;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Service;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@ClassName</span>: ConsumerServiceFallback</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Description</span>: 我还没有写描述</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Date</span>: 2021/3/16 0016 22:14</span><br><span class="hljs-comment"> * *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span>: &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@version</span>: 1.0</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span>: JDK 1.8</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Slf4j</span><br><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ConsumerServiceFallback</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ConsumerService</span> &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> AjaxJson <span class="hljs-title function_">list</span><span class="hljs-params">(PageDTO pageDTO)</span> &#123;<br>        log.error(<span class="hljs-string">&quot;服务挂了&quot;</span>);<br>        <span class="hljs-keyword">return</span> AjaxJson.error(<span class="hljs-string">&quot;&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> AjaxJson <span class="hljs-title function_">dropWare</span><span class="hljs-params">()</span> &#123;<br>        log.error(<span class="hljs-string">&quot;服务挂了&quot;</span>);<br>        <span class="hljs-keyword">return</span> AjaxJson.error(<span class="hljs-string">&quot;&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>最后在<code>feign</code>接口使用<code>@FeignClient</code>的<code>fallback</code>参数指定降级实现</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.feign;<br><br><span class="hljs-keyword">import</span> com.ruben.feign.fallback.ConsumerServiceFallback;<br><span class="hljs-keyword">import</span> com.ruben.pojo.dto.PageDTO;<br><span class="hljs-keyword">import</span> com.ruben.utils.AjaxJson;<br><span class="hljs-keyword">import</span> org.springframework.cloud.openfeign.FeignClient;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.GetMapping;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RequestBody;<br><br><span class="hljs-meta">@FeignClient(value = &quot;ruben-consumer&quot;, fallback = ConsumerServiceFallback.class)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ConsumerService</span> &#123;<br>    <span class="hljs-meta">@GetMapping(&quot;study/list&quot;)</span><br>    AjaxJson <span class="hljs-title function_">list</span><span class="hljs-params">(<span class="hljs-meta">@RequestBody</span> PageDTO pageDTO)</span>;<br><br>    <span class="hljs-meta">@GetMapping(&quot;ware&quot;)</span><br>    AjaxJson <span class="hljs-title function_">dropWare</span><span class="hljs-params">()</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>然后访问我们的接口如果出现异常，则会调用我们的降级实现</p>
-<p><img src="/imgs/oss/picGo/image-20210316222356684.png" alt="image-20210316222356684" /></p>
+<p><img src="/imgs/oss/picGo/image-20210316222356684.png" alt="image-20210316222356684"></p>
 <p>我们再配置熔断</p>
 <p>点击我们远程接口的降级按钮</p>
-<p><img src="/imgs/oss/picGo/image-20210316222609418.png" alt="image-20210316222609418" /></p>
-<p><img src="/imgs/oss/picGo/image-20210316222702186.png" alt="image-20210316222702186" /></p>
+<p><img src="/imgs/oss/picGo/image-20210316222609418.png" alt="image-20210316222609418"></p>
+<p><img src="/imgs/oss/picGo/image-20210316222702186.png" alt="image-20210316222702186"></p>
 <p>配置完成后如果我们再远程调用在5秒内异常比例超过百分之八十，则之后都会直接调用我们的降级实现了</p>
 <p>自定义受保护的资源</p>
 <p>可以在接口上加<code>@SentinelResource</code>注解</p>
 <p>也可以在代码中</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java">    <span class="hljs-meta">@Override</span><br>    <span class="hljs-meta">@Transactional</span><br>    <span class="hljs-meta">@GlobalTransactional</span><br>    <span class="hljs-keyword">public</span> AjaxJson <span class="hljs-title function_">order</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> (<span class="hljs-type">Entry</span> <span class="hljs-variable">entry</span> <span class="hljs-operator">=</span> SphU.entry(<span class="hljs-string">&quot;resourceName&quot;</span>)) &#123;<br>            consumerService.dropWare();<br><span class="hljs-comment">//        mpOrderMapper.insert(OrderPO.builder().id(1L).build());</span><br>        &#125; <span class="hljs-keyword">catch</span> (BlockException e) &#123;<br>            <span class="hljs-keyword">return</span> AjaxJson.error(<span class="hljs-string">&quot;慢点&quot;</span>);<br>        &#125;<br>        <span class="hljs-keyword">return</span> AjaxJson.success();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>加上<code>try(Entry entry = SphU.entry(&quot;&#123;资源名&#125;&quot;))&#123;&#125;catch(BlockException e)&#123;&#125;</code></p>
 <p>后即可把这段代码作为一个受保护的资源</p>
 <p>我们可以在<code>catch</code>中编写我们的降级方法</p>
 <p>然后我们需要在流控规则中新建</p>
-<p><img src="/imgs/oss/picGo/image-20210316223918123.png" alt="image-20210316223918123" /></p>
-<p><img src="/imgs/oss/picGo/image-20210316223929781.png" alt="" /></p>
+<p><img src="/imgs/oss/picGo/image-20210316223918123.png" alt="image-20210316223918123"></p>
+<p><img src="/imgs/oss/picGo/image-20210316223929781.png"></p>
 <p>然后可以看到我们成功实现流控我们的受保护资源</p>
-<p><img src="/imgs/oss/picGo/image-20210316224004294.png" alt="image-20210316224004294" /></p>
+<p><img src="/imgs/oss/picGo/image-20210316224004294.png" alt="image-20210316224004294"></p>
 
     </div>
 </article>
@@ -590,61 +598,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/10/11/Apache-ShenYu%E8%AE%A9h2%E6%95%B0%E6%8D%AE%E5%BA%93%E6%8C%81%E4%B9%85%E5%8C%96%E5%88%B0%E6%96%87%E4%BB%B6%E4%B8%AD/">Apache-ShenYu让h2数据库持久化到文件中</a>
+                    <a href="/2020/09/23/Arrays-asList%E7%9A%84%E5%9D%91/">Arrays.asList的坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/22/Collectors-toMap%E7%9A%84%E5%AF%B9null%E5%8F%8B%E5%A5%BD%E5%AE%9E%E7%8E%B0/">Collectors.toMap的对null友好实现</a>
+                    <a href="/2021/05/16/MindMaster/">MindMaster</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/03/05/Generator%E5%87%BD%E6%95%B0%E8%87%AA%E5%8A%A8%E6%89%A7%E8%A1%8C%E5%99%A8/">Generator函数自动执行器</a>
+                    <a href="/2025/03/16/bilibili-cleaner/">bilibili-cleaner</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/09/27/HumanLayer/">HumanLayer</a>
+                    <a href="/2025/08/04/d2l-zh/">d2l-zh</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/10/28/r2dbc%E7%9A%84repository%E6%B3%A8%E5%85%A5%E5%A4%B1%E8%B4%A5/">r2dbc的repository注入失败</a>
+                    <a href="/2020/10/08/idea%E8%A7%A3%E5%86%B3git%E5%86%B2%E7%AA%81/">idea解决git冲突</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/10/31/typescript-exercises%EF%BC%88%E4%BA%94%EF%BC%89/">typescript-exercises（五）</a>
+                    <a href="/2025/02/25/pandoc%E6%96%87%E4%BB%B6%E8%BD%AC%E6%8D%A2/">pandoc文件转换</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/11/01/typescript-exercises%EF%BC%88%E5%85%AD%EF%BC%89/">typescript-exercises（六）</a>
+                    <a href="/2022/02/01/rust%E5%AE%89%E8%A3%85/">rust安装</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/20/typescript%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/">typescript快速入门</a>
+                    <a href="/2023/03/25/svgator/">svgator</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/28/%E6%8A%A5%E9%94%99%E6%89%BE%E4%B8%8D%E5%88%B0-TestRestTemplate/">报错找不到 TestRestTemplate</a>
+                    <a href="/2024/05/12/zui/">zui</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/01/21/%E7%88%B6%E7%B1%BB%E5%9D%91/">父类坑</a>
+                    <a href="/2021/08/16/%E5%AE%9E%E7%94%A8API%E8%AE%BE%E8%AE%A1%E6%A1%88%E4%BE%8B/">实用API设计案例</a>
                 </span>
             </li>
             
@@ -677,73 +685,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 10.159702531766884px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 14.903183298872712px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 10.647589146778408px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 16.379030059950804px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 11.356302242386267px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 11.714173458818458px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 12.39361305355461px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.021751628387857px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.95000915823131px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 16.74682539931605px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 16.718031603132513px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 8.526707733496096px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 11.094392044844106px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 15.412686136696834px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.743403442988992px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 16.574995241732022px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 15.260895921223003px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.654325812429043px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 16.2732484049261px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 9.952074990126325px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 16.509170944561934px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 15.394679271991183px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 11.058875944758206px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 14.591586908208244px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 14.472580187890902px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 15.910805308905946px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 19.956514173817332px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 13.82129241764662px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 9.94306854416043px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 14.527272759743347px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 9.143941123172775px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 19.26181320460611px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 15.404116642906411px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 16.131101373790663px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 9.816774804059499px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 12.944528871980776px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.899797716645864px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.835014703855586px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 11.958061185284064px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 15.305980642141513px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 14.56188471417669px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 17.91816534997208px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 14.194530045618368px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 12.56373523783053px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 15.797568791630503px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 18.038985339228574px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 8.883398327915748px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 8.527633765069744px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.500440011756545px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 8.297095570188675px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 8.858929100627643px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 12.272848134054435px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 14.724661933855618px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 8.317861592647802px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.284185187604393px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.026913114991686px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 11.026280637380328px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 14.964092098654529px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 9.165584912019664px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 11.927438388001237px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 18.943143403990494px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 13.930562581093657px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 14.036329903281288px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.9076917057248px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 8.298292308683724px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 9.76085182881268px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 16.927350362239366px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 16.74620491831285px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

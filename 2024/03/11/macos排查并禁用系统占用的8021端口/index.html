@@ -15,7 +15,7 @@
   
   
   <title>macos排查并禁用系统占用的8021端口 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>macos排查并禁用系统占用的8021端口</span>
     </div>
@@ -401,15 +401,20 @@
 </blockquote>
 <p>本地启动服务一直报错</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash">Description:<br><br>Web server failed to start. Port 8021 was already <span class="hljs-keyword">in</span> use.<br><br>Action:<br><br>Identify and stop the process that<span class="hljs-string">&#x27;s listening on port 8021 or configure this application to listen on another port.</span><br></code></pre></td></tr></table></figure>
+
 <p>然后一查</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 扫描端口占用</span><br>GithubIireAchao:blog achao$ sudo lsof -i :8021<br>Password:<br>COMMAND PID USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME<br>launchd   1 root   40u  IPv4 0xe1fc8d3044233469      0t0  TCP localhost:intu-ec-client (LISTEN)<br>launchd   1 root   41u  IPv6 0xe1fc8d26b1acd419      0t0  TCP localhost:intu-ec-client (LISTEN)<br>launchd   1 root   42u  IPv4 0xe1fc8d3044233469      0t0  TCP localhost:intu-ec-client (LISTEN)<br>launchd   1 root   43u  IPv6 0xe1fc8d26b1acd419      0t0  TCP localhost:intu-ec-client (LISTEN)<br></code></pre></td></tr></table></figure>
+
 <p>发现占用的<code>PID</code>是<code>1</code>，即系统的 <code>launchd</code> 进程</p>
 <p>因为<code>launchd</code> 进程会根据所在的 <code>/Library/LaunchDaemons</code> 和 <code>/Library/LaunchAgents </code>目录中的配置文件来管理各个服务或应用，扫描文件找到服务，当然这个目录也可能是<code>/System/Library/LaunchAgents</code>和<code>/System/Library/LaunchDaemons</code></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash">GithubIireAchao:LaunchAgents achao$ grep -rl <span class="hljs-string">&quot;intu&quot;</span> /Library/LaunchAgents<br>GithubIireAchao:LaunchAgents achao$ grep -rl <span class="hljs-string">&quot;intu&quot;</span> /Library/LaunchDaemons<br>GithubIireAchao:LaunchDaemons achao$ grep -rl <span class="hljs-string">&quot;8021&quot;</span> /System/Library/LaunchAgents<br><span class="hljs-comment"># 找到了包含8021的服务列表</span><br>GithubIireAchao:LaunchDaemons achao$ grep -rl <span class="hljs-string">&quot;8021&quot;</span> /System/Library/LaunchDaemons<br>/System/Library/LaunchDaemons/com.apple.airportd.plist<br>/System/Library/LaunchDaemons/com.apple.eapolcfg_auth.plist<br>/System/Library/LaunchDaemons/com.apple.ftp-proxy.plist<br></code></pre></td></tr></table></figure>
+
 <p>可以挨个查看，也可以再次筛选，例如使用<code>&quot;&gt;8021&lt;&quot;</code>等来筛选</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">GithubIireAchao:LaunchDaemons achao$ grep -rl <span class="hljs-string">&quot;&lt;string&gt;8021&lt;/string&gt;&quot;</span> /System/Library/LaunchDaemons<br>/System/Library/LaunchDaemons/com.apple.ftp-proxy.plist<br></code></pre></td></tr></table></figure>
+
 <p>卸载这个服务，<code>-w</code>表示写入配置，这里整体是禁止下次启动</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">GithubIireAchao:LaunchDaemons achao$ sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.ftp-proxy.plist<br></code></pre></td></tr></table></figure>
+
 <p>再次查看端口</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">GithubIireAchao:LaunchDaemons achao$ sudo lsof -i :8021<br>GithubIireAchao:LaunchDaemons achao$ <br></code></pre></td></tr></table></figure>
 
@@ -553,61 +558,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/01/31/Apache-Linkis/">Apache Linkis</a>
+                    <a href="/2022/01/24/TTL%E7%9A%84CRR%E6%93%8D%E4%BD%9C/">TTL的CRR操作</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/03/18/CompletableFuture/">CompletableFuture</a>
+                    <a href="/2021/02/20/android%E8%AE%A9%E8%BF%94%E5%9B%9E%E6%8C%89%E9%92%AE%E5%A4%B1%E6%95%88/">android让返回按钮失效</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/08/MybatisPlus%E9%80%9A%E7%94%A8%E6%9E%9A%E4%B8%BE/">MybatisPlus通用枚举</a>
+                    <a href="/2025/07/30/healthchecks/">healthchecks</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/04/07/WeChatMsg/">WeChatMsg</a>
+                    <a href="/2023/04/18/idea%E9%A1%B9%E7%9B%AE%E6%B7%BB%E5%8A%A0icon/">idea项目添加icon</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/06/01/conan/">conan</a>
+                    <a href="/2022/10/03/jasper-reports/">jasper-reports</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/08/img%E5%9B%BE%E7%89%87%E4%B8%A2%E5%A4%B1%E5%90%8E%E9%BB%98%E8%AE%A4%E5%9B%BE/">img图片丢失后默认图</a>
+                    <a href="/2024/01/18/pixpinapp/">pixpinapp</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/09/24/jquery%E5%9C%A8iframe%E4%B8%AD%E9%80%89%E4%B8%AD%E7%88%B6%E5%85%83%E7%B4%A0%E8%8A%82%E7%82%B9/">jquery在iframe中选中父元素节点</a>
+                    <a href="/2025/07/29/selenium/">selenium</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/09/06/kotlin%E7%9B%B8%E5%85%B3%E4%BE%9D%E8%B5%96/">kotlin相关依赖</a>
+                    <a href="/2024/01/09/webclient%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E8%B8%A9%E5%9D%91/">webclient负载均衡踩坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/09/01/%E8%8E%B7%E5%8F%96%E7%B1%BB%E4%B8%AD%E6%89%80%E6%9C%89%E7%9A%84bean/">获取类中所有的bean</a>
+                    <a href="/2023/06/20/%E5%86%99%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8Elambda%E7%9A%84copyProperties%EF%BC%88%E4%BA%8C%EF%BC%89/">写一个基于lambda的copyProperties（二）</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/11/17/SwiftLint/">SwiftLint</a>
+                    <a href="/2021/02/11/%E9%87%8D%E5%A4%8D%E6%B3%A8%E8%A7%A3/">重复注解</a>
                 </span>
             </li>
             
@@ -640,73 +645,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 9.967930495032885px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 16.973259251367683px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.076703991785763px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.614486325182984px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 15.226733503579894px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 12.028611585612175px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.426256284362143px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 8.219475008176914px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.764336817392595px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 17.194570422962236px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 9.896443081340113px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 18.990489723136925px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 17.576850347765266px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 18.06747766166327px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 13.336077574229844px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10.303096370244686px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.88158335911846px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.786059390711564px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 8.050078820648057px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 10.895379425945897px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 10.360657044770763px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 9.68904638200858px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 8.257725541655411px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 8.899035037754187px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 17.68254848759555px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 18.881441408913737px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 17.582223934727523px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 13.342197241113837px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 16.812120518278885px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 10.668637222960548px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 10.96323769146682px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 14.818665760196954px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 10.463649304213071px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 17.575986000606704px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 15.498248452196012px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 18.755360202661674px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.38445177106924px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 17.975779044896132px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 18.50759501571242px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 8.745927681905533px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 10.246104701143201px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 15.053031399693381px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 17.915842214354313px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 9.29446197678104px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 16.412236178762555px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 15.371673200240817px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 10.386200886751139px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 14.836614737442368px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 18.393149890919993px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.90389672709729px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 19.32242267669776px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 19.57919732026683px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 19.114647514285405px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 15.342098122507085px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.086365133984216px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.290424482452737px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 11.815100168745703px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 11.891690426989314px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 11.00317858498991px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 11.267717453694264px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 8.63702551777207px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 18.168789109380388px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.021872259539233px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.254028931131753px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 17.059069618401832px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 10.84008323644774px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 19.535248796215857px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 9.208701848733403px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

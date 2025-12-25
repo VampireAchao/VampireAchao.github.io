@@ -15,7 +15,7 @@
   
   
   <title>nginx中alias | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>nginx中alias</span>
     </div>
@@ -401,12 +401,15 @@
 </blockquote>
 <p>前两天想在本地搭一个<code>nginx</code>实现静态资源代理，且访问</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs url">http://localhost/static_resources/head_1645512000625.jpg<br></code></pre></td></tr></table></figure>
+
 <p>时能映射到下面这个路径</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs path">D:\work\static\data\local\head_1645512000625.jpg<br></code></pre></td></tr></table></figure>
+
 <p>找了半天，要么是说配置<code>location /static_resources/ &#123;&#125;</code>这里不加杠和加杠之类的</p>
 <p>我这个<code>nginx</code>是官网下的最新版，就是不好使，最后找到了<code>alias</code>关键字解决：</p>
 <p>配置如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs conf">worker_processes  1;<br><br>events &#123;<br>    worker_connections  1024;<br>&#125;<br><br>http &#123;<br>    include       mime.types;<br>    default_type  application/octet-stream;<br><br>    sendfile        on;<br>    <br>    keepalive_timeout  65;<br><br>    server &#123;<br>        listen       80;<br>        server_name  localhost;<br>	        <br>        location /static_resources/ &#123;<br>        		# 如果是OPTIONS请求<br>                if ($request_method = &#x27;OPTIONS&#x27;) &#123;<br>                		# 允许的域名，只能填通配符或者单域名<br>                    	add_header &#x27;Access-Control-Allow-Origin&#x27; $http_origin;<br>                    	# 允许跨域请求的 http 方法<br>	                    add_header Access-Control-Allow-Methods &#x27;GET, OPTIONS&#x27;;<br>                    	# 标志着当前请求是否包含 cookies 信息不需要则移除该配置<br>                        add_header &#x27;Access-Control-Allow-Credentials&#x27; &#x27;true&#x27;;<br>                        # 返回支持的 http 请求头<br>                        add_header &#x27;Access-Control-Allow-Headers&#x27; &#x27;DNT,User-Agent,token,X-Requested-With,token,If-Modified-Since,Cache-Control,Content-Type,Range&#x27;;<br>                        # 缓存时间(s)<br>                        add_header &#x27;Access-Control-Max-Age&#x27; 1728000;<br>                        add_header &#x27;Content-Type&#x27; &#x27;text/plain; charset=utf-8&#x27;;<br>                        add_header &#x27;Content-Length&#x27; 0;<br>                        add_header &#x27;Access-Control-Allow-Credentials&#x27; &#x27;true&#x27;;<br>                        return 204;<br>    			&#125;<br>                 add_header Cache-Control no-cache;<br>                 add_header Access-Control-Allow-Origin $http_origin;<br>                 add_header Access-Control-Allow-Methods &#x27;GET, OPTIONS&#x27;;<br>                 add_header Access-Control-Allow-Credentials &quot;true&quot;;<br>                 add_header Access-Control-Allow-Headers $http_access_control_request_headers;<br>                 alias D:/work/static/data/local/;<br>                 # 开启目录浏览功能； <br>                 autoindex on;                        <br>                 # 关闭详细文件大小统计，让文件大小显示MB，GB单位，默认为b； <br>                 autoindex_exact_size off;            <br>                 # 开启以服务器本地时区显示文件修改日期！<br>                 autoindex_localtime on;              <br>                 <br>        &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
 
     </div>
 </article>
@@ -548,61 +551,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/04/ChatGPT%E5%9C%A8JetBrains-IDE%E4%B8%8A%E7%9A%84%E6%8F%92%E4%BB%B6/">ChatGPT在JetBrains-IDE上的插件</a>
+                    <a href="/2025/09/10/Stirling-PDF/">Stirling-PDF</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/10/07/HandBrake/">HandBrake</a>
+                    <a href="/2022/12/19/css-attr/">css attr</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/05/27/Jinx/">Jinx</a>
+                    <a href="/2023/05/13/frontend-maven-plugin/">frontend-maven-plugin</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/04/21/OceanBase%E5%BC%80%E5%8F%91%E8%80%85%E5%A4%A7%E4%BC%9A/">OceanBase开发者大会</a>
+                    <a href="/2022/09/26/gridsome/">gridsome</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/04/20/freeCodeCamp/">freeCodeCamp</a>
+                    <a href="/2022/07/31/javadoc-apiNote%E3%80%81-implSpe%E3%80%81-implNote%E4%B8%8D%E8%AF%86%E5%88%AB%E9%97%AE%E9%A2%98/">javadoc @apiNote、@implSpe、@implNote不识别问题</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/07/idea%E5%90%AF%E5%8A%A8%E6%97%B6%E9%BB%98%E8%AE%A4%E9%80%89%E6%8B%A9%E9%A1%B9%E7%9B%AE/">idea启动时默认选择项目</a>
+                    <a href="/2024/10/03/requestFullscreen/">requestFullscreen</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/07/23/java%E6%A8%A1%E5%9D%97%E5%AF%BC%E5%87%BA%E4%B8%8E%E5%AF%BC%E5%85%A5/">java模块导出与导入</a>
+                    <a href="/2024/11/03/typescript-exercises%EF%BC%88%E5%85%AB%EF%BC%89/">typescript-exercises（八）</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/12/29/spring-gateway%E8%B7%A8%E5%9F%9F%E5%9D%91/">spring-gateway跨域坑</a>
+                    <a href="/2024/09/18/vue2%E4%BD%BF%E7%94%A8vite%E8%BF%87%E6%B8%A1/">vue2使用vite过渡</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/05/06/%E5%8D%8E%E4%B8%BA%E4%BA%91%E9%95%9C%E5%83%8F/">华为云镜像</a>
+                    <a href="/2020/07/21/%E6%8B%A6%E6%88%AA%E5%99%A8%E6%B3%A8%E5%85%A5Service%E6%8A%A5%E7%A9%BA%E6%8C%87%E9%92%88%E7%9A%84%E5%9D%91/">拦截器注入Service报空指针的坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/03/03/%E7%A7%BB%E5%8A%A8%E4%BA%91%E5%AD%98%E5%82%A8%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6/">移动云存储上传文件</a>
+                    <a href="/2021/11/18/%E6%95%B0%E7%BB%84%E6%89%81%E5%B9%B3%E5%8C%96flat/">数组扁平化flat</a>
                 </span>
             </li>
             
@@ -635,73 +638,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 13.163973883736551px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 16.93337140915248px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 19.982847528355375px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.028305890196847px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 12.791724158589783px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 18.317876767801852px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 12.887283722933184px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 17.61665175274107px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.126098872737472px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 14.453116792613582px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 18.568698082225417px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 15.881387125814499px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 15.188366771466601px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 18.3580288744007px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.014011876006688px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.467627390134112px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 16.991793083916647px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 11.95245600983533px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 15.781082359444627px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 14.78977863250475px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 17.790478886712165px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 12.026408531299051px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 16.35249725946009px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 15.410614999950232px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 15.689984479907203px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 19.052735508722893px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 9.277283741814966px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 9.651892193843015px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 14.607557109188328px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 14.954722445428455px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 14.24025307733833px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 17.261974500260923px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 8.991048497784393px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 9.88342353273644px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 11.222697493244057px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 8.189840192179906px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.449943268911476px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 12.69291488964367px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 18.868588793721937px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 19.151405650880715px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 13.336123993009549px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 19.380384656723866px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 19.967001549458953px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 8.951121393997452px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 19.175224846108px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 9.106069958417969px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 19.28143388888118px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 18.03212523741783px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 14.927492929739621px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 12.131575489878585px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 18.211137861231993px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 12.828468195076393px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 12.13955269556943px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 16.113939148725333px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10.143317707582197px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 17.529320724270846px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 8.310493160483084px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 18.063175713562373px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 9.812080459056988px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 15.944335039432712px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 8.376423583482623px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 18.222471686559274px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 11.945387094382902px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 18.228557102512433px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 11.4475213305759px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 10.692875228780533px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.034134333912494px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.088459446888049px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

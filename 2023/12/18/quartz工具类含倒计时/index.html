@@ -15,7 +15,7 @@
   
   
   <title>quartz工具类含倒计时 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>quartz工具类含倒计时</span>
     </div>
@@ -401,6 +401,7 @@
 </blockquote>
 <p>分享一个自己写的<code>Quartz</code>工具类，可以轻松实现倒计时功能：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> cn.hutool.core.date.DateUtil;<br><span class="hljs-keyword">import</span> lombok.SneakyThrows;<br><span class="hljs-keyword">import</span> lombok.experimental.UtilityClass;<br><span class="hljs-keyword">import</span> org.dromara.streamquery.stream.core.collection.Lists;<br><span class="hljs-keyword">import</span> org.quartz.*;<br><span class="hljs-keyword">import</span> org.quartz.core.jmx.JobDataMapSupport;<br><span class="hljs-keyword">import</span> org.quartz.impl.StdSchedulerFactory;<br><span class="hljs-keyword">import</span> org.quartz.impl.matchers.GroupMatcher;<br><br><span class="hljs-keyword">import</span> java.time.LocalDateTime;<br><span class="hljs-keyword">import</span> java.util.Map;<br><span class="hljs-keyword">import</span> java.util.Set;<br><br><span class="hljs-meta">@UtilityClass</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">QuartzUtil</span> &#123;<br><br>    <span class="hljs-meta">@SneakyThrows</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Scheduler <span class="hljs-title function_">startTaskAt</span><span class="hljs-params">(LocalDateTime time, JobKey jobKey,</span><br><span class="hljs-params">                                        Map&lt;String, Object&gt; jobDataMap, Class&lt;? extends Job&gt; jobClazz)</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">scheduler</span> <span class="hljs-operator">=</span> StdSchedulerFactory.getDefaultScheduler();<br>        scheduler.deleteJob(jobKey);<br>        <span class="hljs-type">var</span> <span class="hljs-variable">jobDetail</span> <span class="hljs-operator">=</span> JobBuilder.newJob().ofType(jobClazz).withIdentity(jobKey)<br>                .usingJobData(JobDataMapSupport.newJobDataMap(jobDataMap)).build();<br>        <span class="hljs-type">var</span> <span class="hljs-variable">trigger</span> <span class="hljs-operator">=</span> TriggerBuilder.newTrigger().withIdentity(jobKey.getName(), jobKey.getGroup())<br>                .startAt(DateUtil.date(time)).build();<br>        scheduler.scheduleJob(jobDetail, trigger);<br>        scheduler.start();<br>        <span class="hljs-keyword">return</span> scheduler;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Scheduler <span class="hljs-title function_">startTaskTimeSeconds</span><span class="hljs-params">(Long timeSeconds, JobKey jobKey,</span><br><span class="hljs-params">                                                 Map&lt;String, Object&gt; jobDataMap, Class&lt;? extends Job&gt; jobClazz)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">var</span> <span class="hljs-variable">scheduler</span> <span class="hljs-operator">=</span> StdSchedulerFactory.getDefaultScheduler();<br>            scheduler.deleteJob(jobKey);<br>            <span class="hljs-type">var</span> <span class="hljs-variable">jobDetail</span> <span class="hljs-operator">=</span> JobBuilder.newJob().ofType(jobClazz).withIdentity(jobKey)<br>                    .usingJobData(JobDataMapSupport.newJobDataMap(jobDataMap)).build();<br>            <span class="hljs-type">var</span> <span class="hljs-variable">trigger</span> <span class="hljs-operator">=</span> TriggerBuilder.newTrigger()<br>                    .withIdentity(jobKey.getName(), jobKey.getGroup())<br>                    .withSchedule(SimpleScheduleBuilder.repeatSecondlyForTotalCount(timeSeconds.intValue()))<br>                    .startNow().build();<br>            scheduler.scheduleJob(jobDetail, trigger);<br>            scheduler.start();<br>            <span class="hljs-keyword">return</span> scheduler;<br>        &#125; <span class="hljs-keyword">catch</span> (SchedulerException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApiServerException</span>(e);<br>        &#125;<br>    &#125;<br><br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteJob</span><span class="hljs-params">(JobKey readyStartJobKey)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">var</span> <span class="hljs-variable">scheduler</span> <span class="hljs-operator">=</span> StdSchedulerFactory.getDefaultScheduler();<br>            scheduler.deleteJob(readyStartJobKey);<br>        &#125; <span class="hljs-keyword">catch</span> (SchedulerException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApiServerException</span>(e);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteJobs</span><span class="hljs-params">(String groupName)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">var</span> <span class="hljs-variable">scheduler</span> <span class="hljs-operator">=</span> StdSchedulerFactory.getDefaultScheduler();<br>            Set&lt;JobKey&gt; jobKeys = scheduler.getJobKeys(GroupMatcher.groupEquals(groupName));<br>            scheduler.deleteJobs(Lists.ofColl(jobKeys));<br>        &#125; <span class="hljs-keyword">catch</span> (SchedulerException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApiServerException</span>(e);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">pauseJob</span><span class="hljs-params">(JobKey key)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">var</span> <span class="hljs-variable">scheduler</span> <span class="hljs-operator">=</span> StdSchedulerFactory.getDefaultScheduler();<br>            scheduler.pauseJob(key);<br>        &#125; <span class="hljs-keyword">catch</span> (SchedulerException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApiServerException</span>(e);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>对应的单元测试：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> lombok.SneakyThrows;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Assertions;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Disabled;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Test;<br><span class="hljs-keyword">import</span> org.quartz.Job;<br><span class="hljs-keyword">import</span> org.quartz.JobExecutionContext;<br><span class="hljs-keyword">import</span> org.quartz.JobExecutionException;<br><span class="hljs-keyword">import</span> org.quartz.JobKey;<br><br><span class="hljs-keyword">import</span> java.time.Duration;<br><span class="hljs-keyword">import</span> java.time.LocalDateTime;<br><span class="hljs-keyword">import</span> java.util.Map;<br><span class="hljs-keyword">import</span> java.util.concurrent.TimeUnit;<br><span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicInteger;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">QuartzUtilTest</span> &#123;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-meta">@SneakyThrows</span><br>    <span class="hljs-meta">@Disabled(&quot;sleep&quot;)</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">startTaskAtTest</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">obj</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicInteger</span>();<br>        Map&lt;String, Object&gt; map = Map.of(<span class="hljs-string">&quot;test&quot;</span>, obj);<br>        <span class="hljs-type">var</span> <span class="hljs-variable">jobKey</span> <span class="hljs-operator">=</span> JobKey.jobKey(<span class="hljs-string">&quot;startTaskAtTest&quot;</span>, <span class="hljs-string">&quot;test&quot;</span>);<br>        <span class="hljs-type">var</span> <span class="hljs-variable">time</span> <span class="hljs-operator">=</span> LocalDateTime.now().plus(Duration.ofSeconds(<span class="hljs-number">3</span>));<br>        QuartzUtil.startTaskAt(time, jobKey, map, StartTaskAtTestJob.class);<br>        TimeUnit.SECONDS.sleep(<span class="hljs-number">4</span>);<br>        Assertions.assertEquals(<span class="hljs-number">1</span>, obj.get());<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-meta">@SneakyThrows</span><br>    <span class="hljs-meta">@Disabled(&quot;sleep&quot;)</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">startTaskTimeSecondsTest</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">obj</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicInteger</span>(<span class="hljs-number">3</span>);<br>        Map&lt;String, Object&gt; map = Map.of(<span class="hljs-string">&quot;countdown&quot;</span>, obj);<br>        <span class="hljs-type">var</span> <span class="hljs-variable">jobKey</span> <span class="hljs-operator">=</span> JobKey.jobKey(<span class="hljs-string">&quot;startTaskTimeSecondsTest&quot;</span>, <span class="hljs-string">&quot;test&quot;</span>);<br>        QuartzUtil.startTaskTimeSeconds(<span class="hljs-number">3L</span>, jobKey, map, StartTaskTimeSecondsTestJob.class);<br>        TimeUnit.SECONDS.sleep(<span class="hljs-number">4</span>);<br>        Assertions.assertEquals(<span class="hljs-number">0</span>, obj.get());<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">StartTaskAtTestJob</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Job</span> &#123;<br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(JobExecutionContext context)</span> <span class="hljs-keyword">throws</span> JobExecutionException &#123;<br>            <span class="hljs-type">var</span> <span class="hljs-variable">jobDataMap</span> <span class="hljs-operator">=</span> context.getMergedJobDataMap();<br>            <span class="hljs-type">var</span> <span class="hljs-variable">test</span> <span class="hljs-operator">=</span> jobDataMap.get(<span class="hljs-string">&quot;test&quot;</span>);<br>            <span class="hljs-keyword">if</span> (test <span class="hljs-keyword">instanceof</span> AtomicInteger obj) &#123;<br>                obj.set(<span class="hljs-number">1</span>);<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">StartTaskTimeSecondsTestJob</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Job</span> &#123;<br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(JobExecutionContext context)</span> <span class="hljs-keyword">throws</span> JobExecutionException &#123;<br>            <span class="hljs-type">var</span> <span class="hljs-variable">jobDataMap</span> <span class="hljs-operator">=</span> context.getMergedJobDataMap();<br>            <span class="hljs-type">var</span> <span class="hljs-variable">countdown</span> <span class="hljs-operator">=</span> jobDataMap.get(<span class="hljs-string">&quot;countdown&quot;</span>);<br>            <span class="hljs-keyword">if</span> (countdown <span class="hljs-keyword">instanceof</span> AtomicInteger obj) &#123;<br>                obj.set(obj.decrementAndGet());<br>            &#125;<br>        &#125;<br>    &#125;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
 
@@ -544,61 +545,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/07/08/GitHub-Actions-%E7%BC%93%E5%AD%98%E5%8D%87%E7%BA%A7%EF%BC%9A%E4%BB%8E-v2-%E7%9B%B4%E6%8E%A5%E8%B7%B3%E5%88%B0-v4-%E7%9A%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/">GitHub Actions 缓存升级：从 v2 直接跳到 v4 的最佳实践</a>
+                    <a href="/2025/10/03/TradingAgents-CN/">TradingAgents-CN</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/05/HollaEx-Kit/">HollaEx Kit</a>
+                    <a href="/2021/08/19/java%E8%AF%BB%E5%8F%96%E6%9C%AC%E5%9C%B0%E7%9B%AE%E5%BD%95%E7%9A%84%E6%96%87%E4%BB%B6%E8%BD%AC%E6%8D%A2%E4%B8%BAlist/">java读取本地目录的文件转换为list</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/01/03/buttons/">buttons</a>
+                    <a href="/2020/11/23/js%E6%89%93%E5%AD%97%E6%9C%BA%E5%8A%A8%E7%94%BB%E6%95%88%E6%9E%9C%E5%AE%9E%E7%8E%B0/">js打字机动画效果实现</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/02/14/hutool%E4%B8%AD-Alias/">hutool中@Alias</a>
+                    <a href="/2022/05/23/mac%E9%B1%BC%E7%9C%BC%E6%95%88%E6%9E%9C/">mac鱼眼效果</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/06/15/mqcloud/">mqcloud</a>
+                    <a href="/2025/04/29/vue-countTo/">vue-countTo</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/20/svelte/">svelte</a>
+                    <a href="/2021/03/13/yml%E4%B8%ADlist%E5%86%99%E6%B3%95/">yml中list写法</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/09/10/%E5%AE%89%E5%8D%93%E6%9E%84%E5%BB%BA%E9%A6%96%E4%B8%AA%E5%BA%94%E7%94%A8/">安卓构建首个应用</a>
+                    <a href="/2020/11/16/%E4%B8%80%E4%B8%AA%E6%9C%89%E7%82%B9%E5%A5%BD%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7%E7%B1%BB/">一个有点好用的工具类</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/05/04/%E6%9C%AA%E6%9D%A5%E6%88%96%E5%B0%86%E7%94%A8Markdown%E5%86%99JavaDoc/">未来或将用Markdown写JavaDoc</a>
+                    <a href="/2022/10/04/%E5%87%A0%E4%B8%AA%E5%A5%BD%E7%94%A8%E7%9A%84%E9%85%8D%E8%89%B2%E7%BD%91%E7%AB%99/">几个好用的配色网站</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/20/%E8%AE%BE%E7%BD%AE%E5%B9%B6%E8%A1%8C%E6%B5%81%E6%9C%80%E5%A4%A7%E7%BA%BF%E7%A8%8B%E6%95%B0/">设置并行流最大线程数</a>
+                    <a href="/2021/11/18/%E6%95%B0%E7%BB%84%E6%89%81%E5%B9%B3%E5%8C%96flat/">数组扁平化flat</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/08/20/%E8%B0%83%E8%AF%95h2%E6%95%B0%E6%8D%AE%E5%BA%93/">调试h2数据库</a>
+                    <a href="/2021/10/20/%E9%80%BB%E8%BE%91%E5%88%A0%E9%99%A4%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%86%B2%E7%AA%81%E5%A4%84%E7%90%86/">逻辑删除与联合索引冲突处理</a>
                 </span>
             </li>
             
@@ -631,73 +632,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 12.858476039250164px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 10.300295182693986px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 9.507268009199699px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.400187114280335px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 14.090951597963308px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 14.902113175544311px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.20492733771599px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.276551101035615px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.799738362587272px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 16.038972784655456px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 13.685430795805893px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 16.69343478944171px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 10.240426217556793px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 8.151246643746333px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 14.622692859466365px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.570778406694984px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.530854356501353px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 16.26839122018061px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 8.356387494934072px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 12.060586612348256px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 11.357211772385785px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 14.97762076252168px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 15.848860126693435px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.786074603232738px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 8.023560347600897px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 11.319926314449308px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 8.876079141656184px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 12.615416899770436px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 15.766309333695077px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 18.823042047703165px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 11.162156993999272px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 16.615174103597134px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 13.373986120305984px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 9.362328001728521px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 19.21310549359301px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 14.82330832234219px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.68119820558826px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.645412094533615px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 8.895068197194085px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 9.015112098025412px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 13.230778964655386px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 14.553363075534165px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 11.566747460113607px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 9.96907573420972px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 14.019545994232086px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 13.806335714104156px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 17.188671636298054px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 11.42749132637443px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.142555232257394px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 16.882861937876037px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 8.39954347093526px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 9.365185611906604px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 10.99788120451105px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 11.366112094274794px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.298287666506905px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.304883247383632px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 10.228173379590416px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 18.471975226879614px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 18.161329186020165px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 16.92943105178835px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 13.273489757293985px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 10.413144571997458px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 8.55095096412534px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.214662266323195px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 13.86984638017741px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 14.737855069167107px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.927466600336377px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 10.179497325711743px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

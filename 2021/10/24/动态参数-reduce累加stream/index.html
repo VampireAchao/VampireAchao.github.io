@@ -15,7 +15,7 @@
   
   
   <title>动态参数+reduce累加stream | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>动态参数+reduce累加stream</span>
     </div>
@@ -401,21 +401,27 @@
 </blockquote>
 <p>今天有朋友问我，<code>stream</code>中如果要将一个<code>User</code>类中的<code>username</code>和<code>id</code>收集起来变成两个<code>list</code>怎么写，我说可以使用<code>peek</code>函数</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Data</span><br><span class="hljs-meta">@AllArgsConstructor</span><br><span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-keyword">private</span> Long id;<br>    <span class="hljs-keyword">private</span> Long groupId;<br>    <span class="hljs-keyword">private</span> String username;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>就像这样：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java">      <span class="hljs-comment">// 用户列表</span><br>      List&lt;User&gt; userList = Stream.iterate(<span class="hljs-number">1L</span>, i -&gt; ++i).map(id -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>(id, <span class="hljs-number">999L</span>, Faker.instance().name().username())).limit(<span class="hljs-number">10</span>).collect(Collectors.toList());<br>      <span class="hljs-comment">// 要收集起来的groupId</span><br>      List&lt;Long&gt; groupIds = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(userList.size() * <span class="hljs-number">2</span>);<br>      <span class="hljs-comment">// 要收集起来的username</span><br>      List&lt;String&gt; usernames = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(userList.size() * <span class="hljs-number">2</span>);<br>      <span class="hljs-comment">// 写死调用两个peek</span><br>      List&lt;Long&gt; userIds = userList.parallelStream().peek(user -&gt; groupIds.add(user.getGroupId())).peek(user -&gt; usernames.add(user.getUsername())).map(User::getId).collect(Collectors.toList());<br>System.out.println(userIds);<br>      System.out.println(groupIds);<br>      System.out.println(usernames);<br></code></pre></td></tr></table></figure>
+
 <p>然后运行结果：</p>
-<p><img src="/imgs/oss/picGo/image-20211024213325222.png" alt="image-20211024213325222" /></p>
+<p><img src="/imgs/oss/picGo/image-20211024213325222.png" alt="image-20211024213325222"></p>
 <p>然后它有问，如果他不知道有多少个，有可能有一个，也有可能两个怎么办</p>
 <p>我就给他写了另外两种实现方式：</p>
 <p>使用动态参数+<code>reduce</code>实现，以及<code>List</code>+<code>reduce</code>实现</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 封装peeks</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> stream 流</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> peeks  操作</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@return</span> java.util.stream.Stream&lt;T&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/10/24 21:12</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@SafeVarargs</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; Stream&lt;T&gt; <span class="hljs-title function_">peek</span><span class="hljs-params">(Stream&lt;T&gt; stream, Consumer&lt;T&gt;... peeks)</span> &#123;<br>    <span class="hljs-keyword">return</span> Stream.of(peeks).reduce(stream, Stream::peek, Stream::concat);<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; Stream&lt;T&gt; <span class="hljs-title function_">peek</span><span class="hljs-params">(Stream&lt;T&gt; stream, List&lt;Consumer&lt;T&gt;&gt; peeks)</span> &#123;<br>    <span class="hljs-keyword">return</span> peeks.stream().reduce(stream, Stream::peek, Stream::concat);<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>这两种，使用方式如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 可以写死也可以动态</span><br>userIds = peek(userList.parallelStream(), user -&gt; groupIds.add(user.getGroupId()), user -&gt; usernames.add(user.getUsername())).map(User::getId).collect(Collectors.toList());<br><span class="hljs-comment">// 动态</span><br>List&lt;Consumer&lt;User&gt;&gt; peeks = Arrays.asList(user -&gt; groupIds.add(user.getGroupId()), user -&gt; usernames.add(user.getUsername()));<br>Stream&lt;User&gt; peek = peek(userList.stream(), peeks);<br><span class="hljs-comment">// 转成array</span><br>peek(userList.stream(), peeks.stream().&lt;Consumer&lt;User&gt;&gt;toArray(Consumer[]::<span class="hljs-keyword">new</span>));<br>peek(userList.stream(), peeks.&lt;Consumer&lt;User&gt;&gt;toArray(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Consumer</span>[<span class="hljs-number">0</span>]));<br></code></pre></td></tr></table></figure>
+
 <p>这里原理就是用了<code>reduce</code>函数的累加特性，这个聚合操作：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Stream.of(peeks).reduce(stream, Stream::peek, Stream::concat);<br></code></pre></td></tr></table></figure>
+
 <p>相当于：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">Stream&lt;User&gt; stream = userList.stream();<br>      <span class="hljs-keyword">for</span> (Consumer&lt;User&gt; consumer : peeks) &#123;<br>          stream = stream.peek(consumer);<br>      &#125;<br></code></pre></td></tr></table></figure>
-<p><a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/">关于<code>reduce</code>我之前的博客也写过了</a>，就不再赘述啦~</p>
+
+<p><a href="https://vampireachao.github.io/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/">关于<code>reduce</code>我之前的博客也写过了</a>，就不再赘述啦~</p>
 <p>主要就是分享这种思路，多了一种写法而已</p>
 
     </div>
@@ -558,61 +564,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/06/07/HashMap/">HashMap</a>
+                    <a href="/2024/12/16/EqualUI/">EqualUI</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/07/30/healthchecks/">healthchecks</a>
+                    <a href="/2020/07/14/Gitlab%E7%9A%84%E5%AE%89%E8%A3%85/">Gitlab的安装</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/28/mybatis-plus%E9%83%A8%E5%88%86%E6%9B%B4%E6%96%B0/">mybatis-plus部分更新</a>
+                    <a href="/2023/06/29/brew%E5%AE%89%E8%A3%85nvm%E3%80%81node%E5%8F%8A%E9%85%8D%E7%BD%AE/">brew安装nvm、node及配置</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/14/nvue%E8%8E%B7%E5%8F%96%E8%8A%82%E7%82%B9%E4%BF%A1%E6%81%AF/">nvue获取节点信息</a>
+                    <a href="/2022/01/07/byte%E4%BA%8C%E7%BB%B4%E7%A0%81%E5%9C%A8img%E4%B8%AD%E5%B1%95%E7%A4%BA/">byte二维码在img中展示</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/07/12/teleport/">teleport</a>
+                    <a href="/2022/07/27/sql%E6%B3%A8%E5%85%A5%E5%B7%A5%E5%85%B7%E7%B1%BB/">sql注入工具类</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/11/04/typescript-exercises%EF%BC%88%E4%B9%9D%EF%BC%89/">typescript-exercises（九）</a>
+                    <a href="/2022/05/25/ubuntu%E5%AF%BB%E6%89%BEjdk%E7%9B%AE%E5%BD%95/">ubuntu寻找jdk目录</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/11/21/uniapp%E6%97%A0%E9%99%90%E6%A0%91%E5%BD%A2%E7%BB%93%E6%9E%84/">uniapp无限树形结构</a>
+                    <a href="/2021/09/28/vue%E4%B8%ADslot%E6%8F%92%E6%A7%BD/">vue中slot插槽</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/10/12/weekly/">weekly</a>
+                    <a href="/2023/08/24/wenyan/">wenyan</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/22/%E9%9A%8F%E6%9C%BA%E7%AB%AF%E5%8F%A3/">随机端口</a>
+                    <a href="/2023/09/10/%E5%8F%91%E5%B8%83jar%E5%88%B0maven%E4%B8%AD%E5%A4%AE%E4%BB%93%E5%BA%93idea-nexus%E5%AD%98%E5%82%A8%E5%BA%93%E7%AE%A1%E7%90%86%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B/">发布jar到maven中央仓库idea+nexus存储库管理操作流程</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/11/16/SwifterSwift/">SwifterSwift</a>
+                    <a href="/2021/08/18/%E5%9B%9E%E8%BD%A6%E6%8F%90%E4%BA%A4%E8%A1%A8%E5%8D%95/">回车提交表单</a>
                 </span>
             </li>
             
@@ -645,73 +651,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 8.19861534381828px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 8.482862535947346px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 19.28003140290949px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.302882050857388px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 9.442729352273988px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 14.222249674759544px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.898340806105303px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.552677210853327px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.87978080199467px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.637406081808432px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 17.788412801444164px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 8.251720408574172px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 15.271400995344614px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 16.70928376067376px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.055404707619537px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 13.860049852541675px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.394615383971317px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 13.747369876098023px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 19.870133465945038px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 13.870253294572578px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 14.072777458282655px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 10.822684144034854px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 14.161519049322806px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 10.574662401612006px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 16.931535343409983px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 19.282165019535913px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 12.556886237902198px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 18.670342657028893px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 11.296039487731479px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 17.807187211941496px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 14.810979430581703px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 11.425685142489748px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.11303913662293px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 17.278023290041215px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 13.153211944513593px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 11.912252721659602px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.970356495438992px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 17.827800194867237px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 8.16470446656525px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 8.002444044655142px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 8.951438533761706px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 9.052281065881642px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 12.046598324238138px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 15.50870997261002px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 15.033931963523056px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 18.819116088995308px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 12.721561399675672px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 14.935351131947513px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 16.400680431212816px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.55650784652829px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 17.14509975490262px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 12.990960205078538px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 9.094336134166916px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 17.901986568096607px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 12.113588114296341px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 11.536301535844581px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 12.895583665039911px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 11.237978264857384px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 15.480700406282367px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 10.243243882731395px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 15.451942554420572px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 16.18693842981387px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.081238393658474px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.05854594663781px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 16.86829121288784px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 19.703340145899407px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.846785069561932px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.559089474974774px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

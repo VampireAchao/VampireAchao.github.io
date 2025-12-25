@@ -15,7 +15,7 @@
   
   
   <title>mybatis SQL类 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>mybatis SQL类</span>
     </div>
@@ -402,13 +402,12 @@
 <p>分享一个<code>mybatis</code>在代码里编写<code>sql</code>的方法</p>
 <p>官方文档：<a target="_blank" rel="noopener" href="https://mybatis.org/mybatis-3/zh/statement-builders.html">https://mybatis.org/mybatis-3/zh/statement-builders.html</a></p>
 <blockquote>
-<h2 id="sql-语句构建器"><a class="markdownIt-Anchor" href="#sql-语句构建器"></a> SQL 语句构建器</h2>
-<h3 id="问题"><a class="markdownIt-Anchor" href="#问题"></a> 问题</h3>
-<p>Java 程序员面对的最痛苦的事情之一就是在 Java 代码中嵌入 SQL 语句。这通常是因为需要动态生成 SQL 语句，不然我们可以将它们放到外部文件或者存储过程中。如你所见，MyBatis 在 XML 映射中具备强大的 SQL 动态生成能力。但有时，我们还是需要在 Java 代码里构建 SQL 语句。此时，MyBatis 有另外一个特性可以帮到你，让你从处理典型问题中解放出来，比如加号、引号、换行、格式化问题、嵌入条件的逗号管理及 AND 连接。确实，在 Java 代码中动态生成 SQL 代码真的就是一场噩梦。例如：</p>
+<h2 id="SQL-语句构建器"><a href="#SQL-语句构建器" class="headerlink" title="SQL 语句构建器"></a>SQL 语句构建器</h2><h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>Java 程序员面对的最痛苦的事情之一就是在 Java 代码中嵌入 SQL 语句。这通常是因为需要动态生成 SQL 语句，不然我们可以将它们放到外部文件或者存储过程中。如你所见，MyBatis 在 XML 映射中具备强大的 SQL 动态生成能力。但有时，我们还是需要在 Java 代码里构建 SQL 语句。此时，MyBatis 有另外一个特性可以帮到你，让你从处理典型问题中解放出来，比如加号、引号、换行、格式化问题、嵌入条件的逗号管理及 AND 连接。确实，在 Java 代码中动态生成 SQL 代码真的就是一场噩梦。例如：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">String sql = &quot;SELECT P.ID, P.USERNAME, P.PASSWORD, P.FULL_NAME, &quot;<br>&quot;P.LAST_NAME,P.CREATED_ON, P.UPDATED_ON &quot; +<br>&quot;FROM PERSON P, ACCOUNT A &quot; +<br>&quot;INNER JOIN DEPARTMENT D on D.ID = P.DEPARTMENT_ID &quot; +<br>&quot;INNER JOIN COMPANY C on D.COMPANY_ID = C.ID &quot; +<br>&quot;WHERE (P.ID = A.ID AND P.FIRST_NAME like ?) &quot; +<br>&quot;OR (P.LAST_NAME like ?) &quot; +<br>&quot;GROUP BY P.ID &quot; +<br>&quot;HAVING (P.LAST_NAME like ?) &quot; +<br>&quot;OR (P.FIRST_NAME like ?) &quot; +<br>&quot;ORDER BY P.ID, P.FULL_NAME&quot;;<br></code></pre></td></tr></table></figure>
-<h3 id="解决方案"><a class="markdownIt-Anchor" href="#解决方案"></a> 解决方案</h3>
-<p>MyBatis 3 提供了方便的工具类来帮助解决此问题。借助 SQL 类，我们只需要简单地创建一个实例，并调用它的方法即可生成 SQL 语句。让我们来用 SQL 类重写上面的例子：</p>
+
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>MyBatis 3 提供了方便的工具类来帮助解决此问题。借助 SQL 类，我们只需要简单地创建一个实例，并调用它的方法即可生成 SQL 语句。让我们来用 SQL 类重写上面的例子：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">private String selectPersonSql() &#123;<br>  return new SQL() &#123;&#123;<br>    SELECT(&quot;P.ID, P.USERNAME, P.PASSWORD, P.FULL_NAME&quot;);<br>    SELECT(&quot;P.LAST_NAME, P.CREATED_ON, P.UPDATED_ON&quot;);<br>    FROM(&quot;PERSON P&quot;);<br>    FROM(&quot;ACCOUNT A&quot;);<br>    INNER_JOIN(&quot;DEPARTMENT D on D.ID = P.DEPARTMENT_ID&quot;);<br>    INNER_JOIN(&quot;COMPANY C on D.COMPANY_ID = C.ID&quot;);<br>    WHERE(&quot;P.ID = A.ID&quot;);<br>    WHERE(&quot;P.FIRST_NAME like ?&quot;);<br>    OR();<br>    WHERE(&quot;P.LAST_NAME like ?&quot;);<br>    GROUP_BY(&quot;P.ID&quot;);<br>    HAVING(&quot;P.LAST_NAME like ?&quot;);<br>    OR();<br>    HAVING(&quot;P.FIRST_NAME like ?&quot;);<br>    ORDER_BY(&quot;P.ID&quot;);<br>    ORDER_BY(&quot;P.FULL_NAME&quot;);<br>  &#125;&#125;.toString();<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>这个例子有什么特别之处吗？仔细看一下你会发现，你不用担心可能会重复出现的 “AND” 关键字，或者要做出用 “WHERE” 拼接还是 “AND” 拼接还是不用拼接的选择。SQL 类已经为你处理了哪里应该插入 “WHERE”、哪里应该使用 “AND” 的问题，并帮你完成所有的字符串拼接工作。</p>
 </blockquote>
 
@@ -552,61 +551,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/05/07/AndServer/">AndServer</a>
+                    <a href="/2024/08/01/Apache-ShenYu-e2e%E5%A4%B1%E8%B4%A5%E5%AE%9A%E4%BD%8D%E9%97%AE%E9%A2%98/">Apache ShenYu e2e失败定位问题</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/10/05/bukkit%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">bukkit开发环境搭建</a>
+                    <a href="/2024/07/22/Apache-ShenYu%E6%94%AF%E6%8C%81namespace%E5%8A%9F%E8%83%BD/">Apache-ShenYu支持namespace功能</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/05/17/display-contents/">display:contents</a>
+                    <a href="/2022/03/09/Array-prototype-fill/">Array.prototype.fill()</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/07/04/idea%E9%85%8D%E7%BD%AEproxy/">idea配置proxy</a>
+                    <a href="/2025/03/17/GameDev-js-Jam-2025/">GameDev.js Jam 2025</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/10/19/lombok%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F%E6%94%AF%E6%8C%81%E7%88%B6%E7%B1%BB/">lombok建造者模式支持父类</a>
+                    <a href="/2021/02/20/android%E8%AE%A9%E8%BF%94%E5%9B%9E%E6%8C%89%E9%92%AE%E5%A4%B1%E6%95%88/">android让返回按钮失效</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/12/23/nacos%E5%9D%8F%E4%BA%86%E4%B8%B4%E6%97%B6%E6%8E%92%E9%99%A4%E6%8E%89%E4%BE%9D%E8%B5%96/">nacos坏了临时排除掉依赖</a>
+                    <a href="/2023/11/28/cannot-open-shared-object-file-No-such-file-or-directory/">cannot open shared object file: No such file or directory</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/11/26/redis%E5%B1%80%E5%9F%9F%E7%BD%91%E8%BF%9E%E4%B8%8D%E4%B8%8A/">redis局域网连不上</a>
+                    <a href="/2023/01/04/css%E6%B8%90%E5%8F%98%E5%AE%9E%E7%8E%B0%E6%9D%82%E8%89%B2/">css渐变实现杂色</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/01/24/spring-caching/">spring caching</a>
+                    <a href="/2022/04/20/jenkins%E9%83%A8%E7%BD%B2jar%E5%B9%B6%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC/">jenkins部署jar并启动脚本</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/05/29/%E5%8D%87%E7%BA%A7hutool-6-0/">升级hutool 6.0</a>
+                    <a href="/2020/10/06/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AAbukkit%E6%8F%92%E4%BB%B6/">我的第一个bukkit插件</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/10/28/%E9%85%8D%E7%BD%AEHX%E6%A8%A1%E6%9D%BF/">配置HX模板</a>
+                    <a href="/2020/08/31/%E9%A9%BC%E5%B3%B0%E4%B8%8B%E5%88%92%E7%BA%BF%E4%BA%92%E8%BD%AC%E5%B7%A5%E5%85%B7%E7%B1%BB/">驼峰下划线互转工具类</a>
                 </span>
             </li>
             
@@ -639,73 +638,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 11.172067742487187px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 17.92063681194454px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.863586406389073px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.94618832545383px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 15.180988481050015px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 14.3069459013802px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.710642501095464px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 14.565247850660004px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 17.921359110279724px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.769447113784352px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 15.768630831372453px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 19.518670596435065px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 16.205499431467693px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 12.722468432381193px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 14.840442095054492px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 17.94788303918805px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.045109390746969px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 16.040979536521515px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 12.14945729143397px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 15.027733681917475px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 10.329263582337454px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 19.460638221897742px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 18.936711551947226px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 14.346488335903313px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 16.870011421989062px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 16.81209342687905px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 8.592039127595744px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 9.07137465250046px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 12.59433197003509px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 11.849629396718058px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 11.122522124542172px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 8.420995660129734px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 11.177710134519831px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 16.74953586114456px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 14.81235823042104px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 10.526000781103845px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.15701566228207px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 17.563182729948426px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 12.250756476037836px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 19.784461989208292px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 12.00848752908698px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 9.289042719290135px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 9.525650767408221px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 12.947014146839074px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 10.479225527067078px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 15.1488379228262px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 11.322844012920449px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 19.241993599789993px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 13.004259724660102px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.501554119752626px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 17.470994328233814px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 19.27522969580739px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 13.551039464580867px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 17.321757776134238px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 15.28643057720194px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.24585228086515px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 9.721399957188297px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 13.457040381819837px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 19.57414143422397px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 9.057729347246786px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 16.12634872865842px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 19.84500353575861px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 9.005423985981878px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.142157358518814px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 8.217262844829381px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 13.6896275154328px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 14.95221784804204px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 9.52537613557218px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

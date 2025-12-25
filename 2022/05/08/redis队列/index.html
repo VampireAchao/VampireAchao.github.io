@@ -15,7 +15,7 @@
   
   
   <title>redis队列 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>redis队列</span>
     </div>
@@ -403,16 +403,21 @@
 <p>分为<code>Redis</code>配置类和<code>Jackson</code>配置类，主要是用于收发消息时序列化</p>
 <p><code>Jackson</code>的</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.config;<br><br><span class="hljs-keyword">import</span> java.text.SimpleDateFormat;<br><span class="hljs-keyword">import</span> java.time.LocalDate;<br><span class="hljs-keyword">import</span> java.time.LocalDateTime;<br><span class="hljs-keyword">import</span> java.time.format.DateTimeFormatter;<br><br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Bean;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Configuration;<br><span class="hljs-keyword">import</span> org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;<br><br><span class="hljs-keyword">import</span> com.fasterxml.jackson.annotation.JsonAutoDetect;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.annotation.PropertyAccessor;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/5/8 18:43</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JacksonConfig</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">DATE_TIME_PATTERN</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;yyyy-MM-dd HH:mm:ss&quot;</span>;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">DATE_PATTERN</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;yyyy-MM-dd&quot;</span>;<br><br><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> ObjectMapper <span class="hljs-title function_">objectMapper</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">final</span> <span class="hljs-type">ObjectMapper</span> <span class="hljs-variable">objectMapper</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectMapper</span>();<br>        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);<br><br>        <span class="hljs-type">JavaTimeModule</span> <span class="hljs-variable">module</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JavaTimeModule</span>();<br>        <span class="hljs-keyword">module</span>.addSerializer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">LocalDateSerializer</span>(DateTimeFormatter.ofPattern(DATE_PATTERN)));<br>        <span class="hljs-keyword">module</span>.addSerializer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">LocalDateTimeSerializer</span>(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN)));<br>        <span class="hljs-keyword">module</span>.addDeserializer(LocalDate.class, <span class="hljs-keyword">new</span> <span class="hljs-title class_">LocalDateDeserializer</span>(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN)));<br>        <span class="hljs-keyword">module</span>.addDeserializer(LocalDateTime.class, <span class="hljs-keyword">new</span> <span class="hljs-title class_">LocalDateTimeDeserializer</span>(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN)));<br>        objectMapper.registerModule(<span class="hljs-keyword">module</span>);<br>        objectMapper.setDateFormat(<span class="hljs-keyword">new</span> <span class="hljs-title class_">SimpleDateFormat</span>(DATE_TIME_PATTERN));<br>        <span class="hljs-keyword">return</span> objectMapper;<br>    &#125;<br><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> Jackson2JsonRedisSerializer&lt;Object&gt; <span class="hljs-title function_">jackson2JsonRedisSerializer</span><span class="hljs-params">(ObjectMapper objectMapper)</span> &#123;<br>        <span class="hljs-keyword">final</span> Jackson2JsonRedisSerializer&lt;Object&gt; jackson2JsonRedisSerializer = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Jackson2JsonRedisSerializer</span>&lt;&gt;(Object.class);<br>        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);<br>        <span class="hljs-keyword">return</span> jackson2JsonRedisSerializer;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p><code>redis</code>的</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.config;<br><br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Bean;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Configuration;<br><span class="hljs-keyword">import</span> org.springframework.data.redis.connection.RedisConnectionFactory;<br><span class="hljs-keyword">import</span> org.springframework.data.redis.listener.ChannelTopic;<br><span class="hljs-keyword">import</span> org.springframework.data.redis.listener.RedisMessageListenerContainer;<br><span class="hljs-keyword">import</span> org.springframework.data.redis.listener.adapter.MessageListenerAdapter;<br><span class="hljs-keyword">import</span> org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;<br><br><span class="hljs-keyword">import</span> com.ruben.listener.RedisMessageListener;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/5/8 17:31</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RedisConfig</span> &#123;<br><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> RedisMessageListenerContainer <span class="hljs-title function_">redisMessageListenerContainer</span><span class="hljs-params">(RedisMessageListener listener, RedisConnectionFactory factory, Jackson2JsonRedisSerializer&lt;Object&gt; serializer)</span> &#123;<br>        <span class="hljs-keyword">final</span> <span class="hljs-type">RedisMessageListenerContainer</span> <span class="hljs-variable">container</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RedisMessageListenerContainer</span>();<br>        container.setConnectionFactory(factory);<br>        <span class="hljs-keyword">final</span> <span class="hljs-type">MessageListenerAdapter</span> <span class="hljs-variable">adapter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MessageListenerAdapter</span>(listener, <span class="hljs-string">&quot;onMessage&quot;</span>);<br>        adapter.setSerializer(serializer);<br>        container.addMessageListener(adapter, <span class="hljs-keyword">new</span> <span class="hljs-title class_">ChannelTopic</span>(<span class="hljs-string">&quot;topic&quot;</span>));<br>        <span class="hljs-keyword">return</span> container;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>然后是消息接收的<code>Listener</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.listener;<br><br><span class="hljs-keyword">import</span> java.util.HashMap;<br><br><span class="hljs-keyword">import</span> javax.annotation.Resource;<br><br><span class="hljs-keyword">import</span> org.springframework.data.redis.connection.Message;<br><span class="hljs-keyword">import</span> org.springframework.data.redis.connection.MessageListener;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-keyword">import</span> com.fasterxml.jackson.core.type.TypeReference;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;<br><br><span class="hljs-keyword">import</span> lombok.SneakyThrows;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/5/8 15:52</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RedisMessageListener</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">MessageListener</span> &#123;<br><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> ObjectMapper objectMapper;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * Callback for processing received objects through Redis.</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> message message must not be &#123;<span class="hljs-doctag">@literal</span> null&#125;.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> pattern pattern matching the channel (if specified) - can be &#123;<span class="hljs-doctag">@literal</span> null&#125;.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-meta">@SneakyThrows</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">onMessage</span><span class="hljs-params">(Message message, <span class="hljs-type">byte</span>[] pattern)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;接收到消息：&quot;</span> + <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(message.getBody()));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>最后是发消息</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben;<br><br><span class="hljs-keyword">import</span> java.time.LocalDateTime;<br><span class="hljs-keyword">import</span> java.util.Collections;<br><br><span class="hljs-keyword">import</span> javax.annotation.Resource;<br><br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Test;<br><span class="hljs-keyword">import</span> org.springframework.boot.test.context.SpringBootTest;<br><span class="hljs-keyword">import</span> org.springframework.data.redis.core.StringRedisTemplate;<br><br><span class="hljs-keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;<br><br><span class="hljs-keyword">import</span> lombok.SneakyThrows;<br><br><span class="hljs-meta">@SpringBootTest</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">SimpleRedisQueueApplicationTests</span> &#123;<br><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> StringRedisTemplate stringRedisTemplate;<br><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> ObjectMapper objectMapper;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-meta">@SneakyThrows</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">contextLoads</span><span class="hljs-params">()</span> &#123;<br>        stringRedisTemplate.convertAndSend(<span class="hljs-string">&quot;topic&quot;</span>, objectMapper.writeValueAsString(Collections.singletonMap(<span class="hljs-string">&quot;time&quot;</span>, LocalDateTime.now())));<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>运行：</p>
-<p><img src="/imgs/oss/picGo/image-20220508203301775.png" alt="image-20220508203301775" /></p>
+<p><img src="/imgs/oss/picGo/image-20220508203301775.png" alt="image-20220508203301775"></p>
 <p>完整源码：</p>
 <figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs http">https://gitee.com/VampireAchao/simple-redis-queue.git<br></code></pre></td></tr></table></figure>
+
 
     </div>
 </article>
@@ -554,61 +559,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/07/20/Cocos2d-x/">Cocos2d-x</a>
+                    <a href="/2022/12/07/CompletableFuture%E4%BA%8B%E5%8A%A1%E5%A4%84%E7%90%86/">CompletableFuture事务处理</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/05/RainEffect/">RainEffect</a>
+                    <a href="/2020/06/07/HashMap/">HashMap</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/10/20/android%E3%81%AEdialog%E7%82%B9%E5%87%BB%E6%8C%89%E9%92%AE%E4%B8%8D%E5%85%B3%E9%97%AD/">androidのdialog点击按钮不关闭</a>
+                    <a href="/2025/02/20/HuTool%E5%91%8A%E5%88%ABDromara%EF%BC%8C%E8%BD%AC%E5%9E%8B%E5%95%86%E4%B8%9A%E5%8C%96%E8%83%8C%E5%90%8E%E7%9A%84%E6%B7%B1%E5%B1%82%E5%8E%9F%E5%9B%A0%EF%BC%9F/">HuTool告别Dromara，转型商业化背后的深层原因？</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/12/14/android%E8%BF%9B%E5%BA%A6%E6%9D%A1/">android进度条</a>
+                    <a href="/2025/11/30/milvus/">milvus</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/14/druid%E7%9B%91%E6%8E%A7%E9%85%8D%E7%BD%AE/">druid监控配置</a>
+                    <a href="/2021/07/14/mybatis-plus%E5%8A%A8%E6%80%81%E8%A1%A8%E5%90%8D/">mybatis-plus动态表名</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/01/10/openhands/">openhands</a>
+                    <a href="/2023/08/09/navicat%E5%BF%AB%E6%8D%B7%E9%94%AE%E5%A4%A7%E5%85%A8/">navicat快捷键大全</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/12/14/promise%E8%BD%ACawait%E6%97%B6%E5%B0%8F%E6%8A%80%E5%B7%A7/">promise转await时小技巧</a>
+                    <a href="/2022/01/10/oss%E8%A7%86%E9%A2%91%E6%88%AA%E5%B0%81%E9%9D%A2/">oss视频截封面</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/04/03/vue%E4%B8%AD%E7%89%B9%E6%AE%8A%E7%9A%84prop%E5%92%8C%E4%BA%8B%E4%BB%B6/">vue中特殊的prop和事件</a>
+                    <a href="/2025/10/27/paperless-ngx/">paperless-ngx</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/04/28/%E4%B8%8D%E8%A6%81%E7%94%A8%E9%AD%94%E6%B3%95%E5%80%BC%EF%BC%81%EF%BC%81%EF%BC%81/">不要用魔法值！！！</a>
+                    <a href="/2025/07/06/ty/">ty</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/05/03/%E4%B8%BAshenyu%E7%9A%84PortUtils-findPort%E6%B7%BB%E5%8A%A0%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">为shenyu的PortUtils.findPort添加单元测试</a>
+                    <a href="/2020/09/12/%E4%BD%BF%E7%94%A8%E5%8F%8D%E5%B0%84%E8%8E%B7%E5%8F%96%E5%AF%B9%E8%B1%A1%E5%B1%9E%E6%80%A7%E7%9A%84%E5%9D%91/">使用反射获取对象属性的坑</a>
                 </span>
             </li>
             
@@ -641,73 +646,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 10.30795118693942px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 19.94815685832743px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 19.37987336021251px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.78665068393568px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 14.399113123193693px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 9.264607366674163px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.610297933845192px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.798215660611012px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 18.31521792061928px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.904891807780027px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 12.609916366920299px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 9.947669715580016px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 18.359537202882176px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 16.034108875100856px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10.820956487940098px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 15.485720798484001px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 15.41052364870674px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.183920530179142px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 10.971024438816979px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 16.85065324953273px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 9.99001389934492px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 17.95199147257179px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 8.29050408575954px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 13.187538181672057px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 9.604998192658773px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 17.48975912066405px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 15.733806376994652px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 16.83355583623647px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 13.662034500642136px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 11.21561555527935px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 18.73522647394036px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 16.356240213016743px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.708489880865777px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 15.264050611294529px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 14.849421030408648px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 19.685742121037002px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 18.8292265574592px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.199642625650888px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 11.583950840472465px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 16.524506328780745px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 12.509621325588938px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 13.863200642237382px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 19.688767670376798px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 11.519622838752273px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 9.305156484698587px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 11.303498239886022px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 10.110527721530937px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 18.987855771644256px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 16.074630170555803px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 9.683051913762966px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 12.24652460865635px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 10.66345778870544px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 14.22951189907193px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 17.573224315751197px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 17.285699027131766px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.643767319574177px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 14.529831105971201px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 17.308977643514645px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 17.538183485247952px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 18.219814396427676px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 18.877249704094982px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 10.60812735851681px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 8.558212984120264px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.957072600924977px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 19.617894762609197px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 9.27282666173007px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 17.84137703717306px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.75145512190158px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

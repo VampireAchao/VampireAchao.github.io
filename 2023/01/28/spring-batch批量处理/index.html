@@ -15,7 +15,7 @@
   
   
   <title>spring-batch批量处理 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>spring-batch批量处理</span>
     </div>
@@ -401,26 +401,32 @@
 </blockquote>
 <p>按照文档：<a target="_blank" rel="noopener" href="https://spring.io/guides/gs/batch-processing/">https://spring.io/guides/gs/batch-processing/</a></p>
 <p>新建一个项目</p>
-<p><img src="/imgs/oss/blog/vampireachao/image-20230128220511002.png" alt="image-20230128220511002" /></p>
+<p><img src="/imgs/oss/blog/vampireachao/image-20230128220511002.png" alt="image-20230128220511002"></p>
 <p>勾选<code>Spring Batch</code>以及<code>HyperSQL Database</code></p>
-<p><img src="/imgs/oss/blog/vampireachao/image-20230128220609051.png" alt="image-20230128220609051" /></p>
+<p><img src="/imgs/oss/blog/vampireachao/image-20230128220609051.png" alt="image-20230128220609051"></p>
 <p>点击<code>create</code></p>
 <p>在<code>resources</code>下面新建我们的数据文件</p>
 <p><code>sample-data.csv</code></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs csv">Jill,Doe<br>Joe,Doe<br>Justin,Doe<br>Jane,Doe<br>John,Doe<br></code></pre></td></tr></table></figure>
+
 <p><code>schema-all.sql</code></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> people IF <span class="hljs-keyword">EXISTS</span>;<br><br><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> people  (<br>    person_id <span class="hljs-type">BIGINT</span> <span class="hljs-keyword">IDENTITY</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span> <span class="hljs-keyword">PRIMARY</span> KEY,<br>    first_name <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">20</span>),<br>    last_name <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">20</span>)<br>);<br></code></pre></td></tr></table></figure>
+
 <p>然后新建一个<code>Person</code>业务类</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.example.batchprocessing;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Person</span> &#123;<br><br>  <span class="hljs-keyword">private</span> String lastName;<br>  <span class="hljs-keyword">private</span> String firstName;<br><br>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">Person</span><span class="hljs-params">()</span> &#123;<br>  &#125;<br><br>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">Person</span><span class="hljs-params">(String firstName, String lastName)</span> &#123;<br>    <span class="hljs-built_in">this</span>.firstName = firstName;<br>    <span class="hljs-built_in">this</span>.lastName = lastName;<br>  &#125;<br><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setFirstName</span><span class="hljs-params">(String firstName)</span> &#123;<br>    <span class="hljs-built_in">this</span>.firstName = firstName;<br>  &#125;<br><br>  <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getFirstName</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> firstName;<br>  &#125;<br><br>  <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getLastName</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> lastName;<br>  &#125;<br><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setLastName</span><span class="hljs-params">(String lastName)</span> &#123;<br>    <span class="hljs-built_in">this</span>.lastName = lastName;<br>  &#125;<br><br>  <span class="hljs-meta">@Override</span><br>  <span class="hljs-keyword">public</span> String <span class="hljs-title function_">toString</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;firstName: &quot;</span> + firstName + <span class="hljs-string">&quot;, lastName: &quot;</span> + lastName;<br>  &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>然后是批量处理类，实现<code>ItemProcessor</code>接口，这里是将原本<code>Person</code>中的<code>firstName</code>和<code>lastName</code>转大写</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.example.batchprocessing;<br><br><span class="hljs-keyword">import</span> org.slf4j.Logger;<br><span class="hljs-keyword">import</span> org.slf4j.LoggerFactory;<br><br><span class="hljs-keyword">import</span> org.springframework.batch.item.ItemProcessor;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PersonItemProcessor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ItemProcessor</span>&lt;Person, Person&gt; &#123;<br><br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">log</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(PersonItemProcessor.class);<br><br>  <span class="hljs-meta">@Override</span><br>  <span class="hljs-keyword">public</span> Person <span class="hljs-title function_">process</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Person person)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">firstName</span> <span class="hljs-operator">=</span> person.getFirstName().toUpperCase();<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">lastName</span> <span class="hljs-operator">=</span> person.getLastName().toUpperCase();<br><br>    <span class="hljs-keyword">final</span> <span class="hljs-type">Person</span> <span class="hljs-variable">transformedPerson</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Person</span>(firstName, lastName);<br><br>    log.info(<span class="hljs-string">&quot;Converting (&quot;</span> + person + <span class="hljs-string">&quot;) into (&quot;</span> + transformedPerson + <span class="hljs-string">&quot;)&quot;</span>);<br><br>    <span class="hljs-keyword">return</span> transformedPerson;<br>  &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>然后是配置类<code>BatchConfiguration</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.simplebatchprocessing;<br><br><span class="hljs-keyword">import</span> org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;<br><span class="hljs-keyword">import</span> org.springframework.batch.item.database.JdbcBatchItemWriter;<br><span class="hljs-keyword">import</span> org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;<br><span class="hljs-keyword">import</span> org.springframework.batch.item.file.FlatFileItemReader;<br><span class="hljs-keyword">import</span> org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;<br><span class="hljs-keyword">import</span> org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Bean;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Configuration;<br><span class="hljs-keyword">import</span> org.springframework.core.io.ClassPathResource;<br><br><span class="hljs-keyword">import</span> javax.sql.DataSource;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * BatchConfiguration</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2023/1/28</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BatchConfiguration</span> &#123;<br><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> FlatFileItemReader&lt;Person&gt; <span class="hljs-title function_">reader</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FlatFileItemReaderBuilder</span>&lt;Person&gt;()<br>                .name(<span class="hljs-string">&quot;personItemReader&quot;</span>)<br>                .resource(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ClassPathResource</span>(<span class="hljs-string">&quot;sample-data.csv&quot;</span>))<br>                .delimited()<br>                .names(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[]&#123;<span class="hljs-string">&quot;firstName&quot;</span>, <span class="hljs-string">&quot;lastName&quot;</span>&#125;)<br>                .fieldSetMapper(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BeanWrapperFieldSetMapper</span>&lt;Person&gt;() &#123;&#123;<br>                    setTargetType(Person.class);<br>                &#125;&#125;)<br>                .build();<br>    &#125;<br><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> PersonItemProcessor <span class="hljs-title function_">processor</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PersonItemProcessor</span>();<br>    &#125;<br><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> JdbcBatchItemWriter&lt;Person&gt; <span class="hljs-title function_">writer</span><span class="hljs-params">(DataSource dataSource)</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JdbcBatchItemWriterBuilder</span>&lt;Person&gt;()<br>                .itemSqlParameterSourceProvider(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BeanPropertyItemSqlParameterSourceProvider</span>&lt;&gt;())<br>                .sql(<span class="hljs-string">&quot;INSERT INTO people (first_name, last_name) VALUES (:firstName, :lastName)&quot;</span>)<br>                .dataSource(dataSource)<br>                .build();<br>    &#125;<br>    <br><br>&#125;<br><br></code></pre></td></tr></table></figure>
+
 <p>这里<code>reader</code>读取<code>resources</code>目录下的<code>sample-data.csv</code>并且转化为<code>Person</code>对象</p>
 <p><code>processor</code>负责对<code>Person</code>转换大写的处理</p>
 <p><code>writer</code>负责使用单个<code>Person</code>以及<code>jdbc</code>作为目标写入数据</p>
 <p>然后我们再到<code>BatchConfiguration</code>中新建这两个方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Bean</span><br><span class="hljs-keyword">public</span> Job <span class="hljs-title function_">importUserJob</span><span class="hljs-params">(JobRepository jobRepository,</span><br><span class="hljs-params">                         JobCompletionNotificationListener listener, Step step1)</span> &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JobBuilder</span>(<span class="hljs-string">&quot;importUserJob&quot;</span>)<br>            .repository(jobRepository)<br>            .incrementer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RunIdIncrementer</span>())<br>            .listener(listener)<br>            .flow(step1)<br>            .end()<br>            .build();<br>&#125;<br><br><span class="hljs-meta">@Bean</span><br><span class="hljs-keyword">public</span> Step <span class="hljs-title function_">step1</span><span class="hljs-params">(JobRepository jobRepository,</span><br><span class="hljs-params">                  PlatformTransactionManager transactionManager, JdbcBatchItemWriter&lt;Person&gt; writer)</span> &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StepBuilder</span>(<span class="hljs-string">&quot;step1&quot;</span>)<br>            .repository(jobRepository)<br>            .&lt;Person, Person&gt;chunk(<span class="hljs-number">10</span>)<br>            .reader(reader())<br>            .processor(processor())<br>            .writer(writer)<br>            .transactionManager(transactionManager)<br>            .build();<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p><code>importUserJob</code>返回一个<code>org.springframework.batch.core.Job</code>，表示单个任务</p>
 <p><code>step1</code>返回一个<code>org.springframework.batch.core.Step</code>，表示单个步骤</p>
 <p>任务是由步骤构建的，其中每个步骤都可以包括一个<code>reader</code>、一个<code>processor</code>和一个<code>writer</code>。</p>
@@ -429,10 +435,12 @@
 <p>在<code>step1</code>中，定义一次要写入多少数据（<code>10</code>），然后配置读取器<code>reader</code>、处理器<code>processor</code>和写入器<code>writer</code></p>
 <p>这里<code>listener</code>是监听器，我们可以对任务状态进行监听，例如此处的任务完成后查询并输出</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.example.batchprocessing;<br><br><span class="hljs-keyword">import</span> org.slf4j.Logger;<br><span class="hljs-keyword">import</span> org.slf4j.LoggerFactory;<br><span class="hljs-keyword">import</span> org.springframework.batch.core.BatchStatus;<br><span class="hljs-keyword">import</span> org.springframework.batch.core.JobExecution;<br><span class="hljs-keyword">import</span> org.springframework.batch.core.listener.JobExecutionListenerSupport;<br><span class="hljs-keyword">import</span> org.springframework.beans.factory.annotation.Autowired;<br><span class="hljs-keyword">import</span> org.springframework.jdbc.core.JdbcTemplate;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JobCompletionNotificationListener</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">JobExecutionListenerSupport</span> &#123;<br><br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">log</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(JobCompletionNotificationListener.class);<br><br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> JdbcTemplate jdbcTemplate;<br><br>  <span class="hljs-meta">@Autowired</span><br>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">JobCompletionNotificationListener</span><span class="hljs-params">(JdbcTemplate jdbcTemplate)</span> &#123;<br>    <span class="hljs-built_in">this</span>.jdbcTemplate = jdbcTemplate;<br>  &#125;<br><br>  <span class="hljs-meta">@Override</span><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">afterJob</span><span class="hljs-params">(JobExecution jobExecution)</span> &#123;<br>    <span class="hljs-keyword">if</span>(jobExecution.getStatus() == BatchStatus.COMPLETED) &#123;<br>      log.info(<span class="hljs-string">&quot;!!! JOB FINISHED! Time to verify the results&quot;</span>);<br><br>      jdbcTemplate.query(<span class="hljs-string">&quot;SELECT first_name, last_name FROM people&quot;</span>,<br>        (rs, row) -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">Person</span>(<br>          rs.getString(<span class="hljs-number">1</span>),<br>          rs.getString(<span class="hljs-number">2</span>))<br>      ).forEach(person -&gt; log.info(<span class="hljs-string">&quot;Found &lt;&quot;</span> + person + <span class="hljs-string">&quot;&gt; in the database.&quot;</span>));<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>运行主启动类</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.simplebatchprocessing;<br><br><span class="hljs-keyword">import</span> org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;<br><span class="hljs-keyword">import</span> org.springframework.boot.SpringApplication;<br><span class="hljs-keyword">import</span> org.springframework.boot.autoconfigure.SpringBootApplication;<br><br><span class="hljs-meta">@SpringBootApplication</span><br><span class="hljs-meta">@EnableBatchProcessing</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SimpleBatchProcessingApplication</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        System.exit(SpringApplication.exit(SpringApplication.run(SimpleBatchProcessingApplication.class, args)));<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>运行结果：</p>
-<p><img src="/imgs/oss/blog/vampireachao/image-20230128231318595.png" alt="image-20230128231318595" /></p>
+<p><img src="/imgs/oss/blog/vampireachao/image-20230128231318595.png" alt="image-20230128231318595"></p>
 
     </div>
 </article>
@@ -574,61 +582,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/09/12/Java%E7%94%9F%E6%80%81AI%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%A1%86%E6%9E%B6langchat/">Java生态AI大模型框架langchat</a>
+                    <a href="/2023/10/21/AnotherRedisDesktopManager/">AnotherRedisDesktopManager</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/11/10/MaxKB/">MaxKB</a>
+                    <a href="/2024/07/14/Apache-fineract/">Apache-fineract</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/05/07/bean-searcher/">bean-searcher</a>
+                    <a href="/2024/12/10/Crawlee/">Crawlee</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/07/19/css%E5%AE%9E%E7%8E%B0%E6%AF%9B%E7%8E%BB%E7%92%83%E6%95%88%E6%9E%9C/">css实现毛玻璃效果</a>
+                    <a href="/2024/09/08/PhaserJS%E7%BD%91%E9%A1%B52D%E6%B8%B8%E6%88%8F%E5%BC%95%E6%93%8E/">PhaserJS网页2D游戏引擎</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/10/17/idea%E5%B8%B8%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE/">idea常用快捷键</a>
+                    <a href="/2024/12/08/macosicons/">macosicons</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/11/10/minio%E9%A2%84%E7%AD%BE%E5%90%8D%E4%B8%8A%E4%BC%A0%E5%89%8D%E7%AB%AFaxios%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/">minio预签名上传前端axios注意事项</a>
+                    <a href="/2022/04/13/mysql%E7%94%A8%E6%88%B7%E3%80%81%E6%8E%88%E6%9D%83/">mysql用户、授权</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/05/30/vue%E4%B8%AD-class%E7%9A%84%E5%B0%8F%E6%8A%80%E5%B7%A7/">vue中:class的小技巧</a>
+                    <a href="/2023/10/09/nextrtc-videochat-with-rest/">nextrtc-videochat-with-rest</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/09/webflux%E4%B9%8Bwebclient%E8%B8%A9%E5%9D%91tablefield/">webflux之webclient踩坑tablefield</a>
+                    <a href="/2021/07/04/qq%E6%8E%A8%E5%B9%BF/">qq推广</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/08/01/windows%E6%96%87%E4%BB%B6%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86%E5%99%A8%E6%8E%92%E5%BA%8F/">windows文件资源管理器排序</a>
+                    <a href="/2024/04/28/%E5%AE%89%E5%8D%93%E9%98%B4%E5%BD%B1%E5%AE%9E%E7%8E%B0/">安卓阴影实现</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/09/23/%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%96%B0jdk%E6%8A%A5%E9%94%99Assistive-Technology-not-found-org-GNOME-Accessibility-AtkWrapper/">服务器新jdk报错Assistive Technology not found: org.GNOME.Accessibility.AtkWrapper</a>
+                    <a href="/2023/05/20/%E9%85%8D%E7%BD%AEgitee-jenkins-webhooks%E8%A7%A6%E5%8F%91/">配置gitee+jenkins webhooks触发</a>
                 </span>
             </li>
             
@@ -661,73 +669,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 9.912550947435097px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 14.93406941261603px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.264241103259238px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 16.376602713903637px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 13.829524723027523px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 19.916672524446643px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 8.46291926843129px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.36643109662369px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.898427225208208px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.969407370966467px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 19.21592050917687px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 10.386687192004075px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 10.539919672078629px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 9.666338060410274px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.494820842486938px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 13.66332971518519px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.751868223518416px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.948316188834568px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 17.727997838776517px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 8.83662654419808px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 9.233579668412158px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 10.44099346093547px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 8.492993218381832px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.261886353405306px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 16.159195877474865px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 8.575089052708055px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 18.51302662207361px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 19.049500568329513px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 10.596464834363172px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 12.813537917601383px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 15.610985458769083px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 15.676800562920608px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 8.541825704509412px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 14.347955119430491px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 16.349858440114904px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 18.726286533160113px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.169921889306124px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.916294143741567px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 12.368377216282843px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 14.764927804693128px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 14.663106784428305px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 9.681253748369056px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 18.292394208853104px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 17.210865214197497px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 16.49575454296376px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 14.975759674510607px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 11.587129306978817px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 9.471091239539323px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.153449171872527px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.228771414574243px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 17.100621301648985px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 10.335118887906845px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 19.645250095426256px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 15.48336732339516px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 12.899639592337463px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.107566847542508px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 14.927871244795373px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 11.006987263213263px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 10.104588283175577px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 8.1298502874564px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 11.113549694014619px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 15.489650054696762px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 12.702304423868702px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10.188569119372598px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 14.952435536837033px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 8.782625148659676px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 15.35200132152831px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.6097200383225px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

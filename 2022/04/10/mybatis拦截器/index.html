@@ -15,7 +15,7 @@
   
   
   <title>mybatis拦截器 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>mybatis拦截器</span>
     </div>
@@ -401,28 +401,33 @@
 </blockquote>
 <p>今天学了点<code>Mybatis</code>拦截器，参考了<code>Mybatis-Plus</code>部分代码</p>
 <p>首先是使用<code>@Intercepts</code>注解，它的源码注释告诉我们可以这样使用：</p>
-<p><img src="/imgs/oss/blog/image-20220410215527760.png" alt="image-20220410215527760" /></p>
+<p><img src="/imgs/oss/blog/image-20220410215527760.png" alt="image-20220410215527760"></p>
 <p><code>mybatis-plus</code>中使用的就是这种方式，参考：</p>
-<p><img src="/imgs/oss/blog/image-20220410215624859.png" alt="image-20220410215624859" /></p>
+<p><img src="/imgs/oss/blog/image-20220410215624859.png" alt="image-20220410215624859"></p>
 <p>这里可以传入<code>@Signature</code>，指定它的<code>type</code>为：</p>
 <p><code>Executor</code>，执行器，我们可以看到它包含了如下方法，说明它是一个比较全能的范围，可以做很多事情参数如处理、返回处理、重写<code>sql</code>等</p>
-<p><img src="/imgs/oss/blog/image-20220410220202015.png" alt="image-20220410220202015" /></p>
+<p><img src="/imgs/oss/blog/image-20220410220202015.png" alt="image-20220410220202015"></p>
 <p>我们依葫芦画瓢写两个：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.simplescaffold.plugin;<br><br><span class="hljs-keyword">import</span> cn.hutool.core.collection.CollUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.lang.Opt;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.StrUtil;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.enums.SqlKeyword;<br><span class="hljs-keyword">import</span> com.ruben.simplescaffold.entity.UserDetail;<br><span class="hljs-keyword">import</span> org.apache.ibatis.cache.CacheKey;<br><span class="hljs-keyword">import</span> org.apache.ibatis.executor.Executor;<br><span class="hljs-keyword">import</span> org.apache.ibatis.mapping.BoundSql;<br><span class="hljs-keyword">import</span> org.apache.ibatis.mapping.MappedStatement;<br><span class="hljs-keyword">import</span> org.apache.ibatis.plugin.*;<br><span class="hljs-keyword">import</span> org.apache.ibatis.reflection.MetaObject;<br><span class="hljs-keyword">import</span> org.apache.ibatis.reflection.SystemMetaObject;<br><span class="hljs-keyword">import</span> org.apache.ibatis.session.ResultHandler;<br><span class="hljs-keyword">import</span> org.apache.ibatis.session.RowBounds;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.util.ArrayList;<br><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/4/10 13:54</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-meta">@Intercepts(</span><br><span class="hljs-meta">		&#123;</span><br><span class="hljs-meta">				@Signature(type = Executor.class, method = &quot;query&quot;, args = &#123;MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class&#125;),</span><br><span class="hljs-meta">				@Signature(type = Executor.class, method = &quot;query&quot;, args = &#123;MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class&#125;),</span><br><span class="hljs-meta">		&#125;</span><br><span class="hljs-meta">)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MybatisExecutorQueryPlugin</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Interceptor</span> &#123;<br><br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-keyword">public</span> Object <span class="hljs-title function_">intercept</span><span class="hljs-params">(Invocation invocation)</span> <span class="hljs-keyword">throws</span> Throwable &#123;<br>		<span class="hljs-type">Executor</span> <span class="hljs-variable">executor</span> <span class="hljs-operator">=</span> (Executor) invocation.getTarget();<br>		Object[] args = invocation.getArgs();<br>		<span class="hljs-type">Method</span> <span class="hljs-variable">method</span> <span class="hljs-operator">=</span> invocation.getMethod();<br><br>		<span class="hljs-type">MappedStatement</span> <span class="hljs-variable">ms</span> <span class="hljs-operator">=</span> (MappedStatement) args[<span class="hljs-number">0</span>];<br>		<span class="hljs-type">Object</span> <span class="hljs-variable">parameter</span> <span class="hljs-operator">=</span> args[<span class="hljs-number">1</span>];<br>		BoundSql boundSql;<br>		<span class="hljs-keyword">if</span> (args.length == <span class="hljs-number">4</span>) &#123;<br>			boundSql = ms.getBoundSql(parameter);<br>		&#125; <span class="hljs-keyword">else</span> &#123;<br>			boundSql = (BoundSql) args[<span class="hljs-number">5</span>];<br>		&#125;<br>		<span class="hljs-comment">// 反射工具类，可以修改sql语句等</span><br>		<span class="hljs-type">MetaObject</span> <span class="hljs-variable">metaObject</span> <span class="hljs-operator">=</span> SystemMetaObject.forObject(boundSql);<br>		<span class="hljs-type">String</span> <span class="hljs-variable">sql</span> <span class="hljs-operator">=</span> (String) metaObject.getValue(<span class="hljs-string">&quot;sql&quot;</span>);<br>		<span class="hljs-keyword">if</span> (!StrUtil.containsIgnoreCase(sql, SqlKeyword.ORDER_BY.getSqlSegment())) &#123;<br>			<span class="hljs-comment">// 更改sql</span><br>			metaObject.setValue(<span class="hljs-string">&quot;sql&quot;</span>, sql + <span class="hljs-string">&quot; order by id asc&quot;</span>);<br>		&#125;<br>		<span class="hljs-keyword">return</span> invocation.proceed();<br>	&#125;<br><br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-keyword">public</span> Object <span class="hljs-title function_">plugin</span><span class="hljs-params">(Object target)</span> &#123;<br>		<span class="hljs-keyword">return</span> Plugin.wrap(target, <span class="hljs-built_in">this</span>);<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>写完了查询，再写一个更新的</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.simplescaffold.plugin;<br><br><span class="hljs-keyword">import</span> cn.hutool.core.bean.BeanUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.lang.func.Func1;<br><span class="hljs-keyword">import</span> cn.hutool.core.lang.func.LambdaUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.ReflectUtil;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.conditions.AbstractWrapper;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.conditions.Wrapper;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.conditions.update.Update;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.mapper.Mapper;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.metadata.TableFieldInfo;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.metadata.TableInfoHelper;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.toolkit.Constants;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.toolkit.ReflectionKit;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.toolkit.Wrappers;<br><span class="hljs-keyword">import</span> com.ruben.simplescaffold.entity.UserDetail;<br><span class="hljs-keyword">import</span> com.ruben.simplescaffold.pojo.common.BaseEntity;<br><span class="hljs-keyword">import</span> lombok.extern.slf4j.Slf4j;<br><span class="hljs-keyword">import</span> org.apache.http.Consts;<br><span class="hljs-keyword">import</span> org.apache.ibatis.binding.MapperMethod;<br><span class="hljs-keyword">import</span> org.apache.ibatis.executor.Executor;<br><span class="hljs-keyword">import</span> org.apache.ibatis.mapping.MappedStatement;<br><span class="hljs-keyword">import</span> org.apache.ibatis.mapping.SqlCommandType;<br><span class="hljs-keyword">import</span> org.apache.ibatis.plugin.*;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.time.LocalDateTime;<br><span class="hljs-keyword">import</span> java.util.List;<br><span class="hljs-keyword">import</span> java.util.Map;<br><span class="hljs-keyword">import</span> java.util.Objects;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Mybatis拦截器</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/3/31 22:22</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-meta">@Intercepts(&#123;@Signature(type = Executor.class, method = &quot;update&quot;, args = &#123;MappedStatement.class, Object.class&#125;)&#125;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MybatisExecutorUpdatePlugin</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Interceptor</span> &#123;<br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-keyword">public</span> Object <span class="hljs-title function_">intercept</span><span class="hljs-params">(Invocation invocation)</span> <span class="hljs-keyword">throws</span> Throwable &#123;<br>		Object[] args = invocation.getArgs();<br>		<span class="hljs-type">MappedStatement</span> <span class="hljs-variable">ms</span> <span class="hljs-operator">=</span> (MappedStatement) args[<span class="hljs-number">0</span>];<br>		<span class="hljs-keyword">if</span> (SqlCommandType.INSERT.equals(ms.getSqlCommandType())) &#123;<br>			<span class="hljs-comment">// 新增</span><br>			fillTime(args[<span class="hljs-number">1</span>], UserDetail::getGmtCreate);<br>			fillTime(args[<span class="hljs-number">1</span>], UserDetail::getGmtModified);<br>		&#125;<br>		<span class="hljs-keyword">if</span> (SqlCommandType.UPDATE.equals(ms.getSqlCommandType()) &amp;&amp; args[<span class="hljs-number">1</span>] <span class="hljs-keyword">instanceof</span> MapperMethod.ParamMap) &#123;<br>			<span class="hljs-comment">// 更新</span><br>			MapperMethod.ParamMap&lt;?&gt; paramMap = (MapperMethod.ParamMap&lt;?&gt;) args[<span class="hljs-number">1</span>];<br>			<span class="hljs-type">Object</span> <span class="hljs-variable">bean</span> <span class="hljs-operator">=</span> paramMap.get(Constants.ENTITY);<br>			<span class="hljs-keyword">if</span> (paramMap.containsKey(Constants.WRAPPER)) &#123;<br>				<span class="hljs-comment">// 通过Wrapper更新</span><br>				<span class="hljs-type">Object</span> <span class="hljs-variable">wrapper</span> <span class="hljs-operator">=</span> paramMap.get(Constants.WRAPPER);<br>				<span class="hljs-keyword">if</span> (wrapper <span class="hljs-keyword">instanceof</span> AbstractWrapper &amp;&amp; wrapper <span class="hljs-keyword">instanceof</span> Update) &#123;<br>					<span class="hljs-type">String</span> <span class="hljs-variable">fieldName</span> <span class="hljs-operator">=</span> LambdaUtil.getFieldName(UserDetail::getGmtModified);<br>					<span class="hljs-type">String</span> <span class="hljs-variable">mapperClassName</span> <span class="hljs-operator">=</span> ms.getId().substring(<span class="hljs-number">0</span>, ms.getId().lastIndexOf(<span class="hljs-string">&#x27;.&#x27;</span>));<br>					Class&lt;?&gt; entityClass = ReflectionKit.getSuperClassGenericType(Class.forName(mapperClassName), Mapper.class, <span class="hljs-number">0</span>);<br>					List&lt;TableFieldInfo&gt; fieldList = TableInfoHelper.getTableInfo(entityClass).getFieldList();<br>					<span class="hljs-type">String</span> <span class="hljs-variable">columnName</span> <span class="hljs-operator">=</span> fieldList.stream().filter(fieldInfo -&gt; fieldInfo.getProperty().equals(fieldName)).findAny().map(TableFieldInfo::getColumn).orElseThrow(() -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">MybatisPlusException</span>(<span class="hljs-string">&quot;未找到字段&quot;</span> + fieldName));<br>					<span class="hljs-keyword">final</span> Map&lt;String, Object&gt; paramNameValuePairs = ((AbstractWrapper&lt;?, ?, ?&gt;) wrapper).getParamNameValuePairs();<br>					<span class="hljs-type">String</span> <span class="hljs-variable">placeholder</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#&quot;</span> + fieldName + <span class="hljs-string">&quot;#&quot;</span>;<br>					paramNameValuePairs.put(placeholder, LocalDateTime.now());<br>					((Update&lt;?, ?&gt;) wrapper).setSql(String.format(<span class="hljs-string">&quot;%s = #&#123;%s.%s&#125;&quot;</span>, columnName, <span class="hljs-string">&quot;ew.paramNameValuePairs&quot;</span>, placeholder));<br>				&#125;<br>			&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (Objects.nonNull(bean)) &#123;<br>				<span class="hljs-comment">// 通过id更新</span><br>				fillTime(bean, UserDetail::getGmtModified);<br>			&#125;<br>		&#125;<br>		<span class="hljs-keyword">return</span> invocation.proceed();<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 给bean填充时间</span><br><span class="hljs-comment">	 *</span><br><span class="hljs-comment">	 * <span class="hljs-doctag">@param</span> bean 对象</span><br><span class="hljs-comment">	 * <span class="hljs-doctag">@param</span> func 填充方法，只用于获取属性名</span><br><span class="hljs-comment">	 * <span class="hljs-doctag">@param</span> &lt;T&gt;  对象类型</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">private</span> &lt;T&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">fillTime</span><span class="hljs-params">(Object bean, Func1&lt;T, ?&gt; func)</span> &#123;<br>		<span class="hljs-type">String</span> <span class="hljs-variable">fieldName</span> <span class="hljs-operator">=</span> LambdaUtil.getFieldName(func);<br>		<span class="hljs-keyword">if</span> (ReflectUtil.hasField(bean.getClass(), fieldName)) &#123;<br>			BeanUtil.setFieldValue(bean, fieldName, LocalDateTime.now());<br>		&#125;<br>	&#125;<br><br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-keyword">public</span> Object <span class="hljs-title function_">plugin</span><span class="hljs-params">(Object target)</span> &#123;<br>		<span class="hljs-keyword">return</span> Plugin.wrap(target, <span class="hljs-built_in">this</span>);<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>然后是指定<code>@Signature</code>的<code>type</code>为<code>StatementHandler</code>，也是有各种方法</p>
-<p><img src="/imgs/oss/blog/image-20220410220407031.png" alt="image-20220410220407031" /></p>
+<p><img src="/imgs/oss/blog/image-20220410220407031.png" alt="image-20220410220407031"></p>
 <p>我们演示一个隔离级别设置、日志打印、<code>sql</code>修改(此处只是取出来再设置进去，可以按需自己处理)</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.simplescaffold.plugin;<br><br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;<br><span class="hljs-keyword">import</span> lombok.extern.slf4j.Slf4j;<br><span class="hljs-keyword">import</span> org.apache.ibatis.executor.statement.StatementHandler;<br><span class="hljs-keyword">import</span> org.apache.ibatis.plugin.*;<br><span class="hljs-keyword">import</span> org.apache.ibatis.reflection.MetaObject;<br><span class="hljs-keyword">import</span> org.apache.ibatis.reflection.SystemMetaObject;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-keyword">import</span> java.sql.Connection;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/4/10 20:49</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Slf4j</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-meta">@Intercepts(&#123;@Signature(type = StatementHandler.class, method = &quot;prepare&quot;, args = &#123;Connection.class, Integer.class&#125;)&#125;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MybatisStatementHandlerPreparePlugin</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Interceptor</span> &#123;<br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-keyword">public</span> Object <span class="hljs-title function_">intercept</span><span class="hljs-params">(Invocation invocation)</span> <span class="hljs-keyword">throws</span> Throwable &#123;<br>		<span class="hljs-type">StatementHandler</span> <span class="hljs-variable">statementHandler</span> <span class="hljs-operator">=</span> (StatementHandler) invocation.getTarget();<br>		Object[] args = invocation.getArgs();<br>		<span class="hljs-type">Connection</span> <span class="hljs-variable">connection</span> <span class="hljs-operator">=</span> (Connection) args[<span class="hljs-number">0</span>];<br>		connection.prepareStatement(<span class="hljs-string">&quot;set transaction isolation level read committed&quot;</span>);<br>		<span class="hljs-type">MetaObject</span> <span class="hljs-variable">metaObject</span> <span class="hljs-operator">=</span> SystemMetaObject.forObject(statementHandler);<br>		<span class="hljs-type">String</span> <span class="hljs-variable">sql</span> <span class="hljs-operator">=</span> (String) metaObject.getValue(<span class="hljs-string">&quot;delegate.boundSql.sql&quot;</span>);<br>		log.info(<span class="hljs-string">&quot;sql: &#123;&#125;&quot;</span>, sql);<br>		metaObject.setValue(<span class="hljs-string">&quot;delegate.boundSql.sql&quot;</span>, sql);<br>		<span class="hljs-keyword">return</span> invocation.proceed();<br>	&#125;<br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-keyword">public</span> Object <span class="hljs-title function_">plugin</span><span class="hljs-params">(Object target)</span> &#123;<br>		<span class="hljs-keyword">return</span> Plugin.wrap(target, <span class="hljs-built_in">this</span>);<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>然后是<code>@Signature</code>的<code>type</code>为<code>ParameterHandler</code>，一看名字就是用来处理参数的</p>
-<p><img src="/imgs/oss/blog/image-20220410220652903.png" alt="image-20220410220652903" /></p>
+<p><img src="/imgs/oss/blog/image-20220410220652903.png" alt="image-20220410220652903"></p>
 <p>简单演示下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.simplescaffold.plugin;<br><br><span class="hljs-keyword">import</span> cn.hutool.core.lang.func.LambdaUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.ReflectUtil;<br><span class="hljs-keyword">import</span> com.ruben.simplescaffold.entity.UserDetail;<br><span class="hljs-keyword">import</span> org.apache.ibatis.executor.parameter.ParameterHandler;<br><span class="hljs-keyword">import</span> org.apache.ibatis.plugin.*;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-keyword">import</span> java.sql.PreparedStatement;<br><span class="hljs-keyword">import</span> java.sql.ResultSetMetaData;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/4/10 21:16</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-meta">@Intercepts(&#123;@Signature(type = ParameterHandler.class, method = &quot;setParameters&quot;, args = &#123;PreparedStatement.class&#125;)&#125;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MybatisParameterHandlerSetParametersPlugin</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Interceptor</span> &#123;<br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-keyword">public</span> Object <span class="hljs-title function_">intercept</span><span class="hljs-params">(Invocation invocation)</span> <span class="hljs-keyword">throws</span> Throwable &#123;<br>		<span class="hljs-type">ParameterHandler</span> <span class="hljs-variable">parameterHandler</span> <span class="hljs-operator">=</span> (ParameterHandler) invocation.getTarget();<br>		Object[] args = invocation.getArgs();<br>		<span class="hljs-type">PreparedStatement</span> <span class="hljs-variable">preparedStatement</span> <span class="hljs-operator">=</span> (PreparedStatement) args[<span class="hljs-number">0</span>];<br>		<span class="hljs-type">Object</span> <span class="hljs-variable">parameterObject</span> <span class="hljs-operator">=</span> parameterHandler.getParameterObject();<br>		<span class="hljs-keyword">if</span> (parameterObject <span class="hljs-keyword">instanceof</span> UserDetail) &#123;<br>			ReflectUtil.setFieldValue(parameterObject, LambdaUtil.getFieldName(UserDetail::getTenantId), <span class="hljs-number">1L</span>);<br>		&#125;<br>		<span class="hljs-keyword">return</span> invocation.proceed();<br>	&#125;<br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-keyword">public</span> Object <span class="hljs-title function_">plugin</span><span class="hljs-params">(Object target)</span> &#123;<br>		<span class="hljs-keyword">return</span> Plugin.wrap(target, <span class="hljs-built_in">this</span>);<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>最后就是<code>@Signature</code>为<code>ResultSetHandler</code>，用于处理结果</p>
-<p><img src="/imgs/oss/blog/image-20220410220936390.png" alt="image-20220410220936390" /></p>
+<p><img src="/imgs/oss/blog/image-20220410220936390.png" alt="image-20220410220936390"></p>
 <p>演示这里查询过滤掉密码</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.simplescaffold.plugin;<br><br><span class="hljs-keyword">import</span> cn.hutool.core.collection.CollUtil;<br><span class="hljs-keyword">import</span> com.ruben.simplescaffold.entity.UserDetail;<br><span class="hljs-keyword">import</span> org.apache.ibatis.executor.resultset.ResultSetHandler;<br><span class="hljs-keyword">import</span> org.apache.ibatis.plugin.*;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-keyword">import</span> java.sql.Statement;<br><span class="hljs-keyword">import</span> java.util.ArrayList;<br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/4/10 21:40</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-meta">@Intercepts(@Signature(type = ResultSetHandler.class, method = &quot;handleResultSets&quot;, args = &#123;Statement.class&#125;))</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MybatisResultSetHandlerHandleResultSetsPlugin</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Interceptor</span> &#123;<br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-keyword">public</span> Object <span class="hljs-title function_">intercept</span><span class="hljs-params">(Invocation invocation)</span> <span class="hljs-keyword">throws</span> Throwable &#123;<br>		List&lt;?&gt; resultList = (List&lt;?&gt;) invocation.proceed();<br>		<span class="hljs-type">Object</span> <span class="hljs-variable">bean</span> <span class="hljs-operator">=</span> CollUtil.get(resultList, <span class="hljs-number">0</span>);<br>		<span class="hljs-keyword">if</span> (bean <span class="hljs-keyword">instanceof</span> UserDetail) &#123;<br>			<span class="hljs-meta">@SuppressWarnings(&quot;unchecked&quot;)</span><br>			ArrayList&lt;UserDetail&gt; userList = (ArrayList&lt;UserDetail&gt;) resultList;<br>			userList.forEach(user -&gt; user.setPassword(<span class="hljs-literal">null</span>));<br>			<span class="hljs-keyword">return</span> userList;<br>		&#125;<br>		<span class="hljs-keyword">return</span> resultList;<br>	&#125;<br><br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-keyword">public</span> Object <span class="hljs-title function_">plugin</span><span class="hljs-params">(Object target)</span> &#123;<br>		<span class="hljs-keyword">return</span> Plugin.wrap(target, <span class="hljs-built_in">this</span>);<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>对了，顺便一提<code>Plugin.wrap</code>使用动态代理的方式，对我们方法进行了代理，其中还判断了拦截器触发的时机等操作</p>
 
     </div>
@@ -565,61 +570,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/04/02/el-input-number%E9%98%BB%E6%AD%A2%E5%A4%96%E5%B1%82button%E7%9A%84%E5%86%92%E6%B3%A1/">el-input-number阻止外层button的冒泡</a>
+                    <a href="/2024/09/02/Apache-ShenYu%E6%B3%A8%E5%86%8C%E5%A4%B1%E8%B4%A5%E9%97%AE%E9%A2%98/">Apache-ShenYu注册失败问题</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/01/12/jackson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E8%8E%B7%E5%8F%96%E7%B1%BB%E5%9E%8B/">jackson反序列化器获取类型</a>
+                    <a href="/2022/07/30/ant-motion/">ant motion</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/07/31/jenkins%E3%81%AEPipeline%E9%A1%B9%E7%9B%AE%E6%9E%84%E5%BB%BA/">jenkinsのPipeline项目构建</a>
+                    <a href="/2022/01/07/byte%E4%BA%8C%E7%BB%B4%E7%A0%81%E5%9C%A8img%E4%B8%AD%E5%B1%95%E7%A4%BA/">byte二维码在img中展示</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/07/25/jenkins%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86/">jenkins权限管理</a>
+                    <a href="/2021/06/14/collect%E8%A1%A5%E5%85%85/">collect补充</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/01/18/pixpinapp/">pixpinapp</a>
+                    <a href="/2023/06/22/idea%E7%9A%84Learn-IDE-Features/">idea的Learn IDE Features</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/11/14/uniapp%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/">uniapp自动化测试</a>
+                    <a href="/2023/05/24/js%E5%AE%9E%E6%97%B6%E5%8D%8F%E4%BD%9C%E7%BC%96%E8%BE%91%E5%99%A8/">js实时协作编辑器</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/07/16/veaury/">veaury</a>
+                    <a href="/2021/11/14/mixin/">mixin</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/28/xnio%E5%9D%91/">xnio坑</a>
+                    <a href="/2021/02/25/mysql%E4%B8%AD%E6%9D%A1%E4%BB%B6%E5%87%BD%E6%95%B0/">mysql中条件函数</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/04/08/%E5%AF%B9%E6%8E%A5%E9%A3%9E%E4%B9%A6%E6%9C%BA%E5%99%A8%E4%BA%BA/">对接飞书机器人</a>
+                    <a href="/2024/03/15/stream-query%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9B%E8%A1%8CCI%E6%B5%8B%E8%AF%95/">stream-query多数据库进行CI测试</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/07/20/%E9%85%8D%E7%BD%AEgithub%E7%9A%84issue%E6%A8%A1%E6%9D%BF/">配置github的issue模板</a>
+                    <a href="/2020/08/12/url%E6%80%8E%E4%B9%88%E4%BC%A0%E6%95%B0%E7%BB%84/">url怎么传数组</a>
                 </span>
             </li>
             
@@ -652,73 +657,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 15.893942931024819px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 12.678257838169214px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 9.614782099167755px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 9.312492872783226px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 13.935773375821533px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 14.954913506808222px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 12.164409183074026px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.164302894161455px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 14.983822389744454px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.380836768554087px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 19.50272306042261px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 14.248801321354742px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 18.600980541192502px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 12.753566215395214px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 17.708944099180826px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10.787158284305821px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 14.6664733461688px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.016391342701684px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 8.87481259278697px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 16.506775175944433px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 14.494166020761114px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 19.183130820882692px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 15.0226369683765px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 11.228726083621524px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 17.362943430752697px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 17.90435429601234px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 16.926225550558634px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 17.759673518811123px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 8.96363462526015px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 12.09438466365583px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 13.29470899380599px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 12.527148112482134px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 12.328991249917454px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 19.589524393613807px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 9.252337281212355px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 10.00237665949517px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.435505448439073px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 17.203666354451343px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 9.259904315522402px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 17.718733499175496px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 18.961139683230442px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 15.481415625252872px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 8.96767364202255px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 17.45782890010299px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 11.089284996968164px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 18.224706004340142px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 16.70219601449746px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 12.080508617200056px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.670461003084718px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 16.340229850750184px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 11.65512594247241px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 17.721355670178294px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 18.824652284464584px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 11.17407499193602px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 14.119801276947953px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 11.54480711718837px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 13.461595629594228px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 9.990312291459505px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 9.304111379421558px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 12.046591116436957px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 10.833327281061338px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 10.370269261567104px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 18.137801646627906px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.359055168360387px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 15.854549785940486px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 18.901730047479212px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.423841187015084px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.880838258463193px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

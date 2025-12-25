@@ -15,7 +15,7 @@
   
   
   <title>处理js的JSON.parse中Number太长导致精度丢失问题 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>处理js的JSON.parse中Number太长导致精度丢失问题</span>
     </div>
@@ -401,18 +401,24 @@
 </blockquote>
 <p>代码如下：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-string">&quot;token&quot;</span>.<span class="hljs-title function_">split</span>(<span class="hljs-string">&quot;.&quot;</span>).<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>,<span class="hljs-number">2</span>).<span class="hljs-title function_">map</span>(<span class="hljs-function"><span class="hljs-params">i</span>=&gt;</span><span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">parse</span>(<span class="hljs-title function_">atob</span>(i)))<br></code></pre></td></tr></table></figure>
+
 <p>这里主要是 <code>JSON.parse</code> 导致的，我简单复现一下</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">parse</span>(<span class="hljs-string">&#x27;&#123;&quot;id&quot;:9052710354240385291&#125;&#x27;</span>)<br></code></pre></td></tr></table></figure>
+
 <p>得到的是</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs javascript">&#123;<span class="hljs-attr">id</span>: <span class="hljs-number">9052710354240385000</span>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>可以看到后面的 <code>291</code> 变为 <code>000</code> 了</p>
-<p>解决方式这里使用正则匹配 <code>/:\s*([-+]?\d+(\.\d+)?([eE][-+]?\d+)?)/g</code></p>
+<p>解决方式这里使用正则匹配 <code>/:\s*([-+]?\d+(\.\d+)?([eE][-+]?\d+)?)/g</code> </p>
 <p>例如：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">parse</span>(<span class="hljs-string">&#x27;&#123;&quot;id&quot;:9052710354240385291&#125;&#x27;</span>.<span class="hljs-title function_">replace</span>(<span class="hljs-regexp">/:\s*([-+]?\d+(\.\d+)?([eE][-+]?\d+)?)/g</span>, <span class="hljs-function">(<span class="hljs-params">match, p1</span>) =&gt;</span> &#123;<br>                <span class="hljs-keyword">if</span> (<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">abs</span>(p1) &gt; <span class="hljs-title class_">Number</span>.<span class="hljs-property">MAX_SAFE_INTEGER</span>) &#123;<br>                    <span class="hljs-keyword">return</span> <span class="hljs-string">`:&quot;<span class="hljs-subst">$&#123;p1&#125;</span>&quot;`</span>;<br>                &#125;<br>                <span class="hljs-keyword">return</span> <span class="hljs-string">`:<span class="hljs-subst">$&#123;p1&#125;</span>`</span>;<br>            &#125;))<br></code></pre></td></tr></table></figure>
+
 <p>得到</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs javascript">&#123;<span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;9052710354240385291&#x27;</span>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>这里注意，我们只对超长数字进行了处理</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">parse</span>(<span class="hljs-string">&#x27;&#123;&quot;id&quot;:9052710354240385291,&quot;age&quot;:23&#125;&#x27;</span>.<span class="hljs-title function_">replace</span>(<span class="hljs-regexp">/:\s*([-+]?\d+(\.\d+)?([eE][-+]?\d+)?)/g</span>, <span class="hljs-function">(<span class="hljs-params">match, p1</span>) =&gt;</span> &#123;<br>                <span class="hljs-keyword">if</span> (<span class="hljs-title class_">Math</span>.<span class="hljs-title function_">abs</span>(p1) &gt; <span class="hljs-title class_">Number</span>.<span class="hljs-property">MAX_SAFE_INTEGER</span>) &#123;<br>                    <span class="hljs-keyword">return</span> <span class="hljs-string">`:&quot;<span class="hljs-subst">$&#123;p1&#125;</span>&quot;`</span>;<br>                &#125;<br>                <span class="hljs-keyword">return</span> <span class="hljs-string">`:<span class="hljs-subst">$&#123;p1&#125;</span>`</span>;<br>            &#125;))<br></code></pre></td></tr></table></figure>
+
 <p>得到的是：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs javascript">&#123;<span class="hljs-attr">id</span>: <span class="hljs-string">&#x27;9052710354240385291&#x27;</span>, <span class="hljs-attr">age</span>: <span class="hljs-number">23</span>&#125;<br></code></pre></td></tr></table></figure>
 
@@ -556,61 +562,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/11/15/android%E9%9A%90%E8%97%8F%E8%BD%AF%E9%94%AE%E7%9B%98/">android隐藏软键盘</a>
+                    <a href="/2020/10/11/SQLite%E5%85%A5%E9%97%A8%E3%81%AEjava%E5%88%9B%E5%BB%BA%E5%BA%93%E8%A1%A8/">SQLite入门のjava创建库表</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/07/12/compose-for-agents/">compose-for-agents</a>
+                    <a href="/2021/11/10/css%E4%B8%AD%E7%9A%84/">css中的&amp;</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/13/for-of%E5%92%8Cfor-in/">for of和for in</a>
+                    <a href="/2023/04/02/h2-console/">h2-console</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/05/02/taze/">taze</a>
+                    <a href="/2023/07/17/handsontable/">handsontable</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/02/%E5%9B%BE%E7%89%87%E6%87%92%E5%8A%A0%E8%BD%BD/">图片懒加载</a>
+                    <a href="/2020/06/23/idea%E5%B8%B8%E7%94%A8%E6%8F%92%E4%BB%B6/">idea常用插件</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/12/22/%E5%BC%80%E6%BA%90%E6%8C%89%E9%94%AE%E7%9B%91%E6%B5%8Bkeycastr/">开源按键监测keycastr</a>
+                    <a href="/2023/08/13/idea%E8%AE%BE%E7%BD%AEjava%E6%A8%A1%E5%9D%97%E7%BC%96%E8%AF%91%E7%89%88%E6%9C%AC/">idea设置java模块编译版本</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/01/23/%E6%9E%81%E5%85%89%E6%8E%A8%E9%80%81/">极光推送</a>
+                    <a href="/2025/06/15/mqcloud/">mqcloud</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/07/17/%E8%BF%9B%E9%98%B6%E5%AD%A6%E4%B9%A0css%E7%9A%84filter%E5%B1%9E%E6%80%A7/">进阶学习css的filter属性</a>
+                    <a href="/2024/01/01/ubuntu%E8%BE%93%E5%85%A5%E6%B3%95ibus/">ubuntu输入法ibus</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/11/07/%E9%80%BB%E8%BE%91%E5%88%A0%E9%99%A4%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%86%B2%E7%AA%81%E5%A4%84%E7%90%86%EF%BC%88%E4%BA%8C%EF%BC%89/">逻辑删除与联合索引冲突处理（二）</a>
+                    <a href="/2024/09/13/%E4%B8%8B%E4%B8%80%E4%BB%A3%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6Vitest/">下一代测试框架Vitest</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/07/15/github%E5%AE%98%E6%96%B9%E5%9B%BE%E6%A0%87%E5%BA%93/">github官方图标库</a>
+                    <a href="/2025/06/11/%E8%8D%A3%E8%80%80%E6%89%8B%E6%9C%BALogcat%E4%B8%8D%E6%89%93%E5%8D%B0%E9%97%AE%E9%A2%98/">荣耀手机Logcat不打印问题</a>
                 </span>
             </li>
             
@@ -643,73 +649,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 17.940412328604182px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 9.562347976105745px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.36721705840388px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.986934210169373px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 9.527596229880716px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 16.553839576249487px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 8.168478478532606px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.276839948641223px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 18.516516346467057px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.060653298547933px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 18.773512397482733px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 13.520884013744674px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 18.181131642712227px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 10.354791857443235px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 16.980982084738024px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.81960827763639px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.577632548117753px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 14.266997195992833px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 16.707431849287172px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 19.67393401120126px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 17.055772002561138px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 14.302647561604942px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 16.327192954756224px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 9.979277610458135px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 14.761370960633442px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 15.931824237944522px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 12.247150631632419px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 11.894265384104813px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 13.814100332627767px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 17.080784177108868px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 14.740074627214163px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 16.419990724192154px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 13.034700293060506px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 11.34609395348441px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 16.479252786962878px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 10.876650983155894px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.388595358308816px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 18.232091846627185px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 14.2044125923837px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 13.375345113101012px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 15.93937426786099px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 9.915092231217017px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 17.391619533382595px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 12.774845955907782px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 15.850932753512321px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 12.450640313103214px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 19.456108960872836px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 13.342266977835433px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 13.707035780964475px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 8.493423671535258px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 8.173641998706957px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 11.541596209560538px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 17.650079799804793px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 19.64563473397423px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 17.86223808707683px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.202561495941836px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 10.731646273215995px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 12.658378020214851px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 12.791025478905917px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 17.398987454920626px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 19.141973058252354px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 10.16661051207933px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 12.782558814622831px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.301007164703341px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 10.711332364286541px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 19.356808677755474px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 10.508236525510899px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 19.08815684839549px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

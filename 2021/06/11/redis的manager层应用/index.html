@@ -15,7 +15,7 @@
   
   
   <title>redis的manager层应用 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>redis的manager层应用</span>
     </div>
@@ -402,12 +402,15 @@
 <p>封装了一个操作<code>redis</code>的管理层，简单处理了缓存穿透、击穿、雪崩问题</p>
 <p><code>Manager</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.manager;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson.TypeReference;<br><br><span class="hljs-keyword">import</span> java.util.function.Supplier;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * redis管理层</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/6/11 0011 21:55</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">RedisManager</span> &#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 从缓存中获取否则从mysql中查询</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> key           缓存中的key</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> mysqlSupplier 查询mysql操作</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> typeReference 返回的类型</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> &lt;T&gt;           数据类型</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 数据</span><br><span class="hljs-comment">     */</span><br>    &lt;T&gt; T <span class="hljs-title function_">getFromRedisOrPutIntoMysql</span><span class="hljs-params">(String key, Supplier&lt;T&gt; mysqlSupplier, TypeReference&lt;T&gt; typeReference)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>实现类</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.manager;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.TypeReference;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;<br><span class="hljs-keyword">import</span> com.ruben.utils.Opt;<br><span class="hljs-keyword">import</span> org.apache.commons.lang3.StringUtils;<br><span class="hljs-keyword">import</span> org.springframework.data.redis.core.StringRedisTemplate;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Service;<br><span class="hljs-keyword">import</span> org.springframework.transaction.annotation.Isolation;<br><span class="hljs-keyword">import</span> org.springframework.transaction.annotation.Propagation;<br><span class="hljs-keyword">import</span> org.springframework.transaction.annotation.Transactional;<br><br><span class="hljs-keyword">import</span> javax.annotation.Resource;<br><span class="hljs-keyword">import</span> java.security.SecureRandom;<br><span class="hljs-keyword">import</span> java.util.Objects;<br><span class="hljs-keyword">import</span> java.util.concurrent.TimeUnit;<br><span class="hljs-keyword">import</span> java.util.function.Supplier;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * redis管理层实现类</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/6/11 0011 21:55</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RedisManagerImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">RedisManager</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">SecureRandom</span> <span class="hljs-variable">SECURE_RANDOM</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecureRandom</span>();<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 过期时间</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> <span class="hljs-variable">EXPIRE_SECONDS</span> <span class="hljs-operator">=</span> <span class="hljs-number">5</span> * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>;<br><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> StringRedisTemplate stringRedisTemplate;<br><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 从缓存中获取否则从mysql中查询</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> key           缓存中的key</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> mysqlSupplier 查询mysql操作</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> typeReference 返回的类型</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> &lt;T&gt;           数据类型</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 数据</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-meta">@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED, isolation = Isolation.READ_UNCOMMITTED)</span><br>    <span class="hljs-keyword">public</span> &lt;T&gt; T <span class="hljs-title function_">getFromRedisOrPutIntoMysql</span><span class="hljs-params">(String key, Supplier&lt;T&gt; mysqlSupplier, TypeReference&lt;T&gt; typeReference)</span> &#123;<br>        <span class="hljs-comment">// 判断传入key是否为空</span><br>        Opt.ofNullable(key).filter(StringUtils::isNotEmpty)<br>                .orElseThrow(() -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">MybatisPlusException</span>(<span class="hljs-string">&quot;key不能为空&quot;</span>));<br>        <span class="hljs-comment">// 如果redis中存在，直接返回</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">value</span> <span class="hljs-operator">=</span> stringRedisTemplate.opsForValue().get(key);<br>        <span class="hljs-keyword">if</span> (Objects.nonNull(value)) &#123;<br>            <span class="hljs-keyword">return</span> JSON.parseObject(value, typeReference);<br>        &#125;<br>        <span class="hljs-comment">// 查数据库并放入缓存这个操作加锁【缓存击穿】</span><br>        <span class="hljs-keyword">synchronized</span> (<span class="hljs-built_in">this</span>) &#123;<br>            <span class="hljs-comment">// 否则从数据库中取出</span><br>            <span class="hljs-keyword">return</span> Opt.ofNullable(mysqlSupplier).map(Supplier::get)<br>                    <span class="hljs-comment">// 如果有值则放入缓存，随机时间【缓存雪崩】</span><br>                    .peek(v -&gt; stringRedisTemplate.opsForValue()<br>                            .set(key, JSON.toJSONString(v), SECURE_RANDOM.nextInt(EXPIRE_SECONDS), TimeUnit.SECONDS))<br>                    <span class="hljs-comment">// 没值则放入空对象&quot;&#123;&#125;&quot;【缓存穿透】并返回null</span><br>                    .orElseGet(() -&gt; &#123;<br>                        stringRedisTemplate.opsForValue()<br>                                .set(key, <span class="hljs-string">&quot;&#123;&#125;&quot;</span>, SECURE_RANDOM.nextInt(EXPIRE_SECONDS), TimeUnit.SECONDS);<br>                        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>                    &#125;);<br>        &#125;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>使用方式</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Resource</span><br><span class="hljs-keyword">private</span> RedisManager redisManager;<br><br><span class="hljs-meta">@Test</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">managerTest</span><span class="hljs-params">()</span> &#123;<br>    List&lt;String&gt; userIds = redisManager.getFromRedisOrPutIntoMysql(<span class="hljs-string">&quot;userIds&quot;</span>, () -&gt; &#123;<br>        <span class="hljs-comment">// 从数据库中查询...</span><br>        <span class="hljs-keyword">return</span> Arrays.asList(<span class="hljs-string">&quot;1&quot;</span>, <span class="hljs-string">&quot;2&quot;</span>, <span class="hljs-string">&quot;3&quot;</span>);<br>    &#125;, <span class="hljs-keyword">new</span> <span class="hljs-title class_">TypeReference</span>&lt;List&lt;String&gt;&gt;() &#123;<br>    &#125;);<br>    System.out.println(userIds);<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>目前自己开发中用着感觉还不错的，大伙​可以拿去自定义</p>
-<p><img src="/imgs/oss/picGo/image-20210611221533945.png" alt="image-20210611221533945" /></p>
+<p><img src="/imgs/oss/picGo/image-20210611221533945.png" alt="image-20210611221533945"></p>
 
     </div>
 </article>
@@ -549,61 +552,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/06/android-studio%E6%9F%A5%E7%9C%8B%E5%BD%93%E5%89%8D%E6%89%80%E5%9C%A8Activity/">android-studio查看当前所在Activity</a>
+                    <a href="/2021/04/27/SneakyThrows/">@SneakyThrows</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/04/16/cloudeon/">cloudeon</a>
+                    <a href="/2020/10/20/android%E3%81%AEdialog%E7%82%B9%E5%87%BB%E6%8C%89%E9%92%AE%E4%B8%8D%E5%85%B3%E9%97%AD/">androidのdialog点击按钮不关闭</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/10/18/edex-ui%E7%BB%88%E7%AB%AF/">edex-ui终端</a>
+                    <a href="/2022/09/26/gridsome/">gridsome</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/21/egui/">egui</a>
+                    <a href="/2022/01/08/img%E5%9B%BE%E7%89%87%E4%B8%A2%E5%A4%B1%E5%90%8E%E9%BB%98%E8%AE%A4%E5%9B%BE/">img图片丢失后默认图</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/07/25/idea%E8%AE%BE%E7%BD%AE%E4%BB%A3%E7%A0%81%E4%BF%9D%E5%AD%98%E6%97%B6%E8%87%AA%E5%8A%A8%E4%BF%AE%E5%A4%8Deslint/">idea设置代码保存时自动修复eslint</a>
+                    <a href="/2021/03/04/springboot%E6%96%87%E4%BB%B6%E5%A4%A7%E5%B0%8F%E9%99%90%E5%88%B6/">springboot文件大小限制</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/05/19/jq%E8%8E%B7%E5%8F%96%E5%AE%9E%E6%97%B6%E5%AE%BD%E5%BA%A6/">jq获取实时宽度</a>
+                    <a href="/2021/10/06/uniCloud%E6%9F%A5%E8%AF%A2%E6%95%B0%E6%8D%AE%E5%BA%93/">uniCloud查询数据库</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/12/12/websocket%E5%85%B3%E9%97%AD%E6%8C%87%E5%AE%9A%E5%8E%9F%E5%9B%A0/">websocket关闭指定原因</a>
+                    <a href="/2024/07/26/%E4%BD%BF%E7%94%A8Console-Importer%E5%AE%89%E8%A3%85lodash%E5%B9%B6%E4%BD%BF%E7%94%A8/">使用Console Importer安装lodash并使用</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/04/30/%E5%AE%89%E5%8D%93%E9%9A%90%E8%97%8F%E4%BA%86%E7%9A%84%E8%A7%86%E5%9B%BE%E5%9C%A8%E5%B7%A5%E5%85%B7%E9%87%8C%E6%98%BE%E7%A4%BA/">安卓隐藏了的视图在工具里显示</a>
+                    <a href="/2024/05/30/%E6%96%87%E6%A1%A3%E5%86%99%E4%BD%9C%E8%A7%84%E8%8C%83/">文档写作规范</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/07/29/%E7%B4%A2%E5%BC%95%E6%93%8D%E4%BD%9C/">索引操作</a>
+                    <a href="/2022/02/05/%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF/">标签模板</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/01/30/%E8%87%AA%E5%AE%9A%E4%B9%89list-To-HashMap%E5%B7%A5%E5%85%B7%E7%B1%BB/">自定义list To HashMap工具类</a>
+                    <a href="/2023/12/16/%E5%8A%A8%E6%80%81%E8%8C%83%E5%9B%B4%E5%8C%B9%E9%85%8D%E9%80%BB%E8%BE%91%E5%AE%9E%E7%8E%B0/">动态范围匹配逻辑实现</a>
                 </span>
             </li>
             
@@ -636,73 +639,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 15.724486097928168px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 18.40157914999154px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.13105565091933px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.717807428822724px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 15.462059817337295px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 8.66947109464276px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.305961196086635px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.435053786253476px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 18.238486344460423px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 14.846281765077697px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 12.448972882886332px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 8.05967500467439px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 9.967145935411668px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 15.343160241472528px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.428459637255347px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.602146006532024px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.38764285713313px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 15.111219926511783px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 14.247956313162597px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 11.49306986802518px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 10.621117498149044px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 14.057761706661971px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 8.45815954022532px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 10.935825763930982px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 13.76254263202661px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 19.796394252392368px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 9.978731176577021px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 8.116177242909627px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 8.872206104517161px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 13.389488521056276px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 8.817167038632208px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 11.639095647999344px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 19.516767447465732px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 9.739253190836354px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 16.901781580742806px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 13.540618590339317px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 18.819471380845755px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.452711253466505px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 16.145943114200943px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 12.718353781118598px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 11.711962723102125px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.345744846638265px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 8.593353172996954px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 10.521972183266342px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 19.147922536124433px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 10.782229002387256px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 13.999584607005648px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 11.312527106547584px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 14.787299172358253px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 13.213553533613688px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 10.91332075595481px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 10.129549531181375px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 18.713864742134515px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 16.888734817301348px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.576127860028762px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.34455557236674px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 12.625585182057925px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 11.837261727850684px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 15.19993892313008px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 17.159327689994193px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 8.957029249713962px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 17.365953922949746px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 12.00702120660645px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10.402487113558113px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 16.275069633129796px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 8.337420395042393px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.791657863549695px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 9.297755985697329px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

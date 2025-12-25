@@ -15,7 +15,7 @@
   
   
   <title>apache-cassandra | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>apache-cassandra</span>
     </div>
@@ -399,30 +399,38 @@
         <blockquote>
 <p>生活的情况越艰难，我越感到自己更坚强，甚而也更聪明。——高尔基</p>
 </blockquote>
-<p>Github: <a target="_blank" rel="noopener" href="https://github.com/apache/cassandra/">https://github.com/apache/cassandra/</a></p>
+<p>Github: <a target="_blank" rel="noopener" href="https://github.com/apache/cassandra/">https://github.com/apache/cassandra/</a> </p>
 <p>官方文档: <a target="_blank" rel="noopener" href="https://cassandra.apache.org/">https://cassandra.apache.org/</a></p>
 <p>最近开始接触Apache Cassandra，这是一款开源的分布式NoSQL数据库，特别适合处理大量结构化数据，具有高可用性和无单点故障的特点。听说它采用了Dynamo和Bigtable的架构设计，存储模型是基于列的，非常适合需要快速写入和查询的场景，比如时间序列数据、物联网应用等等。</p>
 <p>先简单说说安装，直接从官网下载二进制文件，解压后进入bin目录，运行<code>cassandra</code>即可启动。第一次运行时需要初始化数据目录，默认情况下配置文件在conf目录下，建议先熟悉一下里面的参数，特别是<code>cassandra.yaml</code>，很多关键配置都在这里。如果是用Docker，也可以直接拉取官方镜像，运行一条简单的命令就可以启动一个容器，非常方便。</p>
 <p>使用Docker运行也很简单，拉取官方镜像：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">docker pull cassandra<br></code></pre></td></tr></table></figure>
+
 <p>启动一个Cassandra实例：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">docker run --name cassandra-container -d cassandra<br></code></pre></td></tr></table></figure>
+
 <p>通过环境变量可以自定义配置，比如设置集群名称或种子节点：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">docker run --name cassandra-container -d -e CASSANDRA_CLUSTER_NAME=<span class="hljs-string">&quot;MyCluster&quot;</span> cassandra<br></code></pre></td></tr></table></figure>
+
 <p>启动后可以通过容器的端口9042连接到Cassandra，使用<code>cqlsh</code>测试功能。对于多节点集群，可以启动多个容器并设置相同的集群名称和不同的种子节点。</p>
 <p>启动后，连接Cassandra可以使用自带的CQL Shell工具，叫<code>cqlsh</code>，直接在终端输入<code>cqlsh</code>就可以连接到本地实例。试了一下创建一个Keyspace和表，感觉CQL的语法很像SQL，但是多了一些针对分布式特性的设计，比如需要定义分区键和集群键。用下面的命令创建了一个简单的表：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs cql">CREATE KEYSPACE test WITH replication = &#123;&#x27;class&#x27;: &#x27;SimpleStrategy&#x27;, &#x27;replication_factor&#x27;: 1&#125;;<br>USE test;<br>CREATE TABLE users (id UUID PRIMARY KEY, name text, age int);<br></code></pre></td></tr></table></figure>
+
 <p>插入了一些数据，用<code>INSERT INTO</code>语句，然后用<code>SELECT</code>查询，响应速度很快，这也是它的特点之一。在分布式环境下，它会自动分片存储数据，通过一致性哈希算法实现负载均衡。Cassandra的写入路径也非常有意思，是基于Memtable和SSTable的设计，写入时是顺序操作，延迟非常低。</p>
 <p>了解了一下它的多节点设置，需要先修改配置文件里的<code>cluster_name</code>和<code>seeds</code>参数，把节点之间的通信地址配置好，然后启动多个实例即可。默认是用Gossip协议来实现节点发现和状态同步。也看了一下<code>nodetool</code>工具，可以用它来查看集群状态、修复数据或者清理旧的SSTable。</p>
 <p>Cassandra支持多种一致性级别，比如<code>ONE</code>、<code>QUORUM</code>和<code>ALL</code>，可以根据业务需求调整读取和写入的一致性保障。这种灵活性让它在很多场景下都很适用，比如需要高写入性能的日志系统，也可以用来做强一致性要求的任务。</p>
 <p>还研究了一下如何在Spring Boot项目中集成Cassandra。首先需要添加依赖：</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-data-cassandra<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
 <p>然后在<code>application.properties</code>文件中配置Cassandra的连接信息：</p>
 <figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs properties"><span class="hljs-attr">spring.data.cassandra.contact-points</span>=<span class="hljs-string">127.0.0.1</span><br><span class="hljs-attr">spring.data.cassandra.port</span>=<span class="hljs-string">9042</span><br><span class="hljs-attr">spring.data.cassandra.keyspace-name</span>=<span class="hljs-string">test</span><br><span class="hljs-attr">spring.data.cassandra.schema-action</span>=<span class="hljs-string">create-if-not-exists</span><br></code></pre></td></tr></table></figure>
+
 <p>定义一个实体类并用Cassandra的注解进行标注：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> org.springframework.data.annotation.Id;<br><span class="hljs-keyword">import</span> org.springframework.data.cassandra.core.mapping.PrimaryKey;<br><span class="hljs-keyword">import</span> org.springframework.data.cassandra.core.mapping.Table;<br><br><span class="hljs-meta">@Table</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br><br>    <span class="hljs-meta">@PrimaryKey</span><br>    <span class="hljs-keyword">private</span> String id;<br>    <span class="hljs-keyword">private</span> String name;<br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> age;<br><br>    <span class="hljs-comment">// Getters and setters</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>创建一个Repository接口来访问数据：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> org.springframework.data.cassandra.repository.CassandraRepository;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Repository;<br><br><span class="hljs-meta">@Repository</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">UserRepository</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">CassandraRepository</span>&lt;User, String&gt; &#123;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>然后在Service或者Controller中使用这个Repository即可进行数据的CRUD操作。</p>
 <p>目前还在学习阶段，但整体体验下来感觉Cassandra确实是一款非常强大的分布式数据库，特别适合那些需要可扩展性和高可用性的系统。</p>
 
@@ -566,61 +574,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/07/23/Git%E5%88%9B%E5%BB%BA%E5%AD%A4%E5%84%BF%E5%88%86%E6%94%AF/">Git创建孤儿分支</a>
+                    <a href="/2021/03/16/Momo-Code-Sec-inpoector/">Momo Code Sec inpoector</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/09/10/Stirling-PDF/">Stirling-PDF</a>
+                    <a href="/2025/01/20/SwipeRecyclerView/">SwipeRecyclerView</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/05/ios%E7%A6%81%E7%94%A8%E5%A4%9C%E9%97%B4%E6%A8%A1%E5%BC%8F/">ios禁用夜间模式</a>
+                    <a href="/2020/06/30/jQuery%E7%9A%84ajax/">jQuery的ajax</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/07/05/jQuery%E7%9A%84input%E6%A1%86%E5%8F%96%E5%80%BC%E5%92%8C%E8%B5%8B%E5%80%BC/">jQuery的input框取值和赋值</a>
+                    <a href="/2024/03/31/python%E9%85%8D%E7%BD%AE%E6%B8%85%E5%8D%8E%E9%95%9C%E5%83%8F/">python配置清华镜像</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/12/19/sherpa-ncnn%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB/">sherpa-ncnn端到端语音识别</a>
+                    <a href="/2022/09/30/tui-image-editor/">tui-image-editor</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/04/10/spotless/">spotless</a>
+                    <a href="/2021/10/13/uniapp%E6%8B%96%E5%8A%A8%E6%8E%92%E5%BA%8F%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/">uniapp拖动排序实现思路</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/09/07/%E5%B8%B8%E7%94%A8%E6%AD%A3%E5%88%99/">常用正则</a>
+                    <a href="/2023/10/22/xxx-app%E5%B7%B2%E6%8D%9F%E5%9D%8F%EF%BC%8C%E6%97%A0%E6%B3%95%E6%89%93%E5%BC%80%E3%80%82%E4%BD%A0%E5%BA%94%E8%AF%A5%E5%B0%86%E5%AE%83%E7%A7%BB%E5%88%B0%E5%BA%9F%E7%BA%B8%E7%AF%93/">xxx.app已损坏，无法打开。你应该将它移到废纸篓</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/12/31/%E6%89%B9%E9%87%8F%E5%88%86%E9%A1%B5/">批量分页</a>
+                    <a href="/2025/10/25/yaak/">yaak</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/05/26/%E7%99%BE%E5%BA%A6%E5%9C%B0%E5%9B%BE%E7%AE%80%E5%8D%95%E5%AF%B9%E6%8E%A5/">百度地图简单对接</a>
+                    <a href="/2023/06/01/%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6url%E4%B8%BAMultipartFile/">下载文件url为MultipartFile</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/04/06/%E9%98%BF%E9%87%8C%E4%BA%91%E9%95%9C%E5%83%8F%E5%BF%AB%E9%80%9F%E6%9E%84%E5%BB%BAspringboot/">阿里云镜像快速构建springboot</a>
+                    <a href="/2022/04/25/%E7%BD%91%E7%AB%99%E6%A1%A3%E6%A1%88%E9%A6%86/">网站档案馆</a>
                 </span>
             </li>
             
@@ -653,73 +661,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 12.271966961381533px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 17.423268011678495px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.82437686148753px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 12.749860850499012px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 8.343714326307516px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 12.787252126922194px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 9.88151853688693px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.421555920440689px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 12.691321317392841px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 12.28584189963163px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 19.222400624497276px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 16.92280599888096px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 15.323844085916772px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 15.196238737702512px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.295456668408338px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.256777627761412px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 19.208839199623164px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.215694352004533px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 13.265255598558758px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 13.967039054909606px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 11.561359640456867px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 15.469826425631405px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 13.70691717607823px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 19.128874377233377px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 15.888356758146276px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 14.615517611054646px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 11.094627730268833px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 16.69287755279501px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 13.649109230258247px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 18.134249217838775px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 19.769751676750232px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 12.266948051947445px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 8.8998640514129px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 18.594555921072967px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 10.027991433082308px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 13.720424788294242px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.90828958794217px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.011113481342157px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 14.560396246996063px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 10.251452503427224px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 15.744298194280386px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 19.564699399125068px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 16.292640139344776px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 10.885290119258304px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 14.488566337332262px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 16.112029169915875px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 12.81682018345002px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 14.344098224287574px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.985533321226175px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.275903494070945px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 10.677718700052722px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 18.140313175721168px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 16.72014022311698px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 16.744552953099536px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.800329298364332px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 12.188457821625033px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 18.131821417950935px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 8.056065873568123px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 11.282432274669429px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 11.616420388082787px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 14.5610982208848px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 16.40368556599225px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.0505025140051px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.994786509374233px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 13.112270429477778px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 8.245545560123713px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 16.169047584496404px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 10.07605458003104px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

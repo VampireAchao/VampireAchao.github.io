@@ -15,7 +15,7 @@
   
   
   <title>apache-shenyu解决分页失效问题 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>apache-shenyu解决分页失效问题</span>
     </div>
@@ -400,100 +400,81 @@
 <p>心有多大，舞台就有多大。——巴尔扎克</p>
 </blockquote>
 <p>近期有社区用户反馈，后台管理系统出现了严重分页 BUG：<strong>Selector 和 Rule 列表分页失效，始终只显示第一页，总数消失</strong>（<a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/issues/6239">issue #6239</a>）。作为 API 网关领域的核心组件，分页异常直接影响日常运维和平台体验。那么问题到底出在了哪里？又该如何优雅修复？本文带你一步步梳理、避坑、实践！</p>
-<hr />
-<h2 id="一-问题现象回顾"><a class="markdownIt-Anchor" href="#一-问题现象回顾"></a> 一、问题现象回顾</h2>
-<ul>
-<li><strong>主要表现：</strong>
-<ul>
-<li>Selector / Rule 的分页查询只能看到第一页，页码和总数全部失灵</li>
+<hr>
+<h2 id="一、问题现象回顾"><a href="#一、问题现象回顾" class="headerlink" title="一、问题现象回顾"></a>一、问题现象回顾</h2><ul>
+<li><strong>主要表现：</strong><ul>
+<li>Selector &#x2F; Rule 的分页查询只能看到第一页，页码和总数全部失灵</li>
 <li>查询结果总是只有第一页内容</li>
 </ul>
 </li>
 </ul>
 <blockquote>
-<p>相关 issue：<a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/issues/6239">https://github.com/apache/shenyu/issues/6239</a><br />
-修复 PR：<a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/pull/6243">https://github.com/apache/shenyu/pull/6243</a></p>
+<p>相关 issue：<a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/issues/6239">https://github.com/apache/shenyu/issues/6239</a><br>修复 PR：<a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/pull/6243">https://github.com/apache/shenyu/pull/6243</a></p>
 </blockquote>
-<hr />
-<h2 id="二-根本原因追溯-pagehelper-的使用陷阱"><a class="markdownIt-Anchor" href="#二-根本原因追溯-pagehelper-的使用陷阱"></a> 二、根本原因追溯 —— PageHelper 的使用陷阱</h2>
-<p>问题根因在于<strong>分页核心逻辑的隐藏陷阱</strong>：</p>
-<h3 id="经典陷阱代码"><a class="markdownIt-Anchor" href="#经典陷阱代码"></a> 经典&quot;陷阱&quot;代码：</h3>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> PageInfo&lt;SelectorVO&gt; <span class="hljs-title function_">searchByPage</span><span class="hljs-params">(PageCondition&lt;SelectorQueryCondition&gt; pageCondition)</span> &#123;<br>    doConditionPreProcessing(pageCondition.getCondition());<br>    PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());<br>    <span class="hljs-type">SelectorQueryCondition</span> <span class="hljs-variable">condition</span> <span class="hljs-operator">=</span> pageCondition.getCondition();<br>    condition.init();<br>    <span class="hljs-comment">// 这里searchByCondition的返回值不确定！！！</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PageInfo</span>&lt;&gt;(searchByCondition(pageCondition.getCondition()));<br>&#125;<br></code></pre></td></tr></table></figure>
-<h4 id="为什么是陷阱"><a class="markdownIt-Anchor" href="#为什么是陷阱"></a> 为什么是陷阱？</h4>
-<ul>
-<li>
-<p><code>searchByCondition</code>返回值类型是<code>List&lt;T&gt;</code>，但<strong>可能是普通的<code>ArrayList</code>，也可能是<code>com.github.pagehelper.Page</code></strong>（PageHelper会返回Page对象，但如果下游有包裹、转换则可能不是）。</p>
+<hr>
+<h2 id="二、根本原因追溯-——-PageHelper-的使用陷阱"><a href="#二、根本原因追溯-——-PageHelper-的使用陷阱" class="headerlink" title="二、根本原因追溯 —— PageHelper 的使用陷阱"></a>二、根本原因追溯 —— PageHelper 的使用陷阱</h2><p>问题根因在于<strong>分页核心逻辑的隐藏陷阱</strong>：</p>
+<h3 id="经典”陷阱”代码："><a href="#经典”陷阱”代码：" class="headerlink" title="经典”陷阱”代码："></a>经典”陷阱”代码：</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> PageInfo&lt;SelectorVO&gt; <span class="hljs-title function_">searchByPage</span><span class="hljs-params">(PageCondition&lt;SelectorQueryCondition&gt; pageCondition)</span> &#123;<br>    doConditionPreProcessing(pageCondition.getCondition());<br>    PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());<br>    <span class="hljs-type">SelectorQueryCondition</span> <span class="hljs-variable">condition</span> <span class="hljs-operator">=</span> pageCondition.getCondition();<br>    condition.init();<br>    <span class="hljs-comment">// 这里searchByCondition的返回值不确定！！！</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PageInfo</span>&lt;&gt;(searchByCondition(pageCondition.getCondition()));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="为什么是陷阱？"><a href="#为什么是陷阱？" class="headerlink" title="为什么是陷阱？"></a>为什么是陷阱？</h4><ul>
+<li><p><code>searchByCondition</code>返回值类型是<code>List&lt;T&gt;</code>，但**可能是普通的<code>ArrayList</code>，也可能是<code>com.github.pagehelper.Page</code>**（PageHelper会返回Page对象，但如果下游有包裹、转换则可能不是）。</p>
 </li>
-<li>
-<p>PageInfo 构造函数在源码如下：</p>
+<li><p>PageInfo 构造函数在源码如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-title function_">PageInfo</span><span class="hljs-params">(List&lt;? extends T&gt; list, <span class="hljs-type">int</span> navigatePages)</span> &#123;<br>    <span class="hljs-keyword">if</span> (list <span class="hljs-keyword">instanceof</span> Page) &#123;<br>        <span class="hljs-comment">// 只有Page对象才能正常获取分页元数据</span><br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">// 普通List没有分页信息</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 </li>
-<li>
-<p>一旦 <code>searchByCondition</code> 返回的不再是 <code>Page</code>，PageInfo 就只能包裹普通 List，<strong>无法拿到总数、页码等分页信息</strong>！</p>
+<li><p>一旦 <code>searchByCondition</code> 返回的不再是 <code>Page</code>，PageInfo 就只能包裹普通 List，<strong>无法拿到总数、页码等分页信息</strong>！</p>
 </li>
 </ul>
-<h4 id="案例回溯"><a class="markdownIt-Anchor" href="#案例回溯"></a> 案例回溯</h4>
-<ul>
+<h4 id="案例回溯"><a href="#案例回溯" class="headerlink" title="案例回溯"></a>案例回溯</h4><ul>
 <li>某些查询能保证 Mapper 直接返回 Page 对象（MyBatis + PageHelper联用，自动包装）。</li>
 <li>但由于调用链复用，<code>searchByCondition</code>可能返回值类型提前变成普通 List，分页能力被“吃掉”。</li>
 </ul>
-<h4 id="结论"><a class="markdownIt-Anchor" href="#结论"></a> 结论</h4>
-<p><strong>new PageInfo&lt;&gt;(searchByCondition(…)) 属于易踩坑误导写法</strong>，只有拿到 Page 对象时才能安全用，复杂链路/多场景容易失效！</p>
-<hr />
-<h2 id="三-修复思路与改进实践"><a class="markdownIt-Anchor" href="#三-修复思路与改进实践"></a> 三、修复思路与改进实践</h2>
-<h3 id="1-提取-pagehelper-真分页能力"><a class="markdownIt-Anchor" href="#1-提取-pagehelper-真分页能力"></a> 1. 提取 PageHelper 真分页能力</h3>
-<ul>
+<h4 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h4><p><strong>new PageInfo&lt;&gt;(searchByCondition(…)) 属于易踩坑误导写法</strong>，只有拿到 Page 对象时才能安全用，复杂链路&#x2F;多场景容易失效！</p>
+<hr>
+<h2 id="三、修复思路与改进实践"><a href="#三、修复思路与改进实践" class="headerlink" title="三、修复思路与改进实践"></a>三、修复思路与改进实践</h2><h3 id="1-提取-PageHelper-真分页能力"><a href="#1-提取-PageHelper-真分页能力" class="headerlink" title="1. 提取 PageHelper 真分页能力"></a>1. 提取 PageHelper 真分页能力</h3><ul>
 <li>必须保证分页 Bean 能准确拿到 Page 对象</li>
 <li>不能希望所有地方都用 PageHelper</li>
 <li>只动 Selector 和 Rule 模块（涉及分页失效，且最易受影响）</li>
 </ul>
-<h3 id="2-优化代码实现"><a class="markdownIt-Anchor" href="#2-优化代码实现"></a> 2. 优化代码实现</h3>
-<h4 id="selector-分页代码优化"><a class="markdownIt-Anchor" href="#selector-分页代码优化"></a> Selector 分页代码优化：</h4>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> PageInfo&lt;SelectorVO&gt; <span class="hljs-title function_">searchByPage</span><span class="hljs-params">(PageCondition&lt;SelectorQueryCondition&gt; pageCondition)</span> &#123;<br>    doConditionPreProcessing(pageCondition.getCondition());<br>    <span class="hljs-comment">// 1. 正确开启分页</span><br>    PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());<br>    <span class="hljs-type">SelectorQueryCondition</span> <span class="hljs-variable">condition</span> <span class="hljs-operator">=</span> pageCondition.getCondition();<br>    condition.init();<br>    <span class="hljs-comment">// 2. 强制 Mapper 返回 Page</span><br>    <span class="hljs-keyword">final</span> Page&lt;SelectorDO&gt; page = (Page&lt;SelectorDO&gt;) selectorMapper.selectByCondition(condition);<br>    <span class="hljs-comment">// 3. 使用 Page 的 toPageInfo，才能正确获取所有分页元数据</span><br>    PageInfo&lt;SelectorVO&gt; pageInfo = page.toPageInfo(SelectorVO::buildSelectorVO);<br>    <span class="hljs-comment">// 4. 补充展示信息</span><br>    <span class="hljs-keyword">for</span> (SelectorVO selector : pageInfo.getList()) &#123;<br>        selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));<br>        selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));<br>    &#125;<br>    <span class="hljs-keyword">return</span> pageInfo;<br>&#125;<br></code></pre></td></tr></table></figure>
-<h4 id="rule-分页同理只需用-pagehelper-原生流程即可"><a class="markdownIt-Anchor" href="#rule-分页同理只需用-pagehelper-原生流程即可"></a> Rule 分页同理，只需用 PageHelper 原生流程即可。</h4>
-<p>这样做的好处是：<strong>再也不用担心 searchByCondition 返回的是 ArrayList 还是 Page 对象，保证每次都能拿到核心分页能力！</strong></p>
-<hr />
-<h2 id="四-相关源码片段及解释"><a class="markdownIt-Anchor" href="#四-相关源码片段及解释"></a> 四、相关源码片段及解释</h2>
-<p>PageHelper核心对象原理：</p>
+<h3 id="2-优化代码实现"><a href="#2-优化代码实现" class="headerlink" title="2. 优化代码实现"></a>2. 优化代码实现</h3><h4 id="Selector-分页代码优化："><a href="#Selector-分页代码优化：" class="headerlink" title="Selector 分页代码优化："></a>Selector 分页代码优化：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> PageInfo&lt;SelectorVO&gt; <span class="hljs-title function_">searchByPage</span><span class="hljs-params">(PageCondition&lt;SelectorQueryCondition&gt; pageCondition)</span> &#123;<br>    doConditionPreProcessing(pageCondition.getCondition());<br>    <span class="hljs-comment">// 1. 正确开启分页</span><br>    PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());<br>    <span class="hljs-type">SelectorQueryCondition</span> <span class="hljs-variable">condition</span> <span class="hljs-operator">=</span> pageCondition.getCondition();<br>    condition.init();<br>    <span class="hljs-comment">// 2. 强制 Mapper 返回 Page</span><br>    <span class="hljs-keyword">final</span> Page&lt;SelectorDO&gt; page = (Page&lt;SelectorDO&gt;) selectorMapper.selectByCondition(condition);<br>    <span class="hljs-comment">// 3. 使用 Page 的 toPageInfo，才能正确获取所有分页元数据</span><br>    PageInfo&lt;SelectorVO&gt; pageInfo = page.toPageInfo(SelectorVO::buildSelectorVO);<br>    <span class="hljs-comment">// 4. 补充展示信息</span><br>    <span class="hljs-keyword">for</span> (SelectorVO selector : pageInfo.getList()) &#123;<br>        selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));<br>        selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));<br>    &#125;<br>    <span class="hljs-keyword">return</span> pageInfo;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="Rule-分页同理，只需用-PageHelper-原生流程即可。"><a href="#Rule-分页同理，只需用-PageHelper-原生流程即可。" class="headerlink" title="Rule 分页同理，只需用 PageHelper 原生流程即可。"></a>Rule 分页同理，只需用 PageHelper 原生流程即可。</h4><p>这样做的好处是：<strong>再也不用担心 searchByCondition 返回的是 ArrayList 还是 Page 对象，保证每次都能拿到核心分页能力！</strong></p>
+<hr>
+<h2 id="四、相关源码片段及解释"><a href="#四、相关源码片段及解释" class="headerlink" title="四、相关源码片段及解释"></a>四、相关源码片段及解释</h2><p>PageHelper核心对象原理：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// PageHelper底层源码</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;E&gt; Page&lt;E&gt; <span class="hljs-title function_">startPage</span><span class="hljs-params">(<span class="hljs-type">int</span> pageNum, <span class="hljs-type">int</span> pageSize)</span> &#123;<br>    <span class="hljs-comment">// 通过分页拦截器自动包装Page对象</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>PageInfo构造函数要求：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-title function_">PageInfo</span><span class="hljs-params">(List&lt;? extends T&gt; list, <span class="hljs-type">int</span> navigatePages)</span> &#123;<br>    <span class="hljs-keyword">if</span> (list <span class="hljs-keyword">instanceof</span> Page) &#123;<br>        <span class="hljs-comment">// 保留所有分页元数据</span><br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-comment">// 没有总数、页码，只是普通list</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>所以<strong>务必用Page对象！！</strong>，否则开发者每次都容易被误导踩坑。</p>
-<hr />
-<h2 id="五-陷阱总结与后续展望"><a class="markdownIt-Anchor" href="#五-陷阱总结与后续展望"></a> 五、陷阱总结与后续展望</h2>
-<h3 id="易踩坑点"><a class="markdownIt-Anchor" href="#易踩坑点"></a> 易踩坑点</h3>
-<ul>
+<hr>
+<h2 id="五、陷阱总结与后续展望"><a href="#五、陷阱总结与后续展望" class="headerlink" title="五、陷阱总结与后续展望"></a>五、陷阱总结与后续展望</h2><h3 id="易踩坑点"><a href="#易踩坑点" class="headerlink" title="易踩坑点"></a>易踩坑点</h3><ul>
 <li>各种“快捷”写法虽然方便，但实际返回类型往往不可控</li>
-<li>PageHelper的拦截器只能保证最直接的 Mapper/SQL 返回 Page 类型</li>
+<li>PageHelper的拦截器只能保证最直接的 Mapper&#x2F;SQL 返回 Page 类型</li>
 <li>任意再包一层 List，或被其他泛型原型包裹，会丢失分页元数据</li>
 </ul>
-<h3 id="修复建议与最佳实践"><a class="markdownIt-Anchor" href="#修复建议与最佳实践"></a> 修复建议与最佳实践</h3>
-<ul>
+<h3 id="修复建议与最佳实践"><a href="#修复建议与最佳实践" class="headerlink" title="修复建议与最佳实践"></a>修复建议与最佳实践</h3><ul>
 <li>必须保证分页被 Mapper 端页面级拦截并返回 Page</li>
 <li>只对核心场景做更改（Selector 和 Rule），兼顾解耦与通用性</li>
 <li>其他地方如用到 searchByCondition 需要仔细校验，不要“偷懒”滥用包裹写法</li>
 <li>可以考虑统一分页处理工具类或代码注释，减小误导风险</li>
 </ul>
-<hr />
-<h2 id="六-更多高级改造建议"><a class="markdownIt-Anchor" href="#六-更多高级改造建议"></a> 六、更多高级改造建议</h2>
-<ul>
+<hr>
+<h2 id="六、更多高级改造建议"><a href="#六、更多高级改造建议" class="headerlink" title="六、更多高级改造建议"></a>六、更多高级改造建议</h2><ul>
 <li>可以用全局分页工具进行类型判断，自动降级为 List 但告警</li>
 <li>定义统一分页接口约束，后续新模块统一走 Page</li>
 <li>建议社区维护统一分页文档，供团队协作时查阅</li>
 </ul>
-<hr />
-<h2 id="七-pr详情与链接"><a class="markdownIt-Anchor" href="#七-pr详情与链接"></a> 七、PR详情与链接</h2>
-<p>本次修复 PR 👉 <a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/pull/6243">#6243</a></p>
+<hr>
+<h2 id="七、PR详情与链接"><a href="#七、PR详情与链接" class="headerlink" title="七、PR详情与链接"></a>七、PR详情与链接</h2><p>本次修复 PR 👉 <a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/pull/6243">#6243</a></p>
 <ul>
 <li>由 VampireAchao 提交</li>
-<li>只改动 Selector/Rule 分页逻辑，其他模块暂不变动</li>
+<li>只改动 Selector&#x2F;Rule 分页逻辑，其他模块暂不变动</li>
 <li>彻底解决官方后台分页失效“史诗大坑”</li>
 </ul>
-<hr />
-<h2 id="八-总结"><a class="markdownIt-Anchor" href="#八-总结"></a> 八、总结</h2>
-<p>分页逻辑看似简单，实则暗藏“类型陷阱”。本次 ShenYu 的 <a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/issues/6239">issue #6239</a> 与 <a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/pull/6243">PR #6243</a>，不仅修复了实际线上BUG，更为后续所有基于 PageHelper 的开发场景敲响了警钟：<strong>一定要确保 Page 对象贯穿全流程，避免隐式 List 误包。</strong></p>
+<hr>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><p>分页逻辑看似简单，实则暗藏“类型陷阱”。本次 ShenYu 的 <a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/issues/6239">issue #6239</a> 与 <a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/pull/6243">PR #6243</a>，不仅修复了实际线上BUG，更为后续所有基于 PageHelper 的开发场景敲响了警钟：<strong>一定要确保 Page 对象贯穿全流程，避免隐式 List 误包。</strong></p>
 <p>面对海量数据与高并发场景，只有把分页基础做好，才能为平台稳定和高效打好坚实基础！</p>
-<hr />
+<hr>
 <p><strong>欢迎讨论更多ShenYu相关疑问与最佳实践，也欢迎关注PR进展和后续优化。</strong></p>
 
     </div>
@@ -636,61 +617,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/07/20/GitHub-CLI/">GitHub CLI</a>
+                    <a href="/2025/07/25/Penpot/">Penpot</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/06/14/ShapeOfView/">ShapeOfView</a>
+                    <a href="/2022/05/31/node%E7%89%88%E6%9C%AC%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7nvm/">node版本管理工具nvm</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/08/05/docker-desktop%E9%85%8D%E7%BD%AE%E8%85%BE%E8%AE%AF%E4%BA%91%E9%95%9C%E5%83%8F/">docker-desktop配置腾讯云镜像</a>
+                    <a href="/2023/05/15/rule-engine-open/">rule-engine-open</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/08/03/gitlab%E3%80%81jenkins%E3%80%81tomcat%E5%86%85%E5%AD%98%E9%99%90%E5%88%B6/">gitlab、jenkins、tomcat内存限制</a>
+                    <a href="/2024/12/06/shenyu-dashboard%E7%9A%84%E4%B8%80%E4%BA%9B%E4%BC%98%E5%8C%96/">shenyu-dashboard的一些优化</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/12/11/order-by-field/">order by field</a>
+                    <a href="/2025/04/29/vue-countTo/">vue-countTo</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/08/postcat/">postcat</a>
+                    <a href="/2021/04/28/%E4%B8%8D%E8%A6%81%E7%94%A8%E9%AD%94%E6%B3%95%E5%80%BC%EF%BC%81%EF%BC%81%EF%BC%81/">不要用魔法值！！！</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/11/28/setInterval/">setInterval</a>
+                    <a href="/2021/05/03/%E5%8F%98%E9%87%8F%E8%A7%A3%E6%9E%84%E8%B5%8B%E5%80%BC/">变量解构赋值</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/01/02/transition-style/">transition.style</a>
+                    <a href="/2024/02/28/%E6%8A%A5%E9%94%99%E6%89%BE%E4%B8%8D%E5%88%B0-TestRestTemplate/">报错找不到 TestRestTemplate</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/03/06/zju-learning-assistant/">zju-learning-assistant</a>
+                    <a href="/2021/01/17/%E6%BB%9A%E8%BD%AE%E7%BC%A9%E6%94%BE/">滚轮缩放</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/02/24/%E9%85%8D%E7%BD%AEBabel%E9%AB%98%E4%BA%AE%E6%8F%92%E4%BB%B6/">配置Babel高亮插件</a>
+                    <a href="/2021/06/25/%E9%A1%B9%E7%9B%AE%E9%83%A8%E7%BD%B2%E5%8F%8A%E7%89%88%E6%9C%AC%E5%8F%91%E5%B8%83/">项目部署及版本发布</a>
                 </span>
             </li>
             
@@ -723,73 +704,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 9.813495889419297px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 15.839110739372686px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 14.259288709266983px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 10.440664908887898px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 16.308645351616416px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 9.278208541297044px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.657161922004615px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.013882132001832px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.413536140097005px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 12.617590437114668px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 10.530735778725113px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 9.664664145326586px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 13.253774709525189px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 19.095643060493412px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 13.24498915328531px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 15.789699188027072px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 19.69353995392985px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 14.480136517315664px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 17.94729937605522px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 12.572397188883759px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 15.53608973432393px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 19.692327127905653px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 14.750012723395287px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 9.442575727422078px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 14.505802717393738px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 13.711131981569203px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 19.18917458769716px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 9.560820019020625px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 12.3146017367878px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 19.638552133817257px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 13.094981003761355px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 15.465693866431476px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 12.093160256222056px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 8.506488936499752px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 12.367722608941136px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 17.59756376524906px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.70986058202619px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.451102751437118px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 13.674093725297967px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 11.02948294719651px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 12.412000675189713px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 19.623855823688242px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 8.333985985447484px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 17.49825786412962px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 15.181592107044878px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 19.577523892606646px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 9.595253088222213px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 12.329243242893401px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.98212042061947px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.902395929614176px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 13.871277754231436px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 10.955906898226566px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 9.395577842951994px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 12.058180422670102px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.721098690475646px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.084441933339214px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 9.474872667806908px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 8.926870814322488px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 17.03522834401798px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 11.838975926912966px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 17.887377813528442px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 9.361363942739759px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 15.169534028677749px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.92771904134478px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 14.610963980215814px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 16.901337794609297px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 19.056493271941836px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.312861607105063px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

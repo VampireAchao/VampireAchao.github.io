@@ -15,7 +15,7 @@
   
   
   <title>camel+minio实现预签名URL上传 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>camel+minio实现预签名URL上传</span>
     </div>
@@ -399,7 +399,7 @@
         <blockquote>
 <p>充实的思想不在于言语的美丽，而在于它引以自豪的内容。——莎士比亚</p>
 </blockquote>
-<p><img src="/imgs/oss/picGo/20231006130358.png" alt="" /></p>
+<p><img src="/imgs/oss/picGo/20231006130358.png"></p>
 <p><code>Camel</code>文档：</p>
 <p><a target="_blank" rel="noopener" href="https://camel.apache.org/components/4.0.x/minio-component.html">Minio :: Apache Camel</a></p>
 <p><code>Minio</code>文档：</p>
@@ -408,9 +408,11 @@
 <p><a target="_blank" rel="noopener" href="https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/userguide/using-presigned-url.html">使用预签名 URL - Amazon Simple Storage Service</a></p>
 <p>然后核心配置如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// For the generate Pre signed Url route</span><br>from(direct(<span class="hljs-string">&quot;createUploadLink&quot;</span>))<br>        .to(minio(CamelConst.BUCKET_TEMPLATE).operation(MinioOperations.createUploadLink));<br></code></pre></td></tr></table></figure>
-<p>其余配置部分参考 <a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2023/10/05/springboot-camel%E5%AF%B9%E6%8E%A5minio%E4%B8%8A%E4%BC%A0%E4%B8%8B%E8%BD%BD/">springboot+camel对接minio上传下载</a></p>
+
+<p>其余配置部分参考 <a href="https://vampireachao.github.io/2023/10/05/springboot-camel%E5%AF%B9%E6%8E%A5minio%E4%B8%8A%E4%BC%A0%E4%B8%8B%E8%BD%BD/">springboot+camel对接minio上传下载</a></p>
 <p>接下来就是使用：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> cn.hutool.core.io.IoUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.URLUtil;<br><span class="hljs-keyword">import</span> cn.hutool.http.HttpUtil;<br><span class="hljs-keyword">import</span> cn.hutool.http.Method;<br><span class="hljs-keyword">import</span> io.minio.GetObjectResponse;<br><span class="hljs-keyword">import</span> org.apache.camel.CamelContext;<br><span class="hljs-keyword">import</span> org.apache.camel.ProducerTemplate;<br><span class="hljs-keyword">import</span> org.apache.camel.component.minio.MinioComponent;<br><span class="hljs-keyword">import</span> org.apache.camel.component.minio.MinioConstants;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Assertions;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Test;<br><span class="hljs-keyword">import</span> org.springframework.beans.factory.annotation.Autowired;<br><span class="hljs-keyword">import</span> org.springframework.boot.test.context.SpringBootTest;<br><br><span class="hljs-keyword">import</span> java.io.IOException;<br><span class="hljs-keyword">import</span> java.time.Duration;<br><span class="hljs-keyword">import</span> java.time.temporal.ChronoUnit;<br><span class="hljs-keyword">import</span> java.util.Map;<br></code></pre></td></tr></table></figure>
+
 <p>代码</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Test</span><br><span class="hljs-keyword">void</span> <span class="hljs-title function_">testGeneratePresignedUrl</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>    <span class="hljs-type">var</span> <span class="hljs-variable">presignedUrl</span> <span class="hljs-operator">=</span> producerTemplate.requestBodyAndHeaders(<span class="hljs-string">&quot;direct:createUploadLink&quot;</span>, <span class="hljs-string">&quot;&quot;</span>,<br>            Map.of(MinioConstants.BUCKET_NAME, <span class="hljs-string">&quot;testbucket&quot;</span>,<br>                    MinioConstants.OBJECT_NAME, <span class="hljs-string">&quot;test.txt&quot;</span>,<br>                    MinioConstants.PRESIGNED_URL_EXPIRATION_TIME, Duration.of(<span class="hljs-number">1</span>, ChronoUnit.DAYS)));<br><br>    Assertions.assertNotNull(presignedUrl);<br>    <span class="hljs-type">var</span> <span class="hljs-variable">content</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Hello, Minio! Again!&quot;</span>;<br>    <span class="hljs-keyword">try</span> (<span class="hljs-type">var</span> <span class="hljs-variable">response</span> <span class="hljs-operator">=</span> HttpUtil.createRequest(Method.PUT, presignedUrl.toString())<br>            .body(content, <span class="hljs-string">&quot;application/octet-stream&quot;</span>).execute()) &#123;<br>        Assertions.assertTrue(response.isOk());<br>    &#125;<br>    <span class="hljs-type">var</span> <span class="hljs-variable">minio</span> <span class="hljs-operator">=</span> (MinioComponent) camelContext.getComponent(<span class="hljs-string">&quot;minio&quot;</span>);<br>    Assertions.assertEquals(content,<br>            IoUtil.readUtf8(URLUtil.url(minio.getConfiguration().getEndpoint() + <span class="hljs-string">&quot;/testbucket/test.txt&quot;</span>).openStream()));<br>&#125;<br></code></pre></td></tr></table></figure>
 
@@ -554,61 +556,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/09/JOOL/">JOOL</a>
+                    <a href="/2025/05/06/AndPermission/">AndPermission</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/12/19/allinssl/">allinssl</a>
+                    <a href="/2021/12/21/import%E6%A8%A1%E5%9D%97%E5%A4%B1%E6%95%88/">import模块失效</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/12/06/claude-cookbooks/">claude-cookbooks</a>
+                    <a href="/2020/09/02/js%E8%8E%B7%E5%8F%96url%E4%B8%8A%E7%9A%84%E5%8F%82%E6%95%B0/">js获取url上的参数</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/11/01/cs249r-book/">cs249r_book</a>
+                    <a href="/2021/12/18/layui%E6%A8%A1%E5%9D%97%E5%85%A5%E9%97%A8/">layui模块入门</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/10/18/free-for-dev/">free-for-dev</a>
+                    <a href="/2021/04/25/redis%E8%87%AA%E5%A2%9E%E5%87%8F/">redis自增减</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/04/15/github%E8%8E%B7%E5%8F%96uid%E6%96%B9%E5%BC%8F/">github获取uid方式</a>
+                    <a href="/2021/02/19/replaceAll%E5%9D%91/">replaceAll坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/03/29/groupingBy/">groupingBy</a>
+                    <a href="/2023/10/14/srs%E7%9A%84http-api%E9%89%B4%E6%9D%83/">srs的http api鉴权</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/04/29/shenyu/">shenyu</a>
+                    <a href="/2023/09/10/%E5%8F%91%E5%B8%83jar%E5%88%B0maven%E4%B8%AD%E5%A4%AE%E4%BB%93%E5%BA%93idea-nexus%E5%AD%98%E5%82%A8%E5%BA%93%E7%AE%A1%E7%90%86%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B/">发布jar到maven中央仓库idea+nexus存储库管理操作流程</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/23/stream%E5%AE%9E%E7%8E%B0%E9%80%92%E5%BD%92%E5%B0%81%E8%A3%85/">stream实现递归封装</a>
+                    <a href="/2020/10/19/%E5%AE%89%E5%8D%93activity%E7%AE%A1%E7%90%86%E5%99%A8/">安卓activity管理器</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/06/06/videojs/">videojs</a>
+                    <a href="/2022/07/25/%E7%A7%91%E5%A4%A7%E8%AE%AF%E9%A3%9ENLP%E9%BB%91%E7%99%BD%E5%90%8D%E5%8D%95%E4%B8%8A%E4%BC%A0/">科大讯飞NLP黑白名单上传</a>
                 </span>
             </li>
             
@@ -641,73 +643,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 11.564658495361382px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 18.542325955526504px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.808582385796997px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 10.18471251041111px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 14.898164589593272px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 10.303812977024531px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 9.19443825312603px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.92495090801247px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 14.718694714989756px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 8.263791741170467px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 12.41103761012429px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 14.192533253870973px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 9.443704811007423px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 19.130584370991922px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.627884822161743px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.993991235418731px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 11.523466127995594px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 14.332186575887384px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 11.229914680070841px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 12.745213578090187px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 9.916947106781354px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 11.68263961043214px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 10.084531667529639px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 14.366994391184278px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 19.091224536334607px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 11.36828883712726px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 11.379622748074045px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 14.85804985233849px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 14.766155061491045px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 16.59721286774768px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 9.71302888983358px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 18.64368597164531px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 18.358975038955162px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 11.498264485131424px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 8.363817690147712px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 13.527813712300322px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 14.599682345729896px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 14.622060340101427px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 13.516794674404967px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 12.921503873555952px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 8.616797858796197px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.109034880552823px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 8.532449892307799px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 12.472666087183184px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 18.94703760730078px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 19.131264241260762px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 16.084763489680334px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 8.49319275055512px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.768519522170752px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 8.574015504485562px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 17.681443020236213px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 13.428675831040698px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 16.95549125527179px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 11.524259862684177px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 12.593502613626207px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 9.681055697995317px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 15.83856555331584px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 13.444834393591583px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 18.587892274308942px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 10.544565746946134px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 15.670744270959641px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 11.812391865274481px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.149504689255295px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.45554136202624px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 17.521596700184425px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 11.627374635980775px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 14.618652826838254px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 19.04662857948042px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

@@ -15,7 +15,7 @@
   
   
   <title>RabbitMQ安装 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>RabbitMQ安装</span>
     </div>
@@ -399,8 +399,7 @@
         <blockquote>
 <p>万物各得其和以生,各得其养以成。一一《荀子》</p>
 </blockquote>
-<h3 id="介绍"><a class="markdownIt-Anchor" href="#介绍"></a> 介绍</h3>
-<p>使用异步多线程方案会导致<code>CPU</code>竞争强烈，故使用<code>MQ</code></p>
+<h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><p>使用异步多线程方案会导致<code>CPU</code>竞争强烈，故使用<code>MQ</code></p>
 <p>使用<code>MQ</code>能够大大降低项目耦合</p>
 <p>名词：</p>
 <p><code>Producer</code>：生产者，发消息的</p>
@@ -411,6 +410,7 @@
 <p><code>Message</code>：消息报文(内容，一般为<code>json</code>)</p>
 <p>单机版本<code>MQ</code>原理</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.mq;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSONObject;<br><br><span class="hljs-keyword">import</span> java.util.Optional;<br><span class="hljs-keyword">import</span> java.util.UUID;<br><span class="hljs-keyword">import</span> java.util.concurrent.LinkedBlockingDeque;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@ClassName</span>: RubenThreadMQ</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Description</span>: 我还没有写描述</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Date</span>: 2021/2/17 0017 14:52</span><br><span class="hljs-comment"> * *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span>: &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@version</span>: 1.0</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span>: JDK 1.8</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RubenThreadMQ</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> LinkedBlockingDeque&lt;JSONObject&gt; msgs = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinkedBlockingDeque</span>&lt;&gt;();<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">producerThread</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>                    Thread.sleep(<span class="hljs-number">1000</span>);<br>                    msgs.offer(JSON.parseObject(<span class="hljs-string">&quot;&#123;\&quot;userId\&quot;:\&quot;&quot;</span> + UUID.randomUUID() + <span class="hljs-string">&quot;\&quot;&#125;&quot;</span>));<br>                &#125;<br>            &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>                e.printStackTrace();<br>            &#125;<br>        &#125;, <span class="hljs-string">&quot;producer&quot;</span>);<br>        producerThread.start();<br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">consumerThread</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>                Optional.ofNullable(msgs.poll())<br>                        .ifPresent(data -&gt; System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;,&quot;</span> + data.getString(<span class="hljs-string">&quot;userId&quot;</span>)));<br>            &#125;<br><br>        &#125;, <span class="hljs-string">&quot;consumer&quot;</span>);<br>        consumerThread.start();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <blockquote>
 <p>宕机如何保证<code>MQ</code>消息不丢失</p>
 </blockquote>
@@ -423,32 +423,30 @@
 <p>消费者主动拉取消息：消费者首次启动</p>
 <p>抗高并发：消费者根据自身能力情况拉取<code>MQ</code>消息消费，默认情况取出一条</p>
 <p>提高速率：消费者实现集群；批量获取消息消费</p>
-<h3 id="安装"><a class="markdownIt-Anchor" href="#安装"></a> 安装</h3>
-<h4 id="首先安装erlang语言官网下载"><a class="markdownIt-Anchor" href="#首先安装erlang语言官网下载"></a> 首先安装<code>Erlang</code>语言，<a target="_blank" rel="noopener" href="https://www.erlang.org/downloads">官网下载</a></h4>
-<p><img src="/imgs/oss/picGo/image-20210217183947459.png" alt="image-20210217183947459" /></p>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><h4 id="首先安装Erlang语言，官网下载"><a href="#首先安装Erlang语言，官网下载" class="headerlink" title="首先安装Erlang语言，官网下载"></a>首先安装<code>Erlang</code>语言，<a target="_blank" rel="noopener" href="https://www.erlang.org/downloads">官网下载</a></h4><p><img src="/imgs/oss/picGo/image-20210217183947459.png" alt="image-20210217183947459"></p>
 <p>我这里选了个<a target="_blank" rel="noopener" href="https://www.erlang.org/downloads/19.1">19.1版本</a></p>
 <p>然后安装</p>
-<p><img src="/imgs/oss/picGo/image-20210217184210116.png" alt="image-20210217184210116" /></p>
+<p><img src="/imgs/oss/picGo/image-20210217184210116.png" alt="image-20210217184210116"></p>
 <p>一直下一步就行</p>
 <p>然后配置环境变量</p>
-<p><img src="/imgs/oss/picGo/image-20210217184629696.png" alt="image-20210217184629696" /></p>
-<p><img src="/imgs/oss/picGo/image-20210217184650180.png" alt="image-20210217184650180" /></p>
+<p><img src="/imgs/oss/picGo/image-20210217184629696.png" alt="image-20210217184629696"></p>
+<p><img src="/imgs/oss/picGo/image-20210217184650180.png" alt="image-20210217184650180"></p>
 <p>然后把<code>%ERLANG_HOME%\bin;</code>添加到<code>Path</code>末尾</p>
-<p><img src="/imgs/oss/picGo/image-20210217184742685.png" alt="image-20210217184742685" /></p>
+<p><img src="/imgs/oss/picGo/image-20210217184742685.png" alt="image-20210217184742685"></p>
 <p>然后确定</p>
 <p>打开控制台，输入<code>erl -version</code>查看版本</p>
 <p>如果成功提示版本则表明环境变量生效</p>
-<p><img src="/imgs/oss/picGo/image-20210217184900667.png" alt="image-20210217184900667" /></p>
-<h4 id="然后下载安装rabbitmq官网下载"><a class="markdownIt-Anchor" href="#然后下载安装rabbitmq官网下载"></a> 然后下载安装<code>RabbitMQ</code>，<a target="_blank" rel="noopener" href="https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.8.12/rabbitmq-server-3.8.12.exe">官网下载</a></h4>
-<p>我这里用的<code>3.6.9</code>版本，因为提前下好了</p>
-<p><img src="/imgs/oss/picGo/image-20210217190408633.png" alt="image-20210217190408633" /></p>
+<p><img src="/imgs/oss/picGo/image-20210217184900667.png" alt="image-20210217184900667"></p>
+<h4 id="然后下载安装RabbitMQ，官网下载"><a href="#然后下载安装RabbitMQ，官网下载" class="headerlink" title="然后下载安装RabbitMQ，官网下载"></a>然后下载安装<code>RabbitMQ</code>，<a target="_blank" rel="noopener" href="https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.8.12/rabbitmq-server-3.8.12.exe">官网下载</a></h4><p>我这里用的<code>3.6.9</code>版本，因为提前下好了</p>
+<p><img src="/imgs/oss/picGo/image-20210217190408633.png" alt="image-20210217190408633"></p>
 <p>一直下一步就可以了</p>
 <p>找到安装目录，我这里是<code>C:\Program Files\RabbitMQ Server\rabbitmq_server-3.6.9\sbin</code></p>
 <p>执行</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs shell">// 安装管理界面插件<br>rabbitmq-plugins.bat enable rabbitmq_management<br>// 启动服务<br>rabbitmqctl.bat start_app<br>// 启动mq<br>rabbitmq-server.bat start<br></code></pre></td></tr></table></figure>
-<p><img src="/imgs/oss/picGo/image-20210217191707856.png" alt="image-20210217191707856" /></p>
+
+<p><img src="/imgs/oss/picGo/image-20210217191707856.png" alt="image-20210217191707856"></p>
 <p>然后我们访问<code>http://127.0.0.1:15672/</code>即可进入</p>
-<p><img src="/imgs/oss/picGo/image-20210217191639746.png" alt="image-20210217191639746" /></p>
+<p><img src="/imgs/oss/picGo/image-20210217191639746.png" alt="image-20210217191639746"></p>
 
     </div>
 </article>
@@ -590,61 +588,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/08/05/Collectors-toMap/">Collectors.toMap()</a>
+                    <a href="/2024/12/18/ARIA16/">ARIA16</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/01/19/VictoriaMetrics/">VictoriaMetrics</a>
+                    <a href="/2024/12/29/FlexibleAdapter/">FlexibleAdapter</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/01/25/ZenlessZoneZero-OneDragon/">ZenlessZoneZero-OneDragon</a>
+                    <a href="/2025/07/10/Jekyll/">Jekyll</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/12/06/claude-cookbooks/">claude-cookbooks</a>
+                    <a href="/2025/10/30/awesome-math/">awesome-math</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/04/24/docker%E5%BF%AB%E9%80%9F%E4%BD%BF%E7%94%A8nginx%E5%AE%9E%E7%8E%B0%E9%83%A8%E7%BD%B2%E5%89%8D%E7%AB%AFdist/">docker快速使用nginx实现部署前端dist</a>
+                    <a href="/2025/02/07/css%E5%BE%AA%E7%8E%AF%E6%B7%A1%E5%85%A5%E6%B7%A1%E5%87%BA%E6%92%AD%E6%94%BE%EF%BC%88%E4%BA%8C%EF%BC%89/">css循环淡入淡出播放（二）</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/01/21/easy-trans/">easy-trans</a>
+                    <a href="/2023/09/19/file4j/">file4j</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/09/16/tldraw/">tldraw</a>
+                    <a href="/2022/08/01/linkedList%E5%AE%9E%E7%8E%B0%E9%AB%98%E4%BA%AE%E9%80%BB%E8%BE%91/">linkedList实现高亮逻辑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/02/04/yjs/">yjs</a>
+                    <a href="/2021/06/26/reverse/">reverse</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/01/07/%E5%8F%82%E6%95%B0%E5%8C%96%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">参数化单元测试</a>
+                    <a href="/2025/05/26/vue-ueditor-wrap/">vue-ueditor-wrap</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/09/20/%E6%96%B0%E7%94%B5%E8%84%91%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/">新电脑搭建博客</a>
+                    <a href="/2021/05/30/vue%E4%B8%AD-class%E7%9A%84%E5%B0%8F%E6%8A%80%E5%B7%A7/">vue中:class的小技巧</a>
                 </span>
             </li>
             
@@ -677,73 +675,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 19.04994082165473px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 13.046561062248067px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.519599408063844px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 9.904137392246827px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 18.070529390198885px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 11.74532945166469px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.557222714421842px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 12.158937810459019px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.042572922920169px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.408300959963048px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 14.756843121721328px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 8.761641837095896px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 11.19331037809815px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 10.65149215503001px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 15.716069374143297px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.75986836651929px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.829063213460095px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.68503625464206px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 15.866585479394207px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 8.890715342899792px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 16.709221093232767px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 9.537792667701357px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 13.292203852419743px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.53159045084291px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 15.352439680457307px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 19.64981754624654px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 8.145826245435082px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 9.319185518072198px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 10.723043891512543px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 12.110198067770053px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 10.601990304160438px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 9.191848264452837px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 19.734697295866606px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 10.043293144684103px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 17.594616421372944px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 17.595256322339797px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 18.839268426047596px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.05564586237695px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 14.32924033283226px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 13.79298014362954px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 16.33432124161823px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 12.959669140356727px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 16.888067547251804px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 15.217331712904077px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 17.17830869341502px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 16.22781330173577px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 14.933537381128613px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 17.40516375854076px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 8.51338961811684px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.84395066390333px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 15.015081000014558px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 13.344033632753376px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 17.19955256815367px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 16.719062145822754px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.049082082852753px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.736671222654074px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 14.533521554920782px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 15.93804115615811px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 11.103647883319237px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 15.676937011477982px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 14.366394481770996px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 18.05005101657334px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 8.98459932710834px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.44776830921972px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 12.970399339773078px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 11.26348355295781px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.541691004787248px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.666503560587243px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

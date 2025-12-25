@@ -15,7 +15,7 @@
   
   
   <title>关联更新封装（三） | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>关联更新封装（三）</span>
     </div>
@@ -401,8 +401,10 @@
 </blockquote>
 <p>今天是另外一种类型的关联更新封装</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T, K <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Comparable</span>&lt;? <span class="hljs-built_in">super</span> K&gt; &amp; Serializable, S&gt; BaseDbBO&lt;S&gt; <span class="hljs-title function_">saveSub</span><span class="hljs-params">(SubBO&lt;T, K, S&gt; bo)</span> &#123;<br>    <span class="hljs-type">val</span> <span class="hljs-variable">subIds</span> <span class="hljs-operator">=</span> Steam.of(bo.getMainList())<br>            .flat(data -&gt; Steam.of(bo.getSubIdGetters()).map(f -&gt; f.apply(data)))<br>            .nonNull().toList();<br>    <span class="hljs-type">val</span> <span class="hljs-variable">subClazz</span> <span class="hljs-operator">=</span> (Class&lt;S&gt;) Steam.of(bo.getSubGetters())<br>            .findFirst()<br>            .map(LambdaHelper::resolve)<br>            .map(LambdaExecutable::getReturnType)<br>            .orElseThrow(() -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;sub class not found&quot;</span>));<br>    <span class="hljs-type">val</span> <span class="hljs-variable">primaryKeyGetter</span> <span class="hljs-operator">=</span> MpUtil.&lt;S, K&gt;getGetter(subClazz,<br>            TableInfoHelper.getTableInfo(subClazz).getKeyProperty());<br>    <span class="hljs-type">val</span> <span class="hljs-variable">idSubMapFromDb</span> <span class="hljs-operator">=</span> subIds.isEmpty() ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;K, S&gt;() :<br>            Steam.of(Database.listByIds(subIds, subClazz)).toMap(primaryKeyGetter);<br>    <span class="hljs-type">val</span> <span class="hljs-variable">subIdGetterSetterMap</span> <span class="hljs-operator">=</span> Steam.of(bo.getSubIdGetters())<br>            .toMap(Function.identity(), MpUtil::getSetter);<br>    <span class="hljs-type">val</span> <span class="hljs-variable">comparesGetterSetterMap</span> <span class="hljs-operator">=</span> Steam.of(bo.getSubCompares())<br>            .toMap(Function.identity(), MpUtil::getSetter);<br><br>    Steam.of(bo.getMainList()).forEach(data -&gt; &#123;<br>        Steam.of(bo.getSubIdGetters()).zip(bo.getSubGetters(),<br>                (subIdGetter, subGetter) -&gt; &#123;<br>                    <span class="hljs-type">val</span> <span class="hljs-variable">subFromClient</span> <span class="hljs-operator">=</span> subGetter.apply(data);<br>                    <span class="hljs-type">val</span> <span class="hljs-variable">subId</span> <span class="hljs-operator">=</span> subIdGetter.apply(data);<br>                    <span class="hljs-keyword">if</span> (Objects.isNull(subFromClient)) &#123;<br>                        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>                    &#125;<br>                    <span class="hljs-comment">// insert</span><br>                    <span class="hljs-keyword">if</span> (Objects.isNull(subId)) &#123;<br>                        bo.getWillInsertList().add(subFromClient);<br>                        <span class="hljs-keyword">return</span> subFromClient;<br>                    &#125;<br>                    <span class="hljs-type">val</span> <span class="hljs-variable">subFromDb</span> <span class="hljs-operator">=</span> idSubMapFromDb.get(subId);<br>                    <span class="hljs-keyword">if</span> (Objects.isNull(subFromDb)) &#123;<br>                        bo.getWillInsertList().add(subFromClient);<br>                        <span class="hljs-keyword">return</span> subFromClient;<br>                    &#125;<br>                    <span class="hljs-comment">// update</span><br>                    Steam.of(bo.getSubCompares()).forEach(ac -&gt; &#123;<br>                        <span class="hljs-type">val</span> <span class="hljs-variable">value</span> <span class="hljs-operator">=</span> ac.apply(subFromClient);<br>                        <span class="hljs-keyword">if</span> (!Objects.equals(value, ac.apply(subFromDb))) &#123;<br>                            <span class="hljs-type">val</span> <span class="hljs-variable">executable</span> <span class="hljs-operator">=</span> LambdaHelper.resolve((Serializable) ac);<br>                            <span class="hljs-type">val</span> <span class="hljs-variable">setter</span> <span class="hljs-operator">=</span> (BiConsumer&lt;S, Object&gt;) comparesGetterSetterMap.get(ac);<br>                            <span class="hljs-type">val</span> <span class="hljs-variable">fieldType</span> <span class="hljs-operator">=</span> ReflectHelper.getField(executable.getClazz(),<br>                                    BeanHelper.getPropertyName(executable.getName())).getType();<br>                            setter.accept(subFromDb, value);<br>                            <span class="hljs-keyword">if</span> (isComparable(fieldType) &amp;&amp; (!bo.getWillUpdateList().contains(subFromDb))) &#123;<br>                                bo.getWillUpdateList().add(subFromDb);<br>                            &#125;<br>                        &#125;<br>                    &#125;);<br>                    <span class="hljs-keyword">return</span> subFromClient;<br>                &#125;).toList();<br>    &#125;);<br>    bo.setAfterExecuted(b -&gt; &#123;<br>        <span class="hljs-type">val</span> <span class="hljs-variable">dataList</span> <span class="hljs-operator">=</span> Steam.of(bo.getMainList()).flat(data -&gt;<br>                Steam.of(bo.getSubIdGetters()).zip(bo.getSubGetters(),<br>                        (subIdGetter, subGetter) -&gt; &#123;<br>                            <span class="hljs-type">S</span> <span class="hljs-variable">subFromClient</span> <span class="hljs-operator">=</span> subGetter.apply(data);<br>                            <span class="hljs-keyword">if</span> (Objects.nonNull(subFromClient)) &#123;<br>                                <span class="hljs-type">val</span> <span class="hljs-variable">primaryKey</span> <span class="hljs-operator">=</span> primaryKeyGetter.apply(subFromClient);<br>                                subIdGetterSetterMap.get(subIdGetter).accept(data, primaryKey);<br>                            &#125;<br>                            <span class="hljs-keyword">return</span> subFromClient;<br>                        &#125;).nonNull().toList()).toList();<br>        bo.setDataList(dataList);<br>    &#125;);<br>    <span class="hljs-keyword">return</span> bo;<br>&#125;<br></code></pre></td></tr></table></figure>
+
 <p>对应的<code>bo</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.simplestreamquery.pojo.bo;<br><br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.toolkit.support.SFunction;<br><span class="hljs-keyword">import</span> lombok.Data;<br><span class="hljs-keyword">import</span> lombok.EqualsAndHashCode;<br><br><span class="hljs-keyword">import</span> java.io.Serializable;<br><span class="hljs-keyword">import</span> java.util.ArrayList;<br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2023/3/16 10:18</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Data</span><br><span class="hljs-meta">@EqualsAndHashCode(callSuper = true)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SubBO</span>&lt;T, K <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Comparable</span>&lt;? <span class="hljs-built_in">super</span> K&gt; &amp; Serializable, S&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title class_">BaseDbBO</span>&lt;S&gt; &#123;<br><br>    <span class="hljs-keyword">private</span> List&lt;T&gt; mainList;<br>    <span class="hljs-keyword">private</span> List&lt;SFunction&lt;T, K&gt;&gt; subIdGetters;<br>    <span class="hljs-keyword">private</span> List&lt;SFunction&lt;T, S&gt;&gt; subGetters;<br>    <span class="hljs-keyword">private</span> List&lt;SFunction&lt;S, ?&gt;&gt; subCompares;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">SubBO</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-built_in">super</span>();<br>        <span class="hljs-built_in">this</span>.mainList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        <span class="hljs-built_in">this</span>.subIdGetters = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        <span class="hljs-built_in">this</span>.subGetters = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        <span class="hljs-built_in">this</span>.subCompares = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
 <p>目前仍然处于完善中，所以还没有集成进<code>stream-query</code>，临时放到另一个仓库里</p>
 <p><a target="_blank" rel="noopener" href="https://gitee.com/VampireAchao/simple-stream-query/blob/master/src/main/java/com/ruben/simplestreamquery/util/MpUtil.java">地址</a></p>
 
@@ -546,61 +548,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/09/22/AI-For-Beginners/">AI-For-Beginners</a>
+                    <a href="/2023/05/11/Arco-Design-Pro/">Arco Design Pro</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/10/13/ar-js/">ar.js</a>
+                    <a href="/2025/11/06/OpenTUI/">OpenTUI</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/07/08/bboss/">bboss</a>
+                    <a href="/2024/07/09/css%E9%80%8F%E8%A7%86%E6%95%88%E6%9E%9C%E4%BD%8D%E7%BD%AEperspective-origin/">css透视效果位置perspective-origin</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/01/18/css%E6%96%87%E5%AD%97%E7%8E%AF%E7%BB%95png%E5%9B%BE%E7%89%87/">css文字环绕png图片</a>
+                    <a href="/2025/08/04/d2l-zh/">d2l-zh</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/06/05/js%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E6%B5%8F%E8%A7%88%E5%99%A8%E6%98%AF%E5%90%A6%E9%87%87%E7%94%A8%E6%B7%B1%E8%89%B2%E4%B8%BB%E9%A2%98/">js获取当前浏览器是否采用深色主题</a>
+                    <a href="/2024/03/02/mvn%E4%BE%9D%E8%B5%96%E6%90%9C%E7%B4%A2%E7%BD%91%E7%AB%99/">mvn依赖搜索网站</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/15/mapstruct%E6%A8%A1%E6%9D%BF/">mapstruct模板</a>
+                    <a href="/2023/12/23/nacos%E5%9D%8F%E4%BA%86%E4%B8%B4%E6%97%B6%E6%8E%92%E9%99%A4%E6%8E%89%E4%BE%9D%E8%B5%96/">nacos坏了临时排除掉依赖</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/05/08/redis%E9%98%9F%E5%88%97/">redis队列</a>
+                    <a href="/2024/01/03/open-feign%E8%AE%BE%E7%BD%AE%E5%85%A8%E5%B1%80header/">open-feign设置全局header</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/01/14/shenyu%E7%9A%84rule%E8%A1%A8%E5%8D%95handler%E5%A1%AB%E5%86%99%E9%97%AE%E9%A2%98/">shenyu的rule表单handler填写问题</a>
+                    <a href="/2025/02/24/raylib/">raylib</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/12/19/state-machine%E6%8C%81%E4%B9%85%E5%8C%96%E8%B8%A9%E5%9D%91/">state-machine持久化踩坑</a>
+                    <a href="/2020/09/03/vue2-0%E9%85%8D%E7%BD%AE%E8%B7%AF%E7%94%B1/">vue2.0配置路由</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/01/22/stream-query%E7%9A%84BeanHelper%E6%8B%B7%E8%B4%9D%E6%94%AF%E6%8C%81Converter/">stream-query的BeanHelper拷贝支持Converter</a>
+                    <a href="/2023/03/12/%E6%96%B0%E7%89%88jdk%E7%9A%84peek%E5%9D%91/">新版jdk的peek坑</a>
                 </span>
             </li>
             
@@ -633,73 +635,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 18.424003949978374px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 12.845839893112895px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.57319518360252px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 12.506084356880546px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 15.503795785676083px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 17.257201326483894px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.292237116485659px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.446101405378856px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.154470165109409px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 18.927119748521488px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 18.823011269298995px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 9.669921509992673px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 11.275001349553659px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 15.499702931324308px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.88306193829526px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10.26310283774309px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.049012862192136px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.272538598317073px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 10.752056633566797px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 15.851540752401444px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 10.453976362415405px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 17.17516076509691px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 14.986454404350454px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 17.65252589337401px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 10.282019954091453px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 12.186968812836021px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 8.021115276057301px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 11.179872286153518px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 16.448226717686598px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 11.730119227010018px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 19.361118231476617px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 15.373221731132793px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 9.841642445951802px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 11.896509419967892px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 12.250668375138828px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 14.592212096532378px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.555365983717735px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 8.697723128144595px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 14.593762221907836px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 17.053578753364135px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 17.000821796300777px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 10.91434947727422px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 8.641599064717225px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 9.609403893532997px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 19.24679727631288px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 13.759244061870387px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 8.577664751993154px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 19.584318665765217px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 9.288115461042851px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.40289464626899px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 17.162108177494197px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 13.44502419735652px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 17.37412327503668px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 11.555772971815431px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 14.347162983823086px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.082001557405157px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 17.863571988084324px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 18.431085941681648px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 9.921656835592024px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 13.972968520573463px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 19.968962224765328px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 18.680965793609744px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.93783771069904px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 9.137241629591244px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 16.174260047799848px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 15.507297551576096px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 10.729567767828916px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.883830280975758px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
