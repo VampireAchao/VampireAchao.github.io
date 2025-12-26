@@ -15,7 +15,7 @@
   
   
   <title>springboot单向推送给客户端SseEmitter | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>springboot单向推送给客户端SseEmitter</span>
     </div>
@@ -420,14 +420,12 @@
 </ol>
 <p>使用 Spring Boot 时，<code>SseEmitter</code> 是框架自带的类，通常不需要额外的依赖。但如果需要增强对 SSE 的支持，建议引入 <code>spring-boot-starter-web</code>：</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
-
 <ol start="4">
 <li>例子</li>
 </ol>
 <p>下面是一个使用 <code>SseEmitter</code> 实现服务器推送的简单示例，演示如何向客户端推送实时更新消息。</p>
 <p><strong>示例：实时消息推送</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.GetMapping;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RestController;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.mvc.method.annotation.SseEmitter;<br><br><span class="hljs-keyword">import</span> java.io.IOException;<br><span class="hljs-keyword">import</span> java.util.concurrent.ExecutorService;<br><span class="hljs-keyword">import</span> java.util.concurrent.Executors;<br><span class="hljs-keyword">import</span> java.util.concurrent.TimeUnit;<br><br><span class="hljs-meta">@RestController</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SseController</span> &#123;<br><br>    <span class="hljs-comment">// 使用线程池处理异步任务</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ExecutorService</span> <span class="hljs-variable">executor</span> <span class="hljs-operator">=</span> Executors.newCachedThreadPool();<br><br>    <span class="hljs-meta">@GetMapping(&quot;/sse&quot;)</span><br>    <span class="hljs-keyword">public</span> SseEmitter <span class="hljs-title function_">handleSse</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">SseEmitter</span> <span class="hljs-variable">emitter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SseEmitter</span>(<span class="hljs-number">60_000L</span>);  <span class="hljs-comment">// 设置超时时间为60秒</span><br><br>        executor.submit(() -&gt; &#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; i++) &#123;<br>                    TimeUnit.SECONDS.sleep(<span class="hljs-number">1</span>);  <span class="hljs-comment">// 模拟延迟</span><br>                    emitter.send(<span class="hljs-string">&quot;实时消息更新 &quot;</span> + i);  <span class="hljs-comment">// 发送消息</span><br>                &#125;<br>                emitter.complete();  <span class="hljs-comment">// 完成推送</span><br>            &#125; <span class="hljs-keyword">catch</span> (IOException | InterruptedException e) &#123;<br>                emitter.completeWithError(e);  <span class="hljs-comment">// 处理异常</span><br>            &#125;<br>        &#125;);<br><br>        <span class="hljs-keyword">return</span> emitter;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p><strong>代码解析：</strong></p>
 <ol>
 <li><strong>创建 SseEmitter</strong>：在 <code>/sse</code> 路由下创建一个 <code>SseEmitter</code> 对象，设置超时时间为 60 秒，表示连接将在 60 秒内保持活跃。</li>
@@ -436,7 +434,6 @@
 </ol>
 <p>客户端可以使用以下 JavaScript 代码接收推送的实时消息：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">const</span> eventSource = <span class="hljs-keyword">new</span> <span class="hljs-title class_">EventSource</span>(<span class="hljs-string">&quot;/sse&quot;</span>);<br><br>eventSource.<span class="hljs-property">onmessage</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">event</span>) &#123;<br>    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;收到消息: &quot;</span>, event.<span class="hljs-property">data</span>);<br>&#125;;<br><br>eventSource.<span class="hljs-property">onerror</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) &#123;<br>    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&quot;连接出错或已关闭&quot;</span>);<br>&#125;;<br></code></pre></td></tr></table></figure>
-
 <p><strong>应用场景：</strong></p>
 <ol>
 <li><strong>实时通知</strong>：用于实时推送消息或通知，比如社交媒体的新消息提醒或电子邮件更新。</li>
@@ -511,6 +508,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -563,12 +566,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -587,61 +584,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/07/18/Maven%E5%B8%B8%E7%94%A8%E9%95%9C%E5%83%8F%E9%85%8D%E7%BD%AE/">Maven常用镜像配置</a>
+                    <a href="/2023/07/26/Adobe-ExtendScript-Toolkit-CC/">Adobe ExtendScript Toolkit CC</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/15/aizuda-limiter/">aizuda-limiter</a>
+                    <a href="/2023/07/04/idea%E9%85%8D%E7%BD%AEproxy/">idea配置proxy</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/04/24/docker%E5%BF%AB%E9%80%9F%E4%BD%BF%E7%94%A8nginx%E5%AE%9E%E7%8E%B0%E9%83%A8%E7%BD%B2%E5%89%8D%E7%AB%AFdist/">docker快速使用nginx实现部署前端dist</a>
+                    <a href="/2023/03/27/jackson%E9%85%8D%E7%BD%AE%E6%9F%90%E5%B1%9E%E6%80%A7%E5%8F%AA%E5%85%81%E8%AE%B8%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BD%86%E4%B8%8D%E5%85%81%E8%AE%B8%E5%BA%8F%E5%88%97%E5%8C%96/">jackson配置某属性只允许反序列化但不允许序列化</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/03/flowlong/">flowlong</a>
+                    <a href="/2022/02/27/live-server/">live server</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/04/06/react-hook-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">react hook 生命周期</a>
+                    <a href="/2025/03/19/primer-css/">primer-css</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/07/11/vue3%E7%BB%84%E5%90%88%E5%BC%8Fapi/">vue3组合式api</a>
+                    <a href="/2024/12/07/springboot3servlet%E5%92%8Ctomcat%E8%AF%B7%E6%B1%82%E5%A4%A7%E5%B0%8F%E9%99%90%E5%88%B6/">springboot3servlet和tomcat请求大小限制</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/05/22/wangeditor%E6%B8%B2%E6%9F%93node%E6%96%B9%E5%BC%8F/">wangeditor渲染node方式</a>
+                    <a href="/2022/07/18/x-easypdf/">x-easypdf</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/15/%E4%B8%80%E4%B8%AA%E5%AD%A6%E4%B9%A0%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%BD%91%E7%AB%99/">一个学习设计模式的网站</a>
+                    <a href="/2022/04/05/%E4%BD%BF%E7%94%A8BiFunction%E6%9B%B4%E6%94%B9map%E7%9A%84value/">使用BiFunction更改map的value</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/25/%E8%81%8A%E8%81%8Alambda/">聊聊lambda</a>
+                    <a href="/2021/06/02/%E5%85%B3%E4%BA%8Ewx-getUserInfo%E8%8E%B7%E5%8F%96%E5%88%B0%E5%8C%BF%E5%90%8D%E6%95%B0%E6%8D%AE%E7%9A%84%E5%9D%91/">关于wx.getUserInfo获取到匿名数据的坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/07/20/%E9%85%8D%E7%BD%AEgithub%E7%9A%84issue%E6%A8%A1%E6%9D%BF/">配置github的issue模板</a>
+                    <a href="/2022/10/06/%E7%BC%96%E5%86%99mybatis%E8%84%B1%E6%95%8F%E6%8F%92%E4%BB%B6/">编写mybatis脱敏插件</a>
                 </span>
             </li>
             
@@ -674,73 +671,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 16.67582612333773px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 8.60810387892265px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 14.229382002416038px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.640693888544327px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 11.860579160977409px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 18.01648315603079px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.524619405477267px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.088095215023651px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.567747109134139px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.368144983387682px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 15.04453405823816px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 14.872743214342805px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 13.860952358857144px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 16.162886832154268px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 17.45607300277249px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.92348122800533px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.03977459158121px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.349321248223058px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 15.875239797228637px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 10.180492525900283px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 15.492330978006805px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 12.397653275083862px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 19.926663095426896px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 9.38641657742102px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 9.723058611985271px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 11.776265715087463px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 12.791713814687785px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 14.419176730859753px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 10.350721513091608px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 10.947141028730737px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 12.585072818085047px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 8.725922666434386px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.12465701272063px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 14.031453645032716px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 9.458574870960124px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 8.866421234501612px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 16.37521472081474px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.253086828530044px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 16.502336640820946px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 11.1581942492604px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 11.670060568546576px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.048783083994515px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 13.873811042340847px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 10.130458499216543px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 17.27123064622497px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 12.701922820232351px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 8.966885098191806px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 11.924166350863768px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.929418826996567px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.259907408322903px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 12.269042054922851px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 14.495969217233114px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 18.643453514501836px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 10.760003034003226px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 11.276708114776806px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 9.219789503726505px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 12.579197090190085px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 19.633299608459776px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 12.47761890937659px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 16.88179021695897px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 12.066461195930739px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 11.844336640064707px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 15.577466001092752px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 12.16236169472833px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 9.853998397937264px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 11.776500730065933px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.404064499059553px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.721017877972649px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

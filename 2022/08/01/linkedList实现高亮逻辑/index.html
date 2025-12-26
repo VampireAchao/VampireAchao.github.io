@@ -15,7 +15,7 @@
   
   
   <title>linkedList实现高亮逻辑 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>linkedList实现高亮逻辑</span>
     </div>
@@ -401,12 +401,10 @@
 </blockquote>
 <p>这里是基于<code>hutool</code>的<code>dfa</code>查找法得到的结果集进行封装，不一定非要依赖<code>hutool</code>，可以自定义<code>FoundWord</code>对象，里面就只用到了一个起始下标，以及对应需要高亮的词汇</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">highlight</span><span class="hljs-params">(String text, List&lt;FoundWord&gt; fondWords, UnaryOperator&lt;String&gt; highlightOperator)</span> &#123;<br>    <span class="hljs-keyword">if</span> (Opp.ofColl(fondWords).isEmpty() || Opp.ofStr(text).isEmpty()) &#123;<br>        <span class="hljs-keyword">return</span> text;<br>    &#125;<br>    fondWords = Steam.of(fondWords)<br>            .sorted(Comparator.comparing(FoundWord::getIndex)<br>                    .thenComparingInt(w -&gt; w.getWord().length()))<br>            .toList();<br>    LinkedList&lt;FoundWord&gt; linkedList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinkedList</span>&lt;&gt;();<br>    <span class="hljs-comment">// 记录历史下标(当前拼接到整体string的哪个位置了)</span><br>    <span class="hljs-type">int</span> <span class="hljs-variable">lastIdx</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-comment">// 进行遍历所有结果(理论上已按照 startIndex和fondWord.length排序)</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; fondWords.size(); i++) &#123;<br>        <span class="hljs-type">FoundWord</span> <span class="hljs-variable">fondWord</span> <span class="hljs-operator">=</span> fondWords.get(i);<br>        <span class="hljs-type">String</span> <span class="hljs-variable">word</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br>        <span class="hljs-comment">// 如果本次匹配发现历史下标已经超过了当前匹配值，说明这次词语和上次词语下标重复或者是上次的一部分</span><br>        <span class="hljs-keyword">if</span> (i &gt; <span class="hljs-number">0</span> &amp;&amp; lastIdx &gt; fondWord.getIndex()) &#123;<br>            <span class="hljs-comment">// 移除拼接的额外部分</span><br>            <span class="hljs-type">FoundWord</span> <span class="hljs-variable">last</span> <span class="hljs-operator">=</span> Objects.requireNonNull(linkedList.pollLast());<br>            <span class="hljs-comment">// 判断上次和这次的长度，如果上次长度大于这次长度，说明这次词语是上次的一部分</span><br>            lastIdx -= last.getWord().length();<br>            <span class="hljs-comment">// 获取要从哪里开始保留</span><br>            <span class="hljs-type">int</span> <span class="hljs-variable">index</span> <span class="hljs-operator">=</span> fondWord.getWord().indexOf(last.getWord().charAt(last.getWord().length() - <span class="hljs-number">1</span>));<br>            <span class="hljs-comment">// 这里没有判断是否找到是因为只要进入当前的if语句那么必定有重复串可以找到</span><br>            <span class="hljs-type">String</span> <span class="hljs-variable">suffix</span> <span class="hljs-operator">=</span> fondWord.getWord().substring(index+<span class="hljs-number">1</span>);<br>            word = last.getWord() + suffix;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-comment">// 否则根据历史下标到当前词汇下标进行查找额外部分</span><br>            <span class="hljs-type">String</span> <span class="hljs-variable">partOne</span> <span class="hljs-operator">=</span> text.substring(lastIdx, fondWord.getIndex());<br>            <span class="hljs-comment">// 并且将历史下标往前推进</span><br>            lastIdx += partOne.length();<br>            <span class="hljs-comment">// 将额外部分拼接到链表中</span><br>            linkedList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FoundWord</span>(partOne, lastIdx));<br>        &#125;<br>        <span class="hljs-comment">// 获取本次需要高亮的词汇</span><br>        word = Opp.ofStr(word).orElseGet(fondWord::getWord);<br>        <span class="hljs-comment">// 历史下标往前推进</span><br>        lastIdx += word.length();<br>        <span class="hljs-comment">// 执行高亮操作</span><br>        linkedList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FoundWord</span>(word, highlightOperator.apply(word), lastIdx));<br>    &#125;<br>    <span class="hljs-comment">// 别忘了加上最后一截</span><br>    linkedList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FoundWord</span>(text.substring(lastIdx), text.substring(lastIdx), lastIdx));<br>    <span class="hljs-keyword">return</span> Steam.of(linkedList).map(FoundWord::getWordAfterHighlight).join();<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>使用：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">WordTree</span> <span class="hljs-variable">tree</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">WordTree</span>();<br>tree.addWord(<span class="hljs-string">&quot;大&quot;</span>);<br>tree.addWord(<span class="hljs-string">&quot;大土豆&quot;</span>);<br>tree.addWord(<span class="hljs-string">&quot;土豆&quot;</span>);<br>tree.addWord(<span class="hljs-string">&quot;刚出锅&quot;</span>);<br>tree.addWord(<span class="hljs-string">&quot;出锅&quot;</span>);<br><span class="hljs-type">String</span> <span class="hljs-variable">text</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;我有一颗大土豆，刚出锅的&quot;</span>;<br>List&lt;FoundWord&gt; foundWords = tree.matchAllWords(text, -<span class="hljs-number">1</span>, <span class="hljs-literal">true</span>, <span class="hljs-literal">true</span>);<br><span class="hljs-type">String</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> CommonUtils.highlight(text, foundWords, s -&gt; <span class="hljs-string">&quot;&lt;span style=&#x27;color:red&#x27;&gt;&quot;</span> + s + <span class="hljs-string">&quot;&lt;/span&gt;&quot;</span>);<br>System.out.println(result);<br></code></pre></td></tr></table></figure>
-
 <p>效果：</p>
-<p><img src="/imgs/oss/picGo/image-20220801130912146.png" alt="image-20220801130912146"></p>
+<p><img src="/imgs/oss/picGo/image-20220801130912146.png" alt="image-20220801130912146" /></p>
 <p>这里重载了一个<code>needSort</code>，如果是自定义的<code>FoundWord</code>，需要指定为<code>true</code>，手动进行排序</p>
 
     </div>
@@ -473,6 +471,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -525,12 +529,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -549,61 +547,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/14/CS-Base/">CS-Base</a>
+                    <a href="/2025/01/26/SwipeDelMenuLayout/">SwipeDelMenuLayout</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/04/23/MVVMHabit/">MVVMHabit</a>
+                    <a href="/2020/10/30/command-too-long/">command too long</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/08/21/docker%E8%BF%90%E8%A1%8Czookeeper/">docker运行zookeeper</a>
+                    <a href="/2022/11/21/css-tricks/">css-tricks</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/07/20/idea%E5%8D%A1%E9%A1%BF%E5%B4%A9%E6%BA%83%E5%9D%91/">idea卡顿崩溃坑</a>
+                    <a href="/2023/08/14/java-diff-utils/">java-diff-utils</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/02/13/jpom%E6%9B%B4%E6%96%B0%E7%89%88%E6%9C%AC/">jpom更新版本</a>
+                    <a href="/2024/02/13/js%E5%AE%9E%E7%8E%B0%E5%87%BA%E6%8B%B3%E8%93%84%E5%8A%9B%E5%8F%91%E5%B0%84%E6%95%88%E6%9E%9C/">js实现出拳蓄力发射效果</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/07/28/psd%E8%84%9A%E6%9C%AC%E5%9D%91/">psd脚本坑</a>
+                    <a href="/2021/02/07/mybatis-plus%E4%B8%A4%E4%B8%AAlimit%E5%9D%91/">mybatis-plus两个limit坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/04/07/sketch-js/">sketch.js</a>
+                    <a href="/2025/06/06/videojs/">videojs</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/08/16/springboot%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E5%99%A8/">springboot全局异常处理器</a>
+                    <a href="/2024/01/27/%E5%85%A8%E5%B1%80%E6%9B%BF%E6%8D%A2%E5%8F%8C%E6%96%9C%E6%9D%A0-%E8%BD%AC%E4%B9%89-%E5%8F%8D%E6%96%9C%E6%9D%A0-%E4%B8%BA%E5%8D%95%E6%96%9C%E6%9D%A0/">全局替换双斜杠(转义+反斜杠)为单斜杠</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/08/vue-cropper/">vue-cropper</a>
+                    <a href="/2021/05/03/%E5%8F%98%E9%87%8F%E8%A7%A3%E6%9E%84%E8%B5%8B%E5%80%BC/">变量解构赋值</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/01/07/%E5%BE%80centos%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%AD%97%E4%BD%93/">往centos中添加字体</a>
+                    <a href="/2020/10/31/%E8%B6%85%E7%BA%A7%E7%AE%80%E5%8D%95%E7%9A%84%E5%AE%89%E5%8D%93%E5%9B%BE%E7%89%87%E4%B8%8B%E8%BD%BD/">超级简单的安卓图片下载</a>
                 </span>
             </li>
             
@@ -636,73 +634,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 16.525770995898483px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 10.040217195541514px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 15.556472749792032px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 14.075723401594935px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 14.701014426348543px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 17.988820245460992px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.691658027500491px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 12.564847688783956px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 12.512839689110653px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 18.673807634834116px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 12.318222432630492px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 17.537127429434417px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 11.246277532138386px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 16.399144567173153px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 17.187549874376497px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 15.6948426167611px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.489920071543697px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.900711559839962px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 8.763392155101736px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 10.162743947850036px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 12.086621303221065px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 19.445670775447994px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 19.93760928025909px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 9.80000970743922px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 19.156206036802217px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 15.698907560424146px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 12.79951256447832px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 14.049538631027366px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 15.874798545909293px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 12.460664477766723px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 14.054996375141014px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 12.720661729053901px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.625120525408157px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 13.296135846929879px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 11.529559652559838px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 15.695264371443105px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.582099421982623px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 16.78265872346652px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 8.188936851241875px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 18.196864286417817px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 16.294747232662218px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 12.432829239967399px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 12.723087997329685px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 8.948827612085946px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 8.274788122163486px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 16.508363242373598px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 12.342842923842761px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 16.281488514042284px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 8.489538656736597px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.593714171144137px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 9.945866819509146px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 14.21499939594244px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 15.732567587970944px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 13.677176034792968px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.914959240827187px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.067274812451366px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 15.706688515990377px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 14.041869904308045px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 15.520242777635364px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 15.55379433384145px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 15.243184021744106px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 9.582181453740429px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 18.202207404966103px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 9.82839058278826px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 17.05898786924402px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 10.054726852544587px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.907149261279022px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 14.612226735001949px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

@@ -15,7 +15,7 @@
   
   
   <title>聊聊lambda | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>聊聊lambda</span>
     </div>
@@ -396,117 +396,93 @@
         </center>
     </div>
     <div class="content-article">
-        <blockquote>
-</blockquote>
+        <blockquote></blockquote>
 <blockquote>
 <p>不速之客只在告辞以后才最受欢迎——莎士比亚</p>
 </blockquote>
 <p>公众号链接：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/MFXRBr16LuGn6G2rlOFFEw">https://mp.weixin.qq.com/s/MFXRBr16LuGn6G2rlOFFEw</a></p>
-<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>今天主要聊聊<code>java</code>中的<code>lambda</code></p>
+<h2 id="简介"><a class="markdownIt-Anchor" href="#简介"></a> 简介</h2>
+<p>今天主要聊聊<code>java</code>中的<code>lambda</code></p>
 <p>距离我加入<code>hutool-commiter</code>已经有一段时间了，想起曾经封装过的一个类<code>Opt</code>，就是使用<code>lambda</code>，按照惯例，先介绍下<code>dromara</code>组织下的项目<code>hutool</code></p>
 <blockquote>
-<p><img src="https://plus.hutool.cn/images/logo.jpg" alt="logo"></p>
+<p><img src="https://plus.hutool.cn/images/logo.jpg" alt="logo" /></p>
 <p>Hutool是一个小而全的Java工具类库，通过静态方法封装，降低相关API的学习成本，提高工作效率，使Java拥有函数式语言般的优雅，让Java语言也可以“甜甜的”。</p>
 </blockquote>
 <p>这个类<code>Opt</code>的灵感来源是对<code>jdk</code>内置的<code>java.util.Optional</code>的拓展，在一些细节方面进了了简化处理</p>
 <p>下面主要是通过其介绍<code>lambda</code>的使用</p>
-<h2 id="快速上手"><a href="#快速上手" class="headerlink" title="快速上手"></a>快速上手</h2><p>依靠<code>idea</code>编译器的提示进行快速上手</p>
+<h2 id="快速上手"><a class="markdownIt-Anchor" href="#快速上手"></a> 快速上手</h2>
+<p>依靠<code>idea</code>编译器的提示进行快速上手</p>
 <p>下方是判断<code>user</code>是否为空，不为空通过<code>User#getSchool()</code>获取学校名的操作</p>
 <p>例如此处我写到这里</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br><span class="hljs-comment">// idea提示下方参数，如果没显示，光标放到括号里按ctrl+p主动呼出            </span><br>         |Function&lt;? <span class="hljs-built_in">super</span> User,?&gt; mapper|<br>Opt.ofNullable(user).map()<br></code></pre></td></tr></table></figure>
-
 <p>这里<code>idea</code>为我们提示了参数类型，可这个<code>Function</code>我也不知道它是个什么</p>
 <p>实际上，我们<code>new</code>一个就好了</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">Opt.ofNullable(user).map(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Fun</span>)<br>                            |Function&lt;User, Object&gt;&#123;...&#125; (java.util.function)   |  &lt;-戳我<br>                            |Func&lt;P,R&gt; cn.hutool.core.lang.func                 |<br></code></pre></td></tr></table></figure>
-
 <p>这里<code>idea</code>提示了剩下的代码，我们选<code>Function</code>就行了，接下来如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">Opt.ofNullable(user).map(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Function</span>&lt;User, Object&gt;() &#123;<br>&#125;)<br></code></pre></td></tr></table></figure>
-
 <p>我们这里根据具体操作选取返回值</p>
 <p>例如这里是想判断<code>user</code>是否为空，不为空时调用<code>getSchool</code>，从而获取其中的返回值<code>String</code>类型的<code>school</code></p>
 <p>我们就如下写法，将第二个泛型，也就是象征返回值的泛型改为<code>String</code>：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">Opt.ofNullable(user).map(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Function</span>&lt;User, String&gt;() &#123;<br>&#125;)<br></code></pre></td></tr></table></figure>
-
 <p>然后这里红线提示了，我们就使用<code>idea</code>的修复所有，默认快捷键<code>alt</code>+回车</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">Opt.ofNullable(user).map(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Function</span>&lt;User, String&gt;() &#123;<br>&#125;)                                                | 💡 Implement methods                  |  &lt;-选我<br>                                                  | ✍  Introduce local variable          |<br>                                                  | ↩  Rollback changes in current line   |<br></code></pre></td></tr></table></figure>
-
 <p>选择第一个<code>Implement methods</code>即可，这时候弹出一个框，提示让你选择你想要实现的方法</p>
 <p>这里就选择我们的<code>apply</code>方法吧，按下一个回车就可以了，或者点击选中<code>apply</code>，再按一下<code>OK</code>按钮</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java">||IJ| Select Methods to Implement                        X |<br>|                                                          |<br>| 👇  ©  |  ↹  ↸                                          |<br>| -------------------------------------------------------- |<br>| | java.util.function.Function                            |<br>| | ⒨ 🔓 apply(t:T):R                                     |      &lt;-选我选我<br>| | ⒨ 🔓 compose(before:Function&lt;? <span class="hljs-built_in">super</span> V,? extents T):Fu|<br>| | ⒨ 🔓 andThen(after:Function&lt;? <span class="hljs-built_in">super</span> R,? <span class="hljs-keyword">extends</span> <span class="hljs-title class_">V</span>&gt;):Fu|<br>| |                                                        |<br>| | ========================================               |                                        <br>| -------------------------------------------------------- |<br>|  ☐ Copy JavaDoc                                          |<br>|  ☑ Insert <span class="hljs-meta">@Override</span>               |  OK  |  | CANCEL |   |     &lt;-选完点我点我<br></code></pre></td></tr></table></figure>
-
 <p>此时此刻，代码变成了这样子</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">Opt.ofNullable(user).map(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Function</span>&lt;User, String&gt;() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">apply</span><span class="hljs-params">(User user)</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>    &#125;<br>&#125;)<br></code></pre></td></tr></table></figure>
-
 <p>这里重写的方法里面就写你自己的逻辑(别忘了补全后面的分号)</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">Opt.ofNullable(user).map(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Function</span>&lt;User, String&gt;() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">apply</span><span class="hljs-params">(User user)</span> &#123;<br>        <span class="hljs-keyword">return</span> user.getSchool();<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
-
 <p>我们可以看到，上边的<code>new Function&lt;User, String&gt;()</code>变成了灰色</p>
 <p>我们在它上面按一下<code>alt</code>+<code>enter</code>(回车)</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">Opt.ofNullable(user).map(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Function</span>&lt;User, String&gt;() &#123;<br>    <span class="hljs-meta">@Override</span>                              | 💡 Replace with lambda             &gt; |  &lt;-选我啦<br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">apply</span><span class="hljs-params">(User user)</span> &#123;       | 💡 Replace with method reference   &gt; |<br>        <span class="hljs-keyword">return</span> user.getSchool();           | 💎 balabala...                     &gt; |<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
-
 <p>选择第一个<code>Replace with lambda</code>，就会自动缩写为<code>lambda</code>啦</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Opt.ofNullable(user).map(user1 -&gt; user1.getSchool());<br></code></pre></td></tr></table></figure>
-
 <p>如果选择第二个，则会缩写为我们双冒号格式</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Opt.ofNullable(user).map(User::getSchool);<br></code></pre></td></tr></table></figure>
-
 <p>接下来我们获取值即可</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 这里的school可能为null，</span><br><span class="hljs-type">String</span> <span class="hljs-variable">school</span> <span class="hljs-operator">=</span> Opt.ofNullable(user).map(User::getSchool).get();<br><span class="hljs-comment">// 如果想要为其提供默认值，可以使用orElse</span><br><span class="hljs-type">String</span> <span class="hljs-variable">school</span> <span class="hljs-operator">=</span> Opt.ofNullable(user).map(User::getSchool).orElse(<span class="hljs-string">&quot;NO_SCHOOL&quot;</span>);<br><span class="hljs-comment">// 如果想要为null时才调用方法为其提供默认值，可以使用orElseGet</span><br><span class="hljs-comment">// 这在一些为null时 使用db新增并返回值的场景下很有用</span><br><span class="hljs-type">String</span> <span class="hljs-variable">school</span> <span class="hljs-operator">=</span> Opt.ofNullable(user).map(User::getSchool).orElseGet(() -&gt; User.getDefaultSchool());<br></code></pre></td></tr></table></figure>
-
-<h2 id="进阶"><a href="#进阶" class="headerlink" title="进阶"></a>进阶</h2><p>简单来说：函数式编程就是把我们的函数(方法)作为参数&#x2F;变量传递、调用等，有点像反射的<code>Method</code>对象，都是作为函数的载体</p>
+<h2 id="进阶"><a class="markdownIt-Anchor" href="#进阶"></a> 进阶</h2>
+<p>简单来说：函数式编程就是把我们的函数(方法)作为参数/变量传递、调用等，有点像反射的<code>Method</code>对象，都是作为函数的载体</p>
 <p>例子：自定义函数式接口</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> java.io.Serializable;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 可序列化的Functional</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/6/13 16:42</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@FunctionalInterface</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Func</span>&lt;T, R&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Serializable</span> &#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 调用</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> t 参数</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 返回值</span><br><span class="hljs-comment">     */</span><br>    R <span class="hljs-title function_">apply</span><span class="hljs-params">(T t)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>我们定义一个类可以去实现该接口</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 可序列化的函数式接口实现类</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/6/13 16:45</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">FuncImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Func</span>&lt;Object, String&gt; &#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 调用</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> o 参数</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 返回值</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">apply</span><span class="hljs-params">(Object o)</span> &#123;<br>        <span class="hljs-keyword">return</span> o.toString();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>这里就有个问题：假设我有很多的地方需要不同的类去实现<code>Func</code>，我就得每次都去写这么一个类，然后实现该接口并重写方法</p>
 <p>这样很麻烦！因此我们使用匿名内部类</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java">Func&lt;String, Integer&gt; func = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Func</span>&lt;String, Integer&gt;() &#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 调用</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> s 参数</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 返回值</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Integer <span class="hljs-title function_">apply</span><span class="hljs-params">(String s)</span> &#123;<br>        <span class="hljs-keyword">return</span> s.hashCode();<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
-
 <p>我们可以看到，使用了匿名内部类后不用每次去新建这个类了，只需要在调用的地方，<code>new</code>一下接口，创建一个匿名内部类即可</p>
 <p>但这样还有个问题，我们每次都要写这么一大堆，特别麻烦</p>
 <p>由此而生，我们有了<code>lambda</code>这种简写的形式</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">Func&lt;String, String&gt; func1 = (String s) -&gt; &#123;<br>    <span class="hljs-keyword">return</span> s.toUpperCase();<br>&#125;;<br></code></pre></td></tr></table></figure>
-
 <p>如果只有一行，我们可以省略掉中括号以及<code>return</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Func&lt;String, String&gt; func2 = (String s) -&gt; s.toUpperCase();<br></code></pre></td></tr></table></figure>
-
 <p>我们可以省略掉后边<code>lambda</code>中的参数类型，因为前面已经定义过了，编译器能自动推断</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Func&lt;String, String&gt; func3 = s -&gt; s.toUpperCase();<br></code></pre></td></tr></table></figure>
-
 <p>如果我们满足特定的形式，我们还可以使用双冒号的形式缩写</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Func&lt;String, String&gt; func4 = String::toUpperCase;<br></code></pre></td></tr></table></figure>
-
 <p>这里除了我们的<code>参数-&gt;返回值</code>写法：<code>s-&gt;s.toUpperCase()</code>，还有很多种</p>
 <p>例如无参数带返回值写法<code>()-&gt;&quot;yes&quot;</code>、无参无返回值写法<code>()-&gt;&#123;&#125;</code>等等</p>
 <p>而双冒号这种写法至少有如下几种：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben;<br><br><span class="hljs-keyword">import</span> java.util.function.Function;<br><span class="hljs-keyword">import</span> java.util.function.IntFunction;<br><span class="hljs-keyword">import</span> java.util.function.Supplier;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 语法糖——双冒号写法::</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/7/1 17:44</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MethodReferences</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title function_">staticSupplier</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;whatever&quot;</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">instanceSupplier</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;whatever&quot;</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">anonymousInstanceFunction</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;whatever&quot;</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-comment">// 引用构造函数</span><br>        Supplier&lt;MethodReferences&gt; conSup = () -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">MethodReferences</span>();<br>        conSup = MethodReferences::<span class="hljs-keyword">new</span>;<br>        <span class="hljs-comment">// 数组构造函数引用</span><br>        IntFunction&lt;<span class="hljs-type">int</span>[]&gt; intFunction = value -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[value];<br>        <span class="hljs-comment">// intFunc == new int[20];</span><br>        <span class="hljs-type">int</span>[] intFuncResult = intFunction.apply(<span class="hljs-number">20</span>);<br>        <span class="hljs-comment">// 引用静态方法</span><br>        Supplier&lt;Object&gt; statSup = () -&gt; staticSupplier();<br>        statSup = MethodReferences::staticSupplier;<br>        <span class="hljs-type">Object</span> <span class="hljs-variable">statSupResult</span> <span class="hljs-operator">=</span> statSup.get();<br>        <span class="hljs-comment">// 引用特定对象的实例方法</span><br>        Supplier&lt;Object&gt; instSup = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MethodReferences</span>()::instanceSupplier;<br>        instSup = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MethodReferences</span>()::instanceSupplier;<br>        <span class="hljs-type">Object</span> <span class="hljs-variable">instSupResult</span> <span class="hljs-operator">=</span> instSup.get();<br>        <span class="hljs-comment">// 引用特定类型的任意对象的实例方法</span><br>        Function&lt;MethodReferences, Object&gt; anonInstFunc = streamDemo -&gt; streamDemo.anonymousInstanceFunction();<br>        anonInstFunc = MethodReferences::anonymousInstanceFunction;<br><br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>顺便放几个常用的函数式接口写法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben;<br><br><span class="hljs-keyword">import</span> java.math.BigDecimal;<br><span class="hljs-keyword">import</span> java.util.function.*;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 常用的几个函数式接口写法</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/7/1 17:44</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Usual</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Consumer&lt;Object&gt; <span class="hljs-title function_">consumer</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-comment">// 有参数无返回值</span><br>        <span class="hljs-keyword">return</span> o -&gt; &#123;<br>        &#125;;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Function&lt;Integer, Object&gt; <span class="hljs-title function_">function</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-comment">// 有参数有返回值</span><br>        <span class="hljs-keyword">return</span> o -&gt; o;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Predicate&lt;Object&gt; <span class="hljs-title function_">predicate</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-comment">// 有参数，返回值为boolean，注意 o -&gt; null 写法调用test执行lambda时会NPE</span><br>        <span class="hljs-keyword">return</span> o -&gt; <span class="hljs-literal">true</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Supplier&lt;Object&gt; <span class="hljs-title function_">supplier</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-comment">// 无参数有返回值</span><br>        <span class="hljs-keyword">return</span> Object::<span class="hljs-keyword">new</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BiConsumer&lt;String, Integer&gt; <span class="hljs-title function_">biConsumer</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-comment">// 俩参数无返回值</span><br>        <span class="hljs-keyword">return</span> (q, o) -&gt; &#123;<br>        &#125;;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BiFunction&lt;Integer, Long, BigDecimal&gt; <span class="hljs-title function_">biFunction</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-comment">// 俩参数，有返回值</span><br>        <span class="hljs-keyword">return</span> (q, o) -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>(q).add(BigDecimal.valueOf(o));<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> UnaryOperator&lt;Object&gt; <span class="hljs-title function_">unaryOperator</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-comment">// 一个参数，返回值类型和参数一样</span><br>        <span class="hljs-keyword">return</span> q -&gt; q;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BinaryOperator&lt;Object&gt; <span class="hljs-title function_">binaryOperator</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-comment">// 俩参数和返回值类型保持一致</span><br>        <span class="hljs-keyword">return</span> (a, o) -&gt; a;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="Stream介绍"><a href="#Stream介绍" class="headerlink" title="Stream介绍"></a>Stream介绍</h2><p><code>Java 8 API</code>添加了一个新的抽象称为流<code>Stream</code>，可以让你以一种声明的方式处理数据。方法全是传入函数作为参数，来达到我们的目的。</p>
+<h2 id="stream介绍"><a class="markdownIt-Anchor" href="#stream介绍"></a> Stream介绍</h2>
+<p><code>Java 8 API</code>添加了一个新的抽象称为流<code>Stream</code>，可以让你以一种声明的方式处理数据。方法全是传入函数作为参数，来达到我们的目的。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 声明式编程是告诉计算机需要计算“什么”而不是“如何”去计算</span><br><span class="hljs-comment">// 现在，我想要一个List，包含3个数字8</span><br>List&lt;Integer&gt; list =<br>        <span class="hljs-comment">// 我想要：</span><br>        Stream<br>                <span class="hljs-comment">// 8</span><br>                .generate(() -&gt; <span class="hljs-number">8</span>)<br>                <span class="hljs-comment">// 3个</span><br>                .limit(<span class="hljs-number">3</span>)<br>                <span class="hljs-comment">// 最后收集起来转为List</span><br>                .collect(Collectors.toList());<br><span class="hljs-comment">// 结果 [8, 8, 8]</span><br></code></pre></td></tr></table></figure>
-
 <p><code>Stream</code> 使用一种类似用 <code>SQL</code> 语句从数据库查询数据的直观方式来提供一种对 <code>Java</code> 集合运算和表达的高阶抽象。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java">      <span class="hljs-comment">// 就像sql里的排序、截取</span><br>      <span class="hljs-comment">// 我要把传入的list逆序，然后从第五个(元素下标为4)开始取值，取4条</span><br>List&lt;String&gt; list = Arrays.asList(<span class="hljs-string">&quot;dromara&quot;</span>, <span class="hljs-string">&quot;Hmily&quot;</span>, <span class="hljs-string">&quot;Hutool&quot;</span>, <span class="hljs-string">&quot;Sa-Token&quot;</span>, <span class="hljs-string">&quot;Jpom&quot;</span>, <span class="hljs-string">&quot;TLog&quot;</span>, <span class="hljs-string">&quot;Cubic&quot;</span>, <span class="hljs-string">&quot;Koalas-rpc&quot;</span>, <span class="hljs-string">&quot;Fast Request&quot;</span>);<br>list = list.stream()<br>		<span class="hljs-comment">// 排序(按照自然顺序的逆序)</span><br>		.sorted(Comparator.reverseOrder())<br>		<span class="hljs-comment">// 从下标为4开始取值</span><br>		.skip(<span class="hljs-number">4</span>)<br>		<span class="hljs-comment">// 取4条</span><br>		.limit(<span class="hljs-number">4</span>)<br>		<span class="hljs-comment">// 最后收集起来转为List</span><br>		.collect(Collectors.toList());<br>      <span class="hljs-comment">// 结果 [Jpom, Hutool, Hmily, Fast Request]</span><br></code></pre></td></tr></table></figure>
-
 <p><code>Stream API</code>可以极大提高<code>Java</code>程序员的生产力，让程序员写出高效率、干净、简洁的代码。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java">  <span class="hljs-comment">/**</span><br><span class="hljs-comment">   * 老办法实现一个list，存储3个8，并转换为String</span><br><span class="hljs-comment">   *</span><br><span class="hljs-comment">   * <span class="hljs-doctag">@return</span> [8, 8, 8]</span><br><span class="hljs-comment">   */</span><br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> List&lt;String&gt; <span class="hljs-title function_">oldFunc</span><span class="hljs-params">()</span> &#123;<br>List&lt;Integer&gt; list = Arrays.asList(<span class="hljs-number">8</span>, <span class="hljs-number">8</span>, <span class="hljs-number">8</span>);<br>List&lt;String&gt; stringList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(list.size());<br><span class="hljs-keyword">for</span> (Integer integer : list) &#123;<br>	stringList.add(String.valueOf(integer));<br>&#125;<br><span class="hljs-keyword">return</span> stringList;<br>  &#125;<br><br>  <span class="hljs-comment">/**</span><br><span class="hljs-comment">   * Stream实现一个list，存储3个8，并转换为String</span><br><span class="hljs-comment">   *</span><br><span class="hljs-comment">   * <span class="hljs-doctag">@return</span> [8, 8, 8]</span><br><span class="hljs-comment">   */</span><br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> List&lt;String&gt; <span class="hljs-title function_">newFunc</span><span class="hljs-params">()</span> &#123;<br>      <span class="hljs-keyword">return</span> Stream.generate(() -&gt; <span class="hljs-number">8</span>).limit(<span class="hljs-number">3</span>).map(String::valueOf).collect(Collectors.toList());<br>  &#125;<br></code></pre></td></tr></table></figure>
-
 <p>生成<code>26</code>个大写字母组成的集合</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">List&lt;Character&gt; abc = Stream.iterate(<span class="hljs-string">&#x27;A&#x27;</span>, i -&gt; (<span class="hljs-type">char</span>) (i + <span class="hljs-number">1</span>)).limit(<span class="hljs-number">26</span>).collect(Collectors.toList());<br><span class="hljs-comment">// [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]</span><br></code></pre></td></tr></table></figure>
-
 <p>这种风格将要处理的元素集合看作一种流， 流在管道中传输， 并且可以在管道的节点上进行处理， 比如筛选， 排序，聚合等。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 管道中传输，节点中处理</span><br><span class="hljs-type">int</span> <span class="hljs-variable">pipe</span> <span class="hljs-operator">=</span> abc.stream()<br>        <span class="hljs-comment">// 筛选大于G的字母</span><br>        .filter(i -&gt; i &gt; <span class="hljs-string">&#x27;G&#x27;</span>)<br>        <span class="hljs-comment">// 排序 按照自然排序顺序逆序</span><br>        .sorted(Comparator.reverseOrder())<br>        .mapToInt(Object::hashCode)<br>        <span class="hljs-comment">// 聚合求和</span><br>        .sum();<br><span class="hljs-comment">// 1539</span><br></code></pre></td></tr></table></figure>
-
 <p>元素流在管道中经过中间操作（<code>intermediate operation</code>）的处理，最后由最终操作(<code>terminal operation</code>)得到前面处理的结果。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 将26个大写字母Character集合转换为String然后转换为小写字符</span><br>List&lt;String&gt; terminalOperation = abc.stream()<br>        <span class="hljs-comment">// 中间操作（intermediate operation）</span><br>        .map(String::valueOf).map(String::toLowerCase)<br>        <span class="hljs-comment">// 最终操作</span><br>        .collect(Collectors.toList());<br><span class="hljs-comment">// [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]</span><br></code></pre></td></tr></table></figure>
-
-<h2 id="EasyStream"><a href="#EasyStream" class="headerlink" title="EasyStream"></a>EasyStream</h2><p>这是即将推出的<code>hutool-6.x</code>新特新之一，对<code>Stream</code>进行了进一步简化(设计灵感来源新版<code>jdk</code>新特性以及日常使用痛点)，例如：</p>
+<h2 id="easystream"><a class="markdownIt-Anchor" href="#easystream"></a> EasyStream</h2>
+<p>这是即将推出的<code>hutool-6.x</code>新特新之一，对<code>Stream</code>进行了进一步简化(设计灵感来源新版<code>jdk</code>新特性以及日常使用痛点)，例如：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 使用toList代替collect(Collectors.toList())</span><br>List&lt;String&gt; toList = EasyStream.of(list).map(String::valueOf).toList();<br><span class="hljs-comment">// 使用toMap代替collect(Collectors.toMap(String::valueOf, Function.identity()))</span><br>Map&lt;String, Integer&gt; identityMap = EasyStream.of(list).toMap(String::valueOf);<br><span class="hljs-comment">// 可以通过三参数创建无限流，提供终止条件</span><br>List&lt;Integer&gt; list = EasyStream.iterate(<span class="hljs-number">0</span>, i -&gt; i &lt; <span class="hljs-number">3</span>, i -&gt; i + <span class="hljs-number">1</span>).toList();<br><span class="hljs-comment">// 提供遍历下标</span><br>List&lt;String&gt; list = Arrays.asList(<span class="hljs-string">&quot;dromara&quot;</span>, <span class="hljs-string">&quot;hutool&quot;</span>, <span class="hljs-string">&quot;sweet&quot;</span>);<br>List&lt;String&gt; mapIndex = EasyStream.of(list).mapIdx((e, i) -&gt; i + <span class="hljs-number">1</span> + <span class="hljs-string">&quot;.&quot;</span> + e).toList();<br><span class="hljs-comment">// 结果为 [&quot;1.dromara&quot;, &quot;2.hutool&quot;, &quot;3.sweet&quot;]</span><br><span class="hljs-comment">// ...</span><br></code></pre></td></tr></table></figure>
-
 <p>当然这个类还在完善中，目前只是一个实验性功能，还存在一些争议和问题，后续优化完成后会开放使用</p>
 <p><a target="_blank" rel="noopener" href="https://gitee.com/dromara/hutool/blob/v6-dev/hutool-core/src/main/java/cn/hutool/core/stream/EasyStream.java">EasyStream源码链接</a></p>
 
@@ -574,6 +550,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -626,12 +608,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -650,61 +626,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/12/ActiveRecord/">ActiveRecord</a>
+                    <a href="/2021/03/16/Momo-Code-Sec-inpoector/">Momo Code Sec inpoector</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/01/31/Apache-Linkis/">Apache Linkis</a>
+                    <a href="/2024/09/14/React%E4%BC%98%E5%8C%96%E6%8A%80%E5%B7%A7%E2%80%94%E2%80%94%E9%81%BF%E5%85%8Dstate%E5%B1%82%E7%BA%A7%E8%BF%87%E9%AB%98/">React优化技巧——避免state层级过高</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/11/30/ios%E8%8E%B7%E5%8F%96UDID/">ios获取UDID</a>
+                    <a href="/2025/09/10/Stirling-PDF/">Stirling-PDF</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/03/19/liteflow%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B/">liteflow快速开始</a>
+                    <a href="/2022/03/04/replace%E3%80%81replaceAll%E3%80%81replaceFirst/">replace、replaceAll、replaceFirst</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/02/10/mysql%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BF%A1%E6%81%AF%E5%87%BD%E6%95%B0/">mysql数据库信息函数</a>
+                    <a href="/2021/03/15/seata%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/">seata实现分布式事务</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/10/09/nextrtc-videochat-with-rest/">nextrtc-videochat-with-rest</a>
+                    <a href="/2023/10/12/socket-io/">socket.io</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/04/19/slidev/">slidev</a>
+                    <a href="/2021/02/16/springboot%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E9%85%8D%E7%BD%AE/">springboot中自定义配置</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/11/11/sshx/">sshx</a>
+                    <a href="/2023/03/20/svelte/">svelte</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/12/20/transformers/">transformers</a>
+                    <a href="/2024/11/01/typescript-exercises%EF%BC%88%E5%85%AD%EF%BC%89/">typescript-exercises（六）</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/03/16/%E8%87%AA%E5%AE%9A%E4%B9%89scroll%E6%BB%91%E5%9D%97%E6%A0%B7%E5%BC%8F/">自定义scroll滑块样式</a>
+                    <a href="/2022/05/04/%E6%B3%9B%E5%9E%8B%E7%9A%84super%E5%92%8Cextends/">泛型的super和extends</a>
                 </span>
             </li>
             
@@ -737,73 +713,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 18.435935565875123px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 12.945562638604706px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.024669199809864px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.51403388078372px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 8.674304105029744px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 17.534252271492186px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 10.752235948454183px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.68696542504648px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.986238888724122px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 16.255380881018795px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 13.520701258544028px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 12.203077410695727px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 19.073007395278402px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 10.683393213176057px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 15.042166321178067px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 13.002083835018182px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 16.01262352388633px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.158590260420706px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 12.545981445444788px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 15.173897626103239px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 14.027899681868682px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 16.336753638823993px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 12.703212046333578px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 17.48897154668653px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 12.599771776753265px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 17.47260622103765px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 16.88743982421326px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 8.72349985919175px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 9.667205312250227px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 19.877641514509293px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 16.973664470775px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 9.286384456739356px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.423357489955205px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 13.757823866491057px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 8.392916443718576px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 11.833637984981713px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.639532957448498px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 16.76207242501231px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 17.835129711555382px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 9.869716834896682px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 16.09540658964788px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.75306351364894px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 10.530038762473957px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 17.91635974773942px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 13.805995299980275px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 9.78647837137824px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 19.290195578681374px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 9.974345979607119px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 14.531246187112487px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.446224645776187px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 10.708167446504952px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 8.794123851266443px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 19.141051347827965px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 8.56422649791635px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.73295811442155px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10.454531896727392px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 18.79456093316867px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 14.614296972604233px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 17.024396174218207px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 11.584657132131978px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 12.513457215497809px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 17.335680996768488px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.302483777458093px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10.230690446359448px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 15.786277841586775px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 13.84246145995208px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.21370243024979px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 16.61989578316083px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

@@ -15,7 +15,7 @@
   
   
   <title>xxl-job restful api | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>xxl-job restful api</span>
     </div>
@@ -402,27 +402,20 @@
 <p>昨天对接了<code>xxl-job</code>的<code>restful api</code>，发现其没有提供查询<code>job</code>信息的<code>api</code>，于是自己拓展</p>
 <p>在原先<code>com.xxl.job.admin.controller.JobApiController#api</code>添加</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * api</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> uri</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> data</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@RequestMapping(&quot;/&#123;uri&#125;&quot;)</span><br><span class="hljs-meta">@ResponseBody</span><br><span class="hljs-meta">@PermissionLimit(limit=false)</span><br><span class="hljs-keyword">public</span> ReturnT&lt;?&gt; api(HttpServletRequest request, <span class="hljs-meta">@PathVariable(&quot;uri&quot;)</span> String uri, <span class="hljs-meta">@RequestBody(required = false)</span> String data) &#123;<br><br>    <span class="hljs-comment">// valid</span><br>    <span class="hljs-keyword">if</span> (!<span class="hljs-string">&quot;POST&quot;</span>.equalsIgnoreCase(request.getMethod())) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReturnT</span>&lt;String&gt;(ReturnT.FAIL_CODE, <span class="hljs-string">&quot;invalid request, HttpMethod not support.&quot;</span>);<br>    &#125;<br>    <span class="hljs-keyword">if</span> (uri==<span class="hljs-literal">null</span> || uri.trim().length()==<span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReturnT</span>&lt;String&gt;(ReturnT.FAIL_CODE, <span class="hljs-string">&quot;invalid request, uri-mapping empty.&quot;</span>);<br>    &#125;<br>    <span class="hljs-keyword">if</span> (XxlJobAdminConfig.getAdminConfig().getAccessToken()!=<span class="hljs-literal">null</span><br>            &amp;&amp; XxlJobAdminConfig.getAdminConfig().getAccessToken().trim().length()&gt;<span class="hljs-number">0</span><br>            &amp;&amp; !XxlJobAdminConfig.getAdminConfig().getAccessToken().equals(request.getHeader(XxlJobRemotingUtil.XXL_JOB_ACCESS_TOKEN))) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReturnT</span>&lt;String&gt;(ReturnT.FAIL_CODE, <span class="hljs-string">&quot;The access token is wrong.&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-comment">// services mapping</span><br>    <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;callback&quot;</span>.equals(uri)) &#123;<br>        List&lt;HandleCallbackParam&gt; callbackParamList = GsonTool.fromJson(data, List.class, HandleCallbackParam.class);<br>        <span class="hljs-keyword">return</span> adminBiz.callback(callbackParamList);<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;registry&quot;</span>.equals(uri)) &#123;<br>        <span class="hljs-type">RegistryParam</span> <span class="hljs-variable">registryParam</span> <span class="hljs-operator">=</span> GsonTool.fromJson(data, RegistryParam.class);<br>        <span class="hljs-keyword">return</span> adminBiz.registry(registryParam);<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;registryRemove&quot;</span>.equals(uri)) &#123;<br>        <span class="hljs-type">RegistryParam</span> <span class="hljs-variable">registryParam</span> <span class="hljs-operator">=</span> GsonTool.fromJson(data, RegistryParam.class);<br>        <span class="hljs-keyword">return</span> adminBiz.registryRemove(registryParam);<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;pageList&quot;</span>.equals(uri)) &#123;<br>        ReturnT&lt;Map&lt;String, Object&gt;&gt; success = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReturnT</span>&lt;&gt;();<br>        <span class="hljs-type">JobQuery</span> <span class="hljs-variable">jobQuery</span> <span class="hljs-operator">=</span> GsonTool.fromJson(data, JobQuery.class);<br>        Map&lt;String, Object&gt; pageList = xxlJobService.pageList(<br>                jobQuery.getStart(),<br>                jobQuery.getLength(),<br>                jobQuery.getJobGroup(),<br>                jobQuery.getTriggerStatus(),<br>                jobQuery.getJobDesc(),<br>                jobQuery.getExecutorHandler(),<br>                jobQuery.getAuthor());<br>        success.setContent(pageList);<br>        <span class="hljs-keyword">return</span> success;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReturnT</span>&lt;String&gt;(ReturnT.FAIL_CODE, <span class="hljs-string">&quot;invalid request, uri-mapping(&quot;</span>+ uri +<span class="hljs-string">&quot;) not found.&quot;</span>);<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>这里参数</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JobQuery</span> &#123;<br>        <span class="hljs-keyword">private</span> Integer start;<br>        <span class="hljs-keyword">private</span> Integer length;<br>        <span class="hljs-keyword">private</span> Integer jobGroup;<br>        <span class="hljs-keyword">private</span> Integer triggerStatus;<br>        <span class="hljs-keyword">private</span> String jobDesc;<br>        <span class="hljs-keyword">private</span> String executorHandler;<br>        <span class="hljs-keyword">private</span> String author;<br><br>        <span class="hljs-keyword">public</span> Integer <span class="hljs-title function_">getStart</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> start;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setStart</span><span class="hljs-params">(Integer start)</span> &#123;<br>            <span class="hljs-built_in">this</span>.start = start;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> Integer <span class="hljs-title function_">getLength</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> length;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setLength</span><span class="hljs-params">(Integer length)</span> &#123;<br>            <span class="hljs-built_in">this</span>.length = length;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> Integer <span class="hljs-title function_">getJobGroup</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> jobGroup;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setJobGroup</span><span class="hljs-params">(Integer jobGroup)</span> &#123;<br>            <span class="hljs-built_in">this</span>.jobGroup = jobGroup;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> Integer <span class="hljs-title function_">getTriggerStatus</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> triggerStatus;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setTriggerStatus</span><span class="hljs-params">(Integer triggerStatus)</span> &#123;<br>            <span class="hljs-built_in">this</span>.triggerStatus = triggerStatus;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getJobDesc</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> jobDesc;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setJobDesc</span><span class="hljs-params">(String jobDesc)</span> &#123;<br>            <span class="hljs-built_in">this</span>.jobDesc = jobDesc;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getExecutorHandler</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> executorHandler;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setExecutorHandler</span><span class="hljs-params">(String executorHandler)</span> &#123;<br>            <span class="hljs-built_in">this</span>.executorHandler = executorHandler;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getAuthor</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> author;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setAuthor</span><span class="hljs-params">(String author)</span> &#123;<br>            <span class="hljs-built_in">this</span>.author = author;<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
-
 <p>然后是修改对应的<code>service</code>和<code>impl</code>的签名</p>
 <p><code>com.xxl.job.admin.service.XxlJobService#pageList</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> Map&lt;String, Object&gt; <span class="hljs-title function_">pageList</span><span class="hljs-params">(Integer start, Integer length, Integer jobGroup, Integer triggerStatus, String jobDesc, String executorHandler, String author)</span>;<br></code></pre></td></tr></table></figure>
-
 <p><code>com.xxl.job.admin.service.impl.XxlJobServiceImpl#pageList</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> Map&lt;String, Object&gt; <span class="hljs-title function_">pageList</span><span class="hljs-params">(Integer start, Integer length, Integer jobGroup, Integer triggerStatus, String jobDesc, String executorHandler, String author)</span> &#123;<br><br>	start = Optional.ofNullable(start).orElse(<span class="hljs-number">0</span>);<br>	length = Optional.ofNullable(length).orElse(<span class="hljs-number">10</span>);<br>	<span class="hljs-comment">// page list</span><br>	List&lt;XxlJobInfo&gt; list = xxlJobInfoDao.pageList(start, length, jobGroup, triggerStatus, jobDesc, executorHandler, author);<br>	<span class="hljs-type">int</span> <span class="hljs-variable">list_count</span> <span class="hljs-operator">=</span> xxlJobInfoDao.pageListCount(start, length, jobGroup, triggerStatus, jobDesc, executorHandler, author);<br><br>	<span class="hljs-comment">// package result</span><br>	Map&lt;String, Object&gt; maps = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;String, Object&gt;();<br>    maps.put(<span class="hljs-string">&quot;recordsTotal&quot;</span>, list_count);		<span class="hljs-comment">// 总记录数</span><br>    maps.put(<span class="hljs-string">&quot;recordsFiltered&quot;</span>, list_count);	<span class="hljs-comment">// 过滤后的总记录数</span><br>    maps.put(<span class="hljs-string">&quot;data&quot;</span>, list);  					<span class="hljs-comment">// 分页列表</span><br>	<span class="hljs-keyword">return</span> maps;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>然后是<code>mapper</code></p>
 <p><code>com.xxl.job.admin.dao.XxlJobInfoDao</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> List&lt;XxlJobInfo&gt; <span class="hljs-title function_">pageList</span><span class="hljs-params">(<span class="hljs-meta">@Param(&quot;offset&quot;)</span> Integer offset,</span><br><span class="hljs-params">								 <span class="hljs-meta">@Param(&quot;pagesize&quot;)</span> Integer pagesize,</span><br><span class="hljs-params">								 <span class="hljs-meta">@Param(&quot;jobGroup&quot;)</span> Integer jobGroup,</span><br><span class="hljs-params">								 <span class="hljs-meta">@Param(&quot;triggerStatus&quot;)</span> Integer triggerStatus,</span><br><span class="hljs-params">								 <span class="hljs-meta">@Param(&quot;jobDesc&quot;)</span> String jobDesc,</span><br><span class="hljs-params">								 <span class="hljs-meta">@Param(&quot;executorHandler&quot;)</span> String executorHandler,</span><br><span class="hljs-params">								 <span class="hljs-meta">@Param(&quot;author&quot;)</span> String author)</span>;<br><br><span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">pageListCount</span><span class="hljs-params">(<span class="hljs-meta">@Param(&quot;offset&quot;)</span> Integer offset,</span><br><span class="hljs-params">						 <span class="hljs-meta">@Param(&quot;pagesize&quot;)</span> Integer pagesize,</span><br><span class="hljs-params">						 <span class="hljs-meta">@Param(&quot;jobGroup&quot;)</span> Integer jobGroup,</span><br><span class="hljs-params">						 <span class="hljs-meta">@Param(&quot;triggerStatus&quot;)</span> Integer triggerStatus,</span><br><span class="hljs-params">						 <span class="hljs-meta">@Param(&quot;jobDesc&quot;)</span> String jobDesc,</span><br><span class="hljs-params">						 <span class="hljs-meta">@Param(&quot;executorHandler&quot;)</span> String executorHandler,</span><br><span class="hljs-params">						 <span class="hljs-meta">@Param(&quot;author&quot;)</span> String author)</span>;<br></code></pre></td></tr></table></figure>
-
 <p>以及<code>XxlJobInfoMapper.xml</code></p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">select</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;pageList&quot;</span> <span class="hljs-attr">parameterType</span>=<span class="hljs-string">&quot;java.util.HashMap&quot;</span> <span class="hljs-attr">resultMap</span>=<span class="hljs-string">&quot;XxlJobInfo&quot;</span>&gt;</span><br>	SELECT <span class="hljs-tag">&lt;<span class="hljs-name">include</span> <span class="hljs-attr">refid</span>=<span class="hljs-string">&quot;Base_Column_List&quot;</span> /&gt;</span><br>	FROM xxl_job_info AS t<br>	<span class="hljs-tag">&lt;<span class="hljs-name">trim</span> <span class="hljs-attr">prefix</span>=<span class="hljs-string">&quot;WHERE&quot;</span> <span class="hljs-attr">prefixOverrides</span>=<span class="hljs-string">&quot;AND | OR&quot;</span> &gt;</span><br>		<span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;jobGroup != null and jobGroup gt 0&quot;</span>&gt;</span><br>			AND t.job_group = #&#123;jobGroup&#125;<br>		<span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>           <span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;triggerStatus != null and triggerStatus gte 0&quot;</span>&gt;</span><br>               AND t.trigger_status = #&#123;triggerStatus&#125;<br>           <span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>		<span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;jobDesc != null and jobDesc != &#x27;&#x27;&quot;</span>&gt;</span><br>			AND t.job_desc like CONCAT(CONCAT(&#x27;%&#x27;, #&#123;jobDesc&#125;), &#x27;%&#x27;)<br>		<span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>		<span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;executorHandler != null and executorHandler != &#x27;&#x27;&quot;</span>&gt;</span><br>			AND t.executor_handler like CONCAT(CONCAT(&#x27;%&#x27;, #&#123;executorHandler&#125;), &#x27;%&#x27;)<br>		<span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>		<span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;author != null and author != &#x27;&#x27;&quot;</span>&gt;</span><br>			AND t.author like CONCAT(CONCAT(&#x27;%&#x27;, #&#123;author&#125;), &#x27;%&#x27;)<br>		<span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>	<span class="hljs-tag">&lt;/<span class="hljs-name">trim</span>&gt;</span><br>	ORDER BY id DESC<br>	LIMIT #&#123;offset&#125;, #&#123;pagesize&#125;<br><span class="hljs-tag">&lt;/<span class="hljs-name">select</span>&gt;</span><br><br><span class="hljs-tag">&lt;<span class="hljs-name">select</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;pageListCount&quot;</span> <span class="hljs-attr">parameterType</span>=<span class="hljs-string">&quot;java.util.HashMap&quot;</span> <span class="hljs-attr">resultType</span>=<span class="hljs-string">&quot;int&quot;</span>&gt;</span><br>	SELECT count(1)<br>	FROM xxl_job_info AS t<br>	<span class="hljs-tag">&lt;<span class="hljs-name">trim</span> <span class="hljs-attr">prefix</span>=<span class="hljs-string">&quot;WHERE&quot;</span> <span class="hljs-attr">prefixOverrides</span>=<span class="hljs-string">&quot;AND | OR&quot;</span> &gt;</span><br>		<span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;jobGroup != null and jobGroup gt 0&quot;</span>&gt;</span><br>			AND t.job_group = #&#123;jobGroup&#125;<br>		<span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>		<span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;triggerStatus != null and triggerStatus gte 0&quot;</span>&gt;</span><br>               AND t.trigger_status = #&#123;triggerStatus&#125;<br>           <span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>		<span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;jobDesc != null and jobDesc != &#x27;&#x27;&quot;</span>&gt;</span><br>			AND t.job_desc like CONCAT(CONCAT(&#x27;%&#x27;, #&#123;jobDesc&#125;), &#x27;%&#x27;)<br>		<span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>		<span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;executorHandler != null and executorHandler != &#x27;&#x27;&quot;</span>&gt;</span><br>			AND t.executor_handler like CONCAT(CONCAT(&#x27;%&#x27;, #&#123;executorHandler&#125;), &#x27;%&#x27;)<br>		<span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>		<span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;author != null and author != &#x27;&#x27;&quot;</span>&gt;</span><br>			AND t.author like CONCAT(CONCAT(&#x27;%&#x27;, #&#123;author&#125;), &#x27;%&#x27;)<br>		<span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>	<span class="hljs-tag">&lt;/<span class="hljs-name">trim</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">select</span>&gt;</span><br></code></pre></td></tr></table></figure>
-
 <p>至此，终于可以通过请求</p>
 <figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs http">http://localhost:8080/xxl-job-admin/api/pageList<br></code></pre></td></tr></table></figure>
-
 <p>查询到<code>job</code>列表了，别忘了在<code>header</code>里携带<code>token</code></p>
 <figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs http">XXL-JOB-ACCESS-TOKEN:&#123;xxl.job.accessToken&#125;<br></code></pre></td></tr></table></figure>
 
@@ -490,6 +483,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -542,12 +541,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -566,61 +559,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/07/28/AIScript/">AIScript</a>
+                    <a href="/2025/09/30/RAG-Anything/">RAG-Anything</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/14/BibiGPT/">BibiGPT</a>
+                    <a href="/2022/07/08/escape%E3%80%81unescape%E5%BA%9F%E5%BC%83/">escape、unescape废弃</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/01/brackets/">brackets</a>
+                    <a href="/2023/04/20/kotlin%E7%9A%84KProperty/">kotlin的KProperty</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/19/hutool-bom/">hutool-bom</a>
+                    <a href="/2021/10/29/nvue%E5%BC%95%E5%85%A5%E5%9B%BE%E6%A0%87%E5%9D%91/">nvue引入图标坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/14/nvue%E8%8E%B7%E5%8F%96%E8%8A%82%E7%82%B9%E4%BF%A1%E6%81%AF/">nvue获取节点信息</a>
+                    <a href="/2024/12/06/shenyu-dashboard%E7%9A%84%E4%B8%80%E4%BA%9B%E4%BC%98%E5%8C%96/">shenyu-dashboard的一些优化</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/06/16/pac4j/">pac4j</a>
+                    <a href="/2022/04/04/vercel/">vercel</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/09/26/react%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%BC%83%E7%94%A8/">react生命周期弃用</a>
+                    <a href="/2022/09/23/%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%96%B0jdk%E6%8A%A5%E9%94%99Assistive-Technology-not-found-org-GNOME-Accessibility-AtkWrapper/">服务器新jdk报错Assistive Technology not found: org.GNOME.Accessibility.AtkWrapper</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/19/spel%E8%8E%B7%E5%8F%96spring-bean/">spel获取spring bean</a>
+                    <a href="/2023/01/15/%E7%A7%BB%E5%8A%A8%E7%AB%AF%E6%8B%96%E5%8A%A8%E6%BB%91%E5%9D%97%E9%AA%8C%E8%AF%81/">移动端拖动滑块验证</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/05/15/splice/">splice</a>
+                    <a href="/2021/07/15/%E8%87%AA%E5%AE%9A%E4%B9%89%E9%BC%A0%E6%A0%87/">自定义鼠标</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/22/unshift/">unshift</a>
+                    <a href="/2024/01/29/apache-incubator-streampark%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C%EF%BC%88%E4%B8%83%EF%BC%89/">apache-incubator-streampark源码编译本地运行（七）</a>
                 </span>
             </li>
             
@@ -653,73 +646,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 11.67518180033947px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 18.427372604546225px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 12.879525436540206px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.313924861977952px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 8.198286248017974px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 9.938169875743665px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.55187542675011px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 8.36535142435979px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.782847813327418px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.91950056436997px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 19.95984753993399px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 16.595434629545444px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 8.693318188318717px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 10.891665156843269px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 14.189155760622306px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 12.913420510928187px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.144267541306073px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 14.632919569758899px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 11.45846873766351px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 13.573074689368681px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 8.834239186953678px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 8.383179593543744px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 9.325239086372587px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.585364515546722px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 14.223802856981282px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 18.803360787360315px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 8.152958309760503px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 14.925641172104424px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 14.974777806407737px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 9.898801371125554px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 8.288439134247296px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 18.404981710647444px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.75052680223208px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 12.552961224784594px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 8.037912616042817px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 14.00239501614265px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.469889608693036px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 16.149119330337452px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 14.694979764214477px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 16.70869576249473px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 15.982648468195734px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 12.678637220747145px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 12.054216073239145px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 14.11809636936406px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 8.97522531993192px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 9.486800664969604px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 17.92871031996128px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 9.177318834792473px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.433461961752855px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.116880324640348px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 9.365673882984574px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 14.396411644800608px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 8.275872590920923px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 13.911502413942063px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 15.081573336315058px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10.347420359878505px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 16.551138605616288px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 8.201735423526468px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 9.755709670721426px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 13.706087558838703px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 16.35099286539186px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 16.71654381613195px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.687320516003098px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10.291095647927673px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 14.954854372888462px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 12.491006144494683px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 16.668863180436013px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 17.258324146309626px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

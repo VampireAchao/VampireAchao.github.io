@@ -15,7 +15,7 @@
   
   
   <title>ThreadLocal子线程共享 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>ThreadLocal子线程共享</span>
     </div>
@@ -402,30 +402,27 @@
 <p>昨天聊了<code>ThreadLocal</code>可以用作单个线程中变量共享</p>
 <p>其底层实现其实就是个<code>Map</code>，用线程作为<code>key</code>，不信可以看这部分源码：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Returns the value in the current thread&#x27;s copy of this</span><br><span class="hljs-comment"> * thread-local variable.  If the variable has no value for the</span><br><span class="hljs-comment"> * current thread, it is first initialized to the value returned</span><br><span class="hljs-comment"> * by an invocation of the &#123;<span class="hljs-doctag">@link</span> #initialValue&#125; method.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@return</span> the current thread&#x27;s value of this thread-local</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> T <span class="hljs-title function_">get</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">Thread</span> <span class="hljs-variable">t</span> <span class="hljs-operator">=</span> Thread.currentThread();<br>    <span class="hljs-type">ThreadLocalMap</span> <span class="hljs-variable">map</span> <span class="hljs-operator">=</span> getMap(t);<br>    <span class="hljs-keyword">if</span> (map != <span class="hljs-literal">null</span>) &#123;<br>        ThreadLocalMap.<span class="hljs-type">Entry</span> <span class="hljs-variable">e</span> <span class="hljs-operator">=</span> map.getEntry(<span class="hljs-built_in">this</span>);<br>        <span class="hljs-keyword">if</span> (e != <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-meta">@SuppressWarnings(&quot;unchecked&quot;)</span><br>            <span class="hljs-type">T</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> (T)e.value;<br>            <span class="hljs-keyword">return</span> result;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> setInitialValue();<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>但是这里有个问题，如果是子线程，就访问不到了</p>
 <p>我们深入源码看到这里有这么一个函数</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Method childValue is visibly defined in subclass</span><br><span class="hljs-comment"> * InheritableThreadLocal, but is internally defined here for the</span><br><span class="hljs-comment"> * sake of providing createInheritedMap factory method without</span><br><span class="hljs-comment"> * needing to subclass the map class in InheritableThreadLocal.</span><br><span class="hljs-comment"> * This technique is preferable to the alternative of embedding</span><br><span class="hljs-comment"> * instanceof tests in methods.</span><br><span class="hljs-comment"> */</span><br>T <span class="hljs-title function_">childValue</span><span class="hljs-params">(T parentValue)</span> &#123;<br>    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UnsupportedOperationException</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>该方法在<code>ThreadLocalMap</code>的构造函数被调用，上面的注释说，该方法明显是在子类<code>InheritableThreadLocal</code>中定义的，这里提供这个方法，主要是能让<code>Thread</code>在构造函数中能调用上面说到的<code>InheritableThreadLocal</code>的<code>childValue</code></p>
 <p>可以看到<code>Thread</code>的构造函数中：</p>
-<p><img src="/imgs/oss/picGo/image-20211023171819676.png" alt="image-20211023171819676"></p>
+<p><img src="/imgs/oss/picGo/image-20211023171819676.png" alt="image-20211023171819676" /></p>
 <p>简单来说，如果是<code>inheritableThreadLocal</code>，就执行该方法。我们接着往里看<code>ThreadLocalMap</code>的构造方法</p>
 <p>这里把<code>ThreadLocalMap</code>中所有的元素遍历出来，拿到<code>key</code>然后执行了<code>childValue</code>方法</p>
-<p><img src="/imgs/oss/picGo/image-20211023172149935.png" alt="image-20211023172149935"></p>
+<p><img src="/imgs/oss/picGo/image-20211023172149935.png" alt="image-20211023172149935" /></p>
 <p>这里<code>key</code>其实就是我们的子线程</p>
-<p><img src="/imgs/oss/picGo/image-20211023172915857.png" alt="image-20211023172915857"></p>
+<p><img src="/imgs/oss/picGo/image-20211023172915857.png" alt="image-20211023172915857" /></p>
 <p>我们再看<code>InheritableThreadLocal</code>中<code>childValue</code>的实现</p>
 <p>他直接把传入的值<code>return</code>了出去(绕来绕去的，这里主要是考虑到如果还有别的行为，方便继承后可以拓展)</p>
-<p><img src="/imgs/oss/picGo/image-20211023173009764.png" alt="image-20211023173009764"></p>
+<p><img src="/imgs/oss/picGo/image-20211023173009764.png" alt="image-20211023173009764" /></p>
 <p>然后再将子线程作为的<code>key</code>和父<code>value</code>组成一个新的<code>Entry</code>元素，把它放到<code>map</code>里去</p>
-<p><img src="/imgs/oss/picGo/image-20211023173245102.png" alt="image-20211023173245102"></p>
+<p><img src="/imgs/oss/picGo/image-20211023173245102.png" alt="image-20211023173245102" /></p>
 <p>因此它可以在子线程中共享变量，因为它默认的实现就是子线程的<code>key</code>但是存的父值</p>
 <p>写个<code>demo</code>测一下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.study;<br><br><span class="hljs-keyword">import</span> java.util.concurrent.CompletableFuture;<br><span class="hljs-keyword">import</span> java.util.concurrent.ExecutionException;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * ThreadLocal例子</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/10/23 16:43</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ThreadLocalDemo</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ThreadLocal&lt;Long&gt; MY_LONG_THREAD = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadLocal</span>&lt;&gt;();<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ThreadLocal&lt;Long&gt; MY_LONG_INHERITABLE_THREAD = <span class="hljs-keyword">new</span> <span class="hljs-title class_">InheritableThreadLocal</span>&lt;&gt;();<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> ExecutionException, InterruptedException &#123;<br>        MY_LONG_THREAD.set(<span class="hljs-number">0L</span>);<br>        MY_LONG_INHERITABLE_THREAD.set(<span class="hljs-number">1L</span>);<br>        <span class="hljs-comment">// 单线程共享变量</span><br>        CompletableFuture.runAsync(() -&gt; &#123;<br>            <span class="hljs-comment">// 子线程尝试访问ThreadLocal中的值</span><br>            System.out.println(MY_LONG_THREAD.get());<br>            System.out.println(MY_LONG_INHERITABLE_THREAD.get());<br>        &#125;).get();<br>        MY_LONG_THREAD.remove();<br>        MY_LONG_INHERITABLE_THREAD.remove();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>可以看到同样的代码，上面的<code>ThreadLocal</code>在子线程中获取不到，而它的实现<code>InheritableThreadLocal</code>就可以</p>
-<p><img src="/imgs/oss/picGo/image-20211023173514822.png" alt="image-20211023173514822"></p>
+<p><img src="/imgs/oss/picGo/image-20211023173514822.png" alt="image-20211023173514822" /></p>
 
     </div>
 </article>
@@ -491,6 +488,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -543,12 +546,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -567,61 +564,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/10/10/infisical/">infisical</a>
+                    <a href="/2021/04/10/Apizza/">Apizza</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/03/19/psd-tools/">psd-tools</a>
+                    <a href="/2022/10/10/MockMvc/">MockMvc</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/09/20/%E4%B8%AD%E7%BC%80%E8%A1%A8%E7%A4%BA%E6%B3%95/">中缀表示法</a>
+                    <a href="/2023/09/20/aem1k/">aem1k</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/07/26/%E4%BD%BF%E7%94%A8Console-Importer%E5%AE%89%E8%A3%85lodash%E5%B9%B6%E4%BD%BF%E7%94%A8/">使用Console Importer安装lodash并使用</a>
+                    <a href="/2021/09/13/css%E6%A8%A1%E7%B3%8A/">css模糊</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/11/06/%E5%A5%87%E7%89%B9%E7%9A%84emoji/">奇特的emoji</a>
+                    <a href="/2023/10/29/r2dbc%E5%88%86%E9%A1%B5%E6%9D%A1%E4%BB%B6%E6%9F%A5%E8%AF%A2/">r2dbc分页条件查询</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/05/04/%E6%B3%9B%E5%9E%8B%E7%9A%84super%E5%92%8Cextends/">泛型的super和extends</a>
+                    <a href="/2022/06/19/ts%E4%B8%AD%E6%9E%9A%E4%B8%BE/">ts中枚举</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/03/22/%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AAspring-boot-starter-fastjson/">编写一个spring-boot-starter-fastjson</a>
+                    <a href="/2021/11/02/vue%E7%88%B6%E7%BB%84%E4%BB%B6%E8%B0%83%E7%94%A8%E5%AD%90%E7%BB%84%E4%BB%B6%E6%96%B9%E6%B3%95/">vue父组件调用子组件方法</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/06/29/%E8%B0%88%E8%B0%88%E6%88%91%E5%AF%B9%E5%AE%9E%E6%97%B6%E8%AE%A1%E7%AE%97%E7%9A%84%E7%90%86%E8%A7%A3/">谈谈我对实时计算的理解</a>
+                    <a href="/2024/03/05/web%E5%89%8D%E7%AB%AF%E9%9D%A2%E8%AF%95%E9%A2%98/">web前端面试题</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/08/08/%E8%BF%81%E7%A7%BBspring%E9%A1%B9%E7%9B%AE%E5%88%B0springboot/">迁移spring项目到springboot</a>
+                    <a href="/2022/02/11/%E5%A4%A7%E9%A2%9D%E6%95%B0%E5%AD%97%E8%BD%AC%E8%8A%82%E6%9D%83%E4%BD%8D/">大额数字转节权位</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/11/18/Alamofire/">Alamofire</a>
+                    <a href="/2024/08/02/%E8%BD%BB%E9%87%8F%E7%BA%A7MVC%E6%9C%8D%E5%8A%A1%E5%99%A8actframework/">轻量级MVC服务器actframework</a>
                 </span>
             </li>
             
@@ -654,73 +651,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 8.613077806375687px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 12.350788150917019px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.522795055601776px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.27326718305255px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 12.178768824097173px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 13.918682540192094px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.65848895675861px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.327804562232938px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.981521032956813px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 16.44039568990259px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 17.96302517003329px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 19.61513243643802px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 10.980431675527463px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 12.96930089978435px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 12.12626843394986px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 14.77551896828063px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.424509189738025px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.71323900307524px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 12.640698235673085px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 19.5713175695261px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 9.519369541142952px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 18.6596310503497px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 18.2091120777802px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 11.767312440401202px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 19.884500526848225px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 14.725176671086196px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 17.367512544153403px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 10.019470148889695px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 8.433699893503219px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 18.386831488311714px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 17.150059299407438px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 15.337231274833929px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 16.42360612254005px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 17.595199422685447px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 15.174808853822013px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 16.30886251548186px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.880463853809827px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 12.42648049229231px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 9.94257892940757px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 15.54459234995641px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 18.21033050535708px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.730958378063377px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 16.679255419653636px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 17.04588141795751px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 10.441218373908626px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 9.007137086913222px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 12.12846875106439px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 17.99776602244495px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.39208694747893px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 10.327386298646314px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 16.278850738827998px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 19.69553725477007px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 8.152892326048773px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 19.262681799302086px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 11.719196777054773px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.321645693458382px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 19.656140383777863px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 8.20452597898054px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 13.534986149037492px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 11.661761379462664px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 13.351706485728043px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 16.02806598509473px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.68992017227582px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 9.756943822755234px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 18.118612568350414px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 17.660942435992396px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 14.77711283138697px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 17.42659874157136px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

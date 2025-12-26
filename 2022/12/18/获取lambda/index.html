@@ -15,7 +15,7 @@
   
   
   <title>获取lambda | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>获取lambda</span>
     </div>
@@ -399,18 +399,15 @@
         <blockquote>
 <p>处世让一步为高，退步即进步的张本；待人宽一分是福利人利己的根基。——洪自诚</p>
 </blockquote>
-<p>昨天说了<a href="https://vampireachao.github.io/2022/12/17/%E8%8E%B7%E5%8F%96lambda%E4%BB%A3%E7%90%86/">获取lambda代理</a></p>
+<p>昨天说了<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2022/12/17/%E8%8E%B7%E5%8F%96lambda%E4%BB%A3%E7%90%86/">获取lambda代理</a></p>
 <p>今天获取实际<code>lambda</code>对象</p>
 <p>重要的是这个函数<code>java.lang.invoke.LambdaMetafactory#metafactory</code>以及<code>altMetafactory</code></p>
 <p>我们在昨天的基础上，进行获取</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Test</span><br><span class="hljs-meta">@SneakyThrows</span><br><span class="hljs-keyword">void</span> <span class="hljs-title function_">testVirtual</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">MethodHandle</span> <span class="hljs-variable">virtual</span> <span class="hljs-operator">=</span> MethodHandles.lookup().findVirtual(LambdaExecutable.class, <span class="hljs-string">&quot;getName&quot;</span>, MethodType.methodType(String.class));<br>    <span class="hljs-keyword">final</span> SerFunc&lt;LambdaExecutable, String&gt; proxy = MethodHandleProxies.asInterfaceInstance(SerFunc.class, virtual);<br>    <span class="hljs-type">InvocationHandler</span> <span class="hljs-variable">handler</span> <span class="hljs-operator">=</span> Proxy.getInvocationHandler(proxy);<br>    <span class="hljs-type">MethodHandle</span> <span class="hljs-variable">methodHandle</span> <span class="hljs-operator">=</span> ReflectHelper.getFieldValue(handler, <span class="hljs-string">&quot;val$target&quot;</span>);<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">CallSite</span> <span class="hljs-variable">callSite</span> <span class="hljs-operator">=</span> LambdaMetafactory.altMetafactory(<br>            MethodHandles.lookup(),<br>            <span class="hljs-string">&quot;apply&quot;</span>,<br>            MethodType.methodType(SerFunc.class),<br>            MethodType.methodType(Object.class, Object.class),<br>            methodHandle,<br>            MethodType.methodType(String.class, LambdaExecutable.class),<br>            LambdaMetafactory.FLAG_SERIALIZABLE<br>    );<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">MethodHandle</span> <span class="hljs-variable">target</span> <span class="hljs-operator">=</span> callSite.getTarget();<br>    <span class="hljs-keyword">final</span> SerFunc&lt;LambdaExecutable, String&gt; invoke = (SerFunc&lt;LambdaExecutable, String&gt;) target.invoke();<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">LambdaExecutable</span> <span class="hljs-variable">executable</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LambdaExecutable</span>();<br>    executable.setName(<span class="hljs-string">&quot;test&quot;</span>);<br>    Assertions.assertEquals(<span class="hljs-string">&quot;test&quot;</span>, invoke.apply(executable));<br>    Assertions.assertEquals(<span class="hljs-string">&quot;getName&quot;</span>, LambdaHelper.resolve(invoke).getName());<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>进一步封装后：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; T <span class="hljs-title function_">revert</span><span class="hljs-params">(Class&lt;T&gt; clazz, Executable executable)</span> &#123;<br>        <span class="hljs-keyword">final</span> <span class="hljs-type">Method</span> <span class="hljs-variable">funcMethod</span> <span class="hljs-operator">=</span> Steam.of(clazz.getMethods()).findFirst(method -&gt; Modifier.isAbstract(method.getModifiers()))<br>                .orElseThrow(() -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">UtilException</span>(<span class="hljs-string">&quot;not a functional interface&quot;</span>));<br>        <span class="hljs-keyword">final</span> MethodHandle implMethod;<br>        <span class="hljs-keyword">final</span> MethodType instantiatedMethodType;<br>        <span class="hljs-keyword">if</span> (executable <span class="hljs-keyword">instanceof</span> Method) &#123;<br>            <span class="hljs-keyword">final</span> <span class="hljs-type">Method</span> <span class="hljs-variable">method</span> <span class="hljs-operator">=</span> (Method) executable;<br>            implMethod = ((SerSupp&lt;MethodHandle&gt;) () -&gt; MethodHandles.lookup().unreflect(method)).get();<br>            instantiatedMethodType = MethodType.methodType(method.getReturnType(), method.getDeclaringClass(), method.getParameterTypes());<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">final</span> Constructor&lt;?&gt; constructor = (Constructor&lt;?&gt;) executable;<br>            implMethod = ((SerSupp&lt;MethodHandle&gt;) () -&gt; MethodHandles.lookup().unreflectConstructor(constructor)).get();<br>            instantiatedMethodType = MethodType.methodType(constructor.getDeclaringClass(), constructor.getParameterTypes());<br>        &#125;<br>        <span class="hljs-keyword">final</span> <span class="hljs-type">CallSite</span> <span class="hljs-variable">callSite</span> <span class="hljs-operator">=</span> ((SerSupp&lt;CallSite&gt;) () -&gt;<br>                Serializable.class.isAssignableFrom(clazz) ?<br>                        LambdaMetafactory.altMetafactory(<br>                                MethodHandles.lookup(),<br>                                funcMethod.getName(),<br>                                MethodType.methodType(clazz),<br>                                MethodType.methodType(funcMethod.getReturnType(), funcMethod.getParameterTypes()),<br>                                implMethod,<br>                                instantiatedMethodType,<br>                                LambdaMetafactory.FLAG_SERIALIZABLE<br>                        ) :<br>                        LambdaMetafactory.metafactory(<br>                                MethodHandles.lookup(),<br>                                funcMethod.getName(),<br>                                MethodType.methodType(clazz),<br>                                MethodType.methodType(funcMethod.getReturnType(), funcMethod.getParameterTypes()),<br>                                implMethod,<br>                                instantiatedMethodType<br>                        )<br>        ).get();<br>        <span class="hljs-keyword">final</span> <span class="hljs-type">MethodHandle</span> <span class="hljs-variable">target</span> <span class="hljs-operator">=</span> callSite.getTarget();<br>        <span class="hljs-keyword">return</span> ((SerSupp&lt;T&gt;) () -&gt; SerFunc.&lt;Object, T&gt;cast().apply(target.invoke())).get();<br>    &#125;<br></code></pre></td></tr></table></figure>
-
 <p>使用方式：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Test</span><br><span class="hljs-keyword">void</span> <span class="hljs-title function_">testRevert</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">LambdaExecutable</span> <span class="hljs-variable">getName</span> <span class="hljs-operator">=</span> LambdaHelper.&lt;SerFunc&lt;LambdaExecutable, String&gt;&gt;resolve(LambdaExecutable::getName);<br>    <span class="hljs-keyword">final</span> SerFunc&lt;LambdaExecutable, String&gt; revertedGetName = LambdaHelper.revert(SerFunc.class, getName.getExecutable());<br>    Assertions.assertEquals(revertedGetName.apply(getName), getName.getName());<br><br>    <span class="hljs-keyword">final</span> <span class="hljs-type">LambdaExecutable</span> <span class="hljs-variable">constructor</span> <span class="hljs-operator">=</span> LambdaHelper.&lt;SerSupp&lt;LambdaExecutable&gt;&gt;resolve(LambdaExecutable::<span class="hljs-keyword">new</span>);<br>    <span class="hljs-keyword">final</span> SerSupp&lt;LambdaExecutable&gt; revertedConstructor = LambdaHelper.revert(SerSupp.class, constructor.getExecutable());<br>    Assertions.assertEquals(LambdaExecutable.class, revertedConstructor.get().getClass());<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>源码地址：<a target="_blank" rel="noopener" href="https://gitee.com/VampireAchao/stream-query">https://gitee.com/VampireAchao/stream-query</a></p>
 
     </div>
@@ -477,6 +474,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -529,12 +532,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -553,61 +550,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/07/29/Apache-ShenYu%E5%AE%9E%E7%8E%B0%E6%96%B0%E7%99%BB%E5%BD%95%E5%90%8E%E8%AE%A9%E5%85%B6%E4%BB%96token%E5%A4%B1%E6%95%88/">Apache ShenYu实现新登录后让其他token失效</a>
+                    <a href="/2025/07/20/Cocos2d-x/">Cocos2d-x</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/08/MybatisPlus%E9%80%9A%E7%94%A8%E6%9E%9A%E4%B8%BE/">MybatisPlus通用枚举</a>
+                    <a href="/2025/09/21/DeepCode/">DeepCode</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/03/21/apache-shenyu%E5%A4%84%E7%90%86%E4%BF%AE%E6%94%B9%E4%BA%86context-path%E5%90%8Edashboard%E6%B2%A1%E6%9C%89%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98/">apache-shenyu处理修改了context-path后dashboard没有同步问题</a>
+                    <a href="/2025/01/20/SwipeRecyclerView/">SwipeRecyclerView</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/09/27/graphql-java/">graphql-java</a>
+                    <a href="/2024/04/14/android-agent-web%E4%B8%ADjs-bridge%E6%A1%88%E4%BE%8B/">android-agent-web中js-bridge案例</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/06/08/js-as%E5%85%B3%E9%94%AE%E5%AD%97/">js as关键字</a>
+                    <a href="/2020/07/03/js%E6%97%B6%E9%97%B4%E8%BD%AC%E6%8D%A2/">js时间转换</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/02/25/mysql%E4%B8%AD%E6%9D%A1%E4%BB%B6%E5%87%BD%E6%95%B0/">mysql中条件函数</a>
+                    <a href="/2025/05/17/pickr/">pickr</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/09/16/tldraw/">tldraw</a>
+                    <a href="/2024/09/23/position-try-fallbacks/">position-try-fallbacks</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/06/%E7%BC%96%E5%86%99mybatis%E8%84%B1%E6%95%8F%E6%8F%92%E4%BB%B6/">编写mybatis脱敏插件</a>
+                    <a href="/2021/08/06/%E4%BB%A3%E7%A0%81%E6%96%B9%E5%BC%8F%E5%BC%95%E5%85%A5iconfont%E5%9B%BE%E6%A0%87/">代码方式引入iconfont图标</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/18/%E8%8E%B7%E5%8F%96%E5%8C%85%E8%A3%85%E5%BC%82%E5%B8%B8%E4%B8%AD%E7%9C%9F%E5%AE%9E%E5%BC%82%E5%B8%B8/">获取包装异常中真实异常</a>
+                    <a href="/2023/03/17/%E5%85%B3%E8%81%94%E6%9B%B4%E6%96%B0%E5%B0%81%E8%A3%85%EF%BC%88%E4%BA%8C%EF%BC%89/">关联更新封装（二）</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/22/%E9%9A%8F%E6%9C%BA%E7%AB%AF%E5%8F%A3/">随机端口</a>
+                    <a href="/2022/01/09/%E5%AF%B9null%E5%80%BC%E5%8F%8B%E5%A5%BD%E7%9A%84Collectors-groupingBy/">对null值友好的Collectors.groupingBy</a>
                 </span>
             </li>
             
@@ -640,73 +637,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 18.459279227585387px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 16.074546619797047px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 15.520623071784879px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.537376766035173px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 17.32453875726015px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 17.74609543795045px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 17.587891778868283px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.72338032675528px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.14528046193312px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.02354412626498px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 12.750467816569378px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 9.239193502999395px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 19.84206367430489px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 11.821879808596659px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 17.147320301205532px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 14.42242969697786px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.99559330805038px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.28923736717139px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 13.606249381894024px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 9.869610716869222px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 11.076899807857517px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 10.133671134835172px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 9.148108740896843px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.16424082232153px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 8.634343618535947px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 16.12203194253071px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 16.249468889338072px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 14.07576339724475px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 14.19780132715833px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 8.668978884524106px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 18.998520024525146px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 9.274277565810372px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 15.854642084090855px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 9.624471079572713px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 10.10863883302071px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 19.9362842384467px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 8.98662035764964px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 14.674506647747478px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 13.035555347468996px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 19.417176026877346px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 19.633699690788237px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.607431566515416px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 13.26702149468269px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 8.660467066520683px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 12.570924635635937px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 9.100631357706646px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 10.574779252683186px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 16.181832864320377px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.179590102620782px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 18.183143679792067px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 13.973768053322217px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 10.655391658161264px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 16.6534028290594px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 13.341952654144254px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.360608877901313px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.549556719313756px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 9.229008650389424px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 15.693016347858446px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 15.51334564484953px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 14.415686326885293px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 17.349137051085037px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 19.198702943450044px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 14.007281164358293px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 12.924006547018262px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 9.199224047839039px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 16.743599758036684px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 9.078260265460246px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.637623347659506px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

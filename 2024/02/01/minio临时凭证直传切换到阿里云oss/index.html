@@ -15,7 +15,7 @@
   
   
   <title>minio临时凭证直传切换到阿里云oss | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>minio临时凭证直传切换到阿里云oss</span>
     </div>
@@ -401,13 +401,10 @@
 </blockquote>
 <p>代码非常简单，像之前的实现：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> cn.hutool.core.date.DateUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.io.file.FileNameUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.lang.UUID;<br><span class="hljs-keyword">import</span> cn.hutool.core.text.StrPool;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.StrUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.URLUtil;<br><span class="hljs-keyword">import</span> cn.hutool.http.ContentType;<br><span class="hljs-keyword">import</span> com.aliyun.oss.HttpMethod;<br><span class="hljs-keyword">import</span> com.aliyun.oss.OSS;<br><span class="hljs-keyword">import</span> com.aliyun.oss.model.DeleteObjectsRequest;<br><span class="hljs-keyword">import</span> com.aliyun.oss.model.GeneratePresignedUrlRequest;<br><span class="hljs-keyword">import</span> com.namaste.hsswobjectstorage.api.service.IOssService;<br><span class="hljs-keyword">import</span> jakarta.annotation.Resource;<br><span class="hljs-keyword">import</span> org.springframework.beans.factory.annotation.Value;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Service;<br><span class="hljs-keyword">import</span> org.springframework.util.ObjectUtils;<br><br><span class="hljs-keyword">import</span> java.util.Date;<br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> java.util.stream.Collectors.*;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * AliOssServiceImpl</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> achao@apache.org</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AliOssServiceImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">IOssService</span> &#123;<br><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> OSS ossClient;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> rootPath bucket是配死的</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> fileName fileName</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 预签名url</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getPresignedUrlPut</span><span class="hljs-params">(String bucket, String fileName)</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">expiration</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Date</span>().getTime() + <span class="hljs-number">3600</span> * <span class="hljs-number">1000L</span>);<br>        <span class="hljs-type">var</span> <span class="hljs-variable">objectName</span> <span class="hljs-operator">=</span> DateUtil.date().toDateStr() +<br>                FileNameUtil.UNIX_SEPARATOR +<br>                UUID.fastUUID() +<br>                DateUtil.date().toTimestamp() +<br>                StrPool.DOT +<br>                FileNameUtil.extName(fileName);<br>        <span class="hljs-type">GeneratePresignedUrlRequest</span> <span class="hljs-variable">request</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">GeneratePresignedUrlRequest</span>(bucket, objectName, HttpMethod.PUT);<br>        request.setExpiration(expiration);<br>        request.setContentType(ContentType.OCTET_STREAM.getValue());<br>        <span class="hljs-keyword">return</span> ossClient.generatePresignedUrl(request).toString();<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteBatch</span><span class="hljs-params">(List&lt;String&gt; fileUrls)</span> &#123;<br>        <span class="hljs-keyword">if</span> (ObjectUtils.isEmpty(fileUrls)) &#123;<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">bucketObjectsMap</span> <span class="hljs-operator">=</span> fileUrls.stream()<br>                .collect(groupingBy(<br>                        url -&gt; url.substring(url.indexOf(StrPool.SLASH) + <span class="hljs-number">2</span>, url.indexOf(StrPool.DOT)),<br>                        mapping(url -&gt; StrUtil.removePrefix(URLUtil.getPath(url), StrPool.SLASH),<br>                                toList())));<br>        bucketObjectsMap.entrySet().stream()<br>                .map(entry -&gt; &#123;<br>                    <span class="hljs-type">var</span> <span class="hljs-variable">req</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DeleteObjectsRequest</span>(entry.getKey());<br>                    req.setKeys(entry.getValue());<br>                    <span class="hljs-keyword">return</span> req;<br>                &#125;).forEach(ossClient::deleteObjects);<br>    &#125;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
-
 <p><code>minio</code>的实现：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><br><span class="hljs-keyword">import</span> cn.hutool.core.date.DateUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.io.file.FileNameUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.lang.UUID;<br><span class="hljs-keyword">import</span> cn.hutool.core.net.url.UrlBuilder;<br><span class="hljs-keyword">import</span> cn.hutool.core.text.StrPool;<br><br><span class="hljs-keyword">import</span> io.minio.RemoveObjectsArgs;<br><span class="hljs-keyword">import</span> io.minio.messages.DeleteObject;<br><span class="hljs-keyword">import</span> jakarta.annotation.Resource;<br><span class="hljs-keyword">import</span> org.apache.camel.ProducerTemplate;<br><span class="hljs-keyword">import</span> org.apache.camel.component.minio.MinioConstants;<br><span class="hljs-keyword">import</span> org.springframework.beans.factory.annotation.Value;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Lazy;<br><span class="hljs-keyword">import</span> org.springframework.util.ObjectUtils;<br><br><span class="hljs-keyword">import</span> java.time.Duration;<br><span class="hljs-keyword">import</span> java.util.List;<br><span class="hljs-keyword">import</span> java.util.Map;<br><br><span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> java.util.stream.Collectors.*;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * OssServiceImpl</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao&lt;achao @ hutool.cn&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2023/10/5</span><br><span class="hljs-comment"> */</span><br><span class="hljs-comment">//@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MinioOssServiceImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">IOssService</span> &#123;<br><br>    <span class="hljs-meta">@Value(&quot;$&#123;camel.component.minio.presigned-url-expire&#125;&quot;)</span><br>    <span class="hljs-keyword">private</span> Duration presignedUrlExpire;<br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> ProducerTemplate producerTemplate;<br>    <span class="hljs-meta">@Lazy</span><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> IOssService ossService;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getPresignedUrlPut</span><span class="hljs-params">(String bucket, String fileName)</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">objectName</span> <span class="hljs-operator">=</span> DateUtil.date().toDateStr() +<br>                FileNameUtil.UNIX_SEPARATOR +<br>                UUID.fastUUID() +<br>                DateUtil.date().toTimestamp() +<br>                StrPool.DOT +<br>                FileNameUtil.extName(fileName);<br>        <span class="hljs-keyword">return</span> String.valueOf(producerTemplate.requestBodyAndHeaders(<br>                <span class="hljs-string">&quot;direct:createUploadLink&quot;</span>, <span class="hljs-string">&quot;&quot;</span>,<br>                Map.of(MinioConstants.BUCKET_NAME, bucket,<br>                        MinioConstants.OBJECT_NAME, objectName,<br>                        MinioConstants.PRESIGNED_URL_EXPIRATION_TIME, presignedUrlExpire)));<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteBatch</span><span class="hljs-params">(List&lt;String&gt; fileUrls)</span> &#123;<br>        <span class="hljs-keyword">if</span> (ObjectUtils.isEmpty(fileUrls)) &#123;<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">bucketObjectsMap</span> <span class="hljs-operator">=</span> fileUrls.stream().map(path -&gt; UrlBuilder.of(path).getPath())<br>                .collect(groupingBy(path -&gt; path.getSegment(<span class="hljs-number">0</span>), mapping(path -&gt; &#123;<br>                    path.getSegments().remove(<span class="hljs-number">0</span>);<br>                    <span class="hljs-keyword">return</span> String.join(StrPool.SLASH, path.getSegments());<br>                &#125;, toList())));<br>        bucketObjectsMap.entrySet().stream()<br>                .map(entry -&gt; RemoveObjectsArgs.builder()<br>                        .bucket(entry.getKey())<br>                        .objects(entry.getValue().stream().map(DeleteObject::<span class="hljs-keyword">new</span>).toList())<br>                ).parallel()<br>                .forEach(args -&gt; producerTemplate.sendBody(<span class="hljs-string">&quot;direct:deleteBatch&quot;</span>, args));<br>    &#125;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
-
 <p>对应的<code>service</code>：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> com.namaste.enums.GreenLabelEnum;<br><span class="hljs-keyword">import</span> org.dromara.streamquery.stream.core.variable.BoolHelper;<br><br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * IOssService</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao&lt;achao @ hutool.cn&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2023/10/5</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">IOssService</span> &#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取预签名url上传</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> bucket   桶</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> fileName fileName</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 用于上传资源的url</span><br><span class="hljs-comment">     */</span><br>    String <span class="hljs-title function_">getPresignedUrlPut</span><span class="hljs-params">(String bucket, String fileName)</span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 批量删除</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> fileUrls fileUrls</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteBatch</span><span class="hljs-params">(List&lt;String&gt; fileUrls)</span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 内容安全审查</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> img 图片url</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 审查结果</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">default</span> GreenVO <span class="hljs-title function_">green</span><span class="hljs-params">(String img)</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> GreenUtil.inspectImg(img, GreenLabelEnum.LIVE_STREAM_CHECK);<br>        <span class="hljs-type">var</span> <span class="hljs-variable">vo</span> <span class="hljs-operator">=</span> GreenVO.of(result);<br>        <span class="hljs-keyword">if</span> (BoolHelper.isFalsy(vo.getIsViolation())) &#123;<br>            deleteBatch(List.of(img));<br>        &#125;<br>        <span class="hljs-keyword">return</span> vo;<br>    &#125;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
-
 <p><code>test case</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> cn.hutool.core.io.IoUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.net.url.UrlBuilder;<br><span class="hljs-keyword">import</span> cn.hutool.core.net.url.UrlQuery;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.URLUtil;<br><span class="hljs-keyword">import</span> cn.hutool.http.ContentType;<br><span class="hljs-keyword">import</span> cn.hutool.http.HttpUtil;<br><span class="hljs-keyword">import</span> cn.hutool.http.Method;<br><span class="hljs-keyword">import</span> jakarta.annotation.Resource;<br><span class="hljs-keyword">import</span> lombok.SneakyThrows;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Assertions;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Test;<br><span class="hljs-keyword">import</span> org.springframework.boot.test.context.SpringBootTest;<br><br><span class="hljs-keyword">import</span> java.io.FileNotFoundException;<br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * OssServiceTest</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao&lt;achao @ hutool.cn&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2023/10/5</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@SpringBootTest</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">OssServiceTest</span> &#123;<br><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> IOssService ossService;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-meta">@SneakyThrows</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">getUploadSTSAndDeleteBatchTest</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">presignedUrl</span> <span class="hljs-operator">=</span> ossService.getPresignedUrlPut(<span class="hljs-string">&quot;test&quot;</span>, <span class="hljs-string">&quot;test.txt&quot;</span>);<br>        Assertions.assertNotNull(presignedUrl);<br>        <span class="hljs-type">var</span> <span class="hljs-variable">content</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Hello, Minio! Again!&quot;</span>;<br>        <span class="hljs-keyword">try</span> (<span class="hljs-type">var</span> <span class="hljs-variable">response</span> <span class="hljs-operator">=</span> HttpUtil.createRequest(Method.PUT, presignedUrl)<br>                .body(content, <span class="hljs-string">&quot;application/octet-stream&quot;</span>).execute()) &#123;<br>            Assertions.assertTrue(response.isOk());<br>        &#125;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">urlBuilder</span> <span class="hljs-operator">=</span> UrlBuilder.of(presignedUrl).setQuery(<span class="hljs-keyword">new</span> <span class="hljs-title class_">UrlQuery</span>());<br>        Assertions.assertEquals(content,<br>                IoUtil.readUtf8(urlBuilder.toURL().openStream()));<br>        ossService.deleteBatch(List.of(urlBuilder.toString()));<br>        Assertions.assertThrows(FileNotFoundException.class,<br>                () -&gt; IoUtil.readUtf8(urlBuilder.toURL().openStream()));<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">greenNormalTest</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">url</span> <span class="hljs-operator">=</span> [foo];<br>        <span class="hljs-type">var</span> <span class="hljs-variable">bytes</span> <span class="hljs-operator">=</span> IoUtil.readBytes(URLUtil.getStream(URLUtil.url(url)));<br>        <span class="hljs-type">var</span> <span class="hljs-variable">preUrl</span> <span class="hljs-operator">=</span> ossService.getPresignedUrlPut(<span class="hljs-string">&quot;test&quot;</span>, <span class="hljs-string">&quot;normal.jpg&quot;</span>);<br>        <span class="hljs-keyword">try</span> (<span class="hljs-type">var</span> <span class="hljs-variable">response</span> <span class="hljs-operator">=</span> HttpUtil.createRequest(Method.PUT, preUrl).contentType(ContentType.OCTET_STREAM.getValue()).body(bytes).execute()) &#123;<br>            Assertions.assertTrue(response.isOk());<br>            <span class="hljs-type">var</span> <span class="hljs-variable">urlBuilder</span> <span class="hljs-operator">=</span> UrlBuilder.of(preUrl).setQuery(<span class="hljs-keyword">new</span> <span class="hljs-title class_">UrlQuery</span>());<br>            Assertions.assertEquals(bytes.length, IoUtil.readBytes(URLUtil.getStream(urlBuilder.toURL())).length);<br>            <span class="hljs-type">var</span> <span class="hljs-variable">imgUrl</span> <span class="hljs-operator">=</span> urlBuilder.toURL().toString();<br>            <span class="hljs-type">var</span> <span class="hljs-variable">greenVO</span> <span class="hljs-operator">=</span> ossService.green(imgUrl);<br>            Assertions.assertFalse(greenVO.getIsViolation());<br>            Assertions.assertThrows(FileNotFoundException.class,<br>                    () -&gt; IoUtil.readUtf8(urlBuilder.toURL().openStream()));<br><br>        &#125;<br>    &#125;<br><br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">greenYellowTest</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">url</span> <span class="hljs-operator">=</span> [bar];<br>        <span class="hljs-type">var</span> <span class="hljs-variable">bytes</span> <span class="hljs-operator">=</span> IoUtil.readBytes(URLUtil.getStream(URLUtil.url(url)));<br>        <span class="hljs-type">var</span> <span class="hljs-variable">preUrl</span> <span class="hljs-operator">=</span> ossService.getPresignedUrlPut(<span class="hljs-string">&quot;test&quot;</span>, <span class="hljs-string">&quot;normal.jpg&quot;</span>);<br>        <span class="hljs-keyword">try</span> (<span class="hljs-type">var</span> <span class="hljs-variable">response</span> <span class="hljs-operator">=</span> HttpUtil.createRequest(Method.PUT, preUrl).body(bytes).execute()) &#123;<br>            Assertions.assertTrue(response.isOk());<br>            <span class="hljs-type">var</span> <span class="hljs-variable">urlBuilder</span> <span class="hljs-operator">=</span> UrlBuilder.of(preUrl).setQuery(<span class="hljs-keyword">new</span> <span class="hljs-title class_">UrlQuery</span>());<br>            Assertions.assertEquals(bytes.length, IoUtil.readBytes(URLUtil.getStream(urlBuilder.toURL())).length);<br>            <span class="hljs-type">var</span> <span class="hljs-variable">imgUrl</span> <span class="hljs-operator">=</span> urlBuilder.toURL().toString();<br>            <span class="hljs-type">var</span> <span class="hljs-variable">greenVO</span> <span class="hljs-operator">=</span> ossService.green(imgUrl);<br>            Assertions.assertTrue(greenVO.getIsViolation());<br>            <span class="hljs-type">var</span> <span class="hljs-variable">readBytes</span> <span class="hljs-operator">=</span> IoUtil.readBytes(URLUtil.getStream(urlBuilder.toURL()));<br>            Assertions.assertEquals(readBytes.length, bytes.length);<br>        &#125;<br>    &#125;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
 
@@ -475,6 +472,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -527,12 +530,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -551,61 +548,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/09/Bluebird/">Bluebird</a>
+                    <a href="/2025/07/20/Cocos2d-x/">Cocos2d-x</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/12/10/Calendar%E7%9A%84%E8%8E%B7%E5%8F%96date%E4%B8%AD%E5%B9%B4%E6%9C%88%E6%97%A5%E6%97%B6%E5%88%86%E7%A7%92/">Calendar的获取date中年月日时分秒</a>
+                    <a href="/2025/01/22/March7thAssistant/">March7thAssistant</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/05/20/Mapper-Struct-Mapper-Generator/">Mapper Struct Mapper Generator</a>
+                    <a href="/2024/04/21/OceanBase%E5%BC%80%E5%8F%91%E8%80%85%E5%A4%A7%E4%BC%9A/">OceanBase开发者大会</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/06/13/VIN%E8%A7%A3%E6%9E%90/">VIN解析</a>
+                    <a href="/2021/12/19/flex%E5%B8%83%E5%B1%80/">flex布局</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/04/12/markdown%E7%94%BB%E6%B5%81%E7%A8%8B%E5%9B%BE/">markdown画流程图</a>
+                    <a href="/2024/06/17/natapp%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E8%BF%9E%E6%8E%A5%E4%B8%8D%E4%B8%8A/">natapp内网穿透连接不上</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/06/16/mermaid-live-editor/">mermaid-live-editor</a>
+                    <a href="/2025/12/18/opencode/">opencode</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/11/redis%E7%9A%84manager%E5%B1%82%E5%BA%94%E7%94%A8/">redis的manager层应用</a>
+                    <a href="/2024/03/18/r2dbc%E8%87%AA%E5%8A%A8%E5%A1%AB%E5%85%85%E5%AE%A1%E8%AE%A1%E5%AD%97%E6%AE%B5/">r2dbc自动填充审计字段</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/26/reverse/">reverse</a>
+                    <a href="/2021/07/11/springboot%E5%BB%BA%E7%AB%99%E8%84%9A%E6%89%8B%E6%9E%B6/">springboot建站脚手架</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/12/29/spring-gateway%E8%B7%A8%E5%9F%9F%E5%9D%91/">spring-gateway跨域坑</a>
+                    <a href="/2022/12/15/%E4%BD%8E%E4%BB%BFlusaxweb%E9%BC%A0%E6%A0%87/">低仿lusaxweb鼠标</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/09/26/pipx%E5%9C%A8%E9%9A%94%E7%A6%BB%E7%8E%AF%E5%A2%83%E4%B8%AD%E8%BF%90%E8%A1%8Cpython%E5%BA%94%E7%94%A8/">pipx在隔离环境中运行python应用</a>
+                    <a href="/2024/12/22/%E5%BC%80%E6%BA%90%E6%8C%89%E9%94%AE%E7%9B%91%E6%B5%8Bkeycastr/">开源按键监测keycastr</a>
                 </span>
             </li>
             
@@ -638,73 +635,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 10.451377881981077px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 9.670804257780649px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 14.986439567006592px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.914062779144746px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 18.320527300712456px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 19.277800894710754px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 16.10476879520845px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.305815272600292px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.638521766603763px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.584263689003933px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 9.305136563849372px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 15.009911262470318px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 17.648148951715637px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 13.6339036520741px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 13.106655211885126px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.097835072214824px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.627307315835928px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.38825885609128px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 15.064164777997078px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 14.637035957303539px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 9.369712463975496px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 15.354860446715326px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 10.972827014755207px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 9.226788107443646px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 11.58219160635334px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 13.898804160438717px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 9.448329109128704px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 12.643305806140578px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 15.70994753552759px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 10.78398439516014px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 17.755193351840987px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 12.508380250693111px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.15634305328021px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 12.421360521239041px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 19.56073984825115px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 11.370772171284587px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.620327670921645px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 12.123626922796973px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 19.49442049119595px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 10.483576980909195px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 17.531339813093155px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.684976713498314px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 18.43429643461923px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 16.590276553172433px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 14.266569467562546px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 12.791430770859282px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 14.99625655149169px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 14.931253328867896px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 14.486197382337807px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 12.193060408907288px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 9.182548080467686px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 8.65301815747282px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 15.72833140045346px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 8.966237902667395px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.9056552653819px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10.34467292279469px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 10.759906372583018px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 12.714725863480032px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 17.762303959796604px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 14.331250407743948px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 9.729755600563811px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 14.190630537911378px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 15.316342938839274px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 12.21642735759114px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 8.917731289193533px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 9.011379885167774px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 18.874129402354065px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 17.53039006436331px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

@@ -15,7 +15,7 @@
   
   
   <title>MP批插优化 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>MP批插优化</span>
     </div>
@@ -401,14 +401,18 @@
 </blockquote>
 <p>看到这篇文章</p>
 <p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/NkP6kND6wQZqTd_gIuaYAw">https://mp.weixin.qq.com/s/NkP6kND6wQZqTd_gIuaYAw</a></p>
-<h1 id="MyBatisPlus-高并发场景下的ID生成优化：分布式序列号服务实践"><a href="#MyBatisPlus-高并发场景下的ID生成优化：分布式序列号服务实践" class="headerlink" title="MyBatisPlus 高并发场景下的ID生成优化：分布式序列号服务实践"></a>MyBatisPlus 高并发场景下的ID生成优化：分布式序列号服务实践</h1><h2 id="突破分布式ID的性能瓶颈"><a href="#突破分布式ID的性能瓶颈" class="headerlink" title="突破分布式ID的性能瓶颈"></a>突破分布式ID的性能瓶颈</h2><p>某电商平台在促销活动期间面临订单创建峰值压力，使用MyBatisPlus默认的雪花算法生成ID时，出现以下问题：</p>
+<h1 id="mybatisplus-高并发场景下的id生成优化分布式序列号服务实践"><a class="markdownIt-Anchor" href="#mybatisplus-高并发场景下的id生成优化分布式序列号服务实践"></a> MyBatisPlus 高并发场景下的ID生成优化：分布式序列号服务实践</h1>
+<h2 id="突破分布式id的性能瓶颈"><a class="markdownIt-Anchor" href="#突破分布式id的性能瓶颈"></a> 突破分布式ID的性能瓶颈</h2>
+<p>某电商平台在促销活动期间面临订单创建峰值压力，使用MyBatisPlus默认的雪花算法生成ID时，出现以下问题：</p>
 <ol>
 <li>时间戳精度不足导致ID碰撞率升高（单机QPS超5000时）</li>
 <li>服务器时钟回拨引发的批量插入失败</li>
 <li>长ID对存储空间的额外消耗（18位 vs 传统13位）</li>
 </ol>
-<p>压力测试显示，在高并发场景下单节点生成ID的吞吐量上限为1.2万&#x2F;秒，成为系统瓶颈。通过改造ID生成机制，我们实现了单机5万&#x2F;秒的ID生成速度，同时将存储空间压缩40%。</p>
-<h2 id="混合式ID生成架构设计"><a href="#混合式ID生成架构设计" class="headerlink" title="混合式ID生成架构设计"></a>混合式ID生成架构设计</h2><h3 id="技术方案对比"><a href="#技术方案对比" class="headerlink" title="技术方案对比"></a>技术方案对比</h3><table>
+<p>压力测试显示，在高并发场景下单节点生成ID的吞吐量上限为1.2万/秒，成为系统瓶颈。通过改造ID生成机制，我们实现了单机5万/秒的ID生成速度，同时将存储空间压缩40%。</p>
+<h2 id="混合式id生成架构设计"><a class="markdownIt-Anchor" href="#混合式id生成架构设计"></a> 混合式ID生成架构设计</h2>
+<h3 id="技术方案对比"><a class="markdownIt-Anchor" href="#技术方案对比"></a> 技术方案对比</h3>
+<table>
 <thead>
 <tr>
 <th>方案类型</th>
@@ -418,9 +422,10 @@
 <th>实现复杂度</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>原生雪花算法</td>
-<td>1.2万&#x2F;s</td>
+<td>1.2万/s</td>
 <td>0.01%</td>
 <td>强依赖</td>
 <td>低</td>
@@ -434,26 +439,30 @@
 </tr>
 <tr>
 <td>数据库序列</td>
-<td>800&#x2F;s</td>
+<td>800/s</td>
 <td>无</td>
 <td>无</td>
 <td>中</td>
 </tr>
 <tr>
 <td><strong>混合分段式</strong></td>
-<td><strong>5万+&#x2F;s</strong></td>
+<td><strong>5万+/s</strong></td>
 <td><strong>无</strong></td>
 <td><strong>弱依赖</strong></td>
 <td><strong>高</strong></td>
 </tr>
-</tbody></table>
-<h2 id="核心实现模块"><a href="#核心实现模块" class="headerlink" title="核心实现模块"></a>核心实现模块</h2><h3 id="分布式号段服务端"><a href="#分布式号段服务端" class="headerlink" title="分布式号段服务端"></a>分布式号段服务端</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@RestController</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SegmentController</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, AtomicLong&gt; segmentPool = <br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;();<br><br>    <span class="hljs-meta">@PostMapping(&quot;/segment/apply&quot;)</span><br>    <span class="hljs-keyword">public</span> SegmentResponse <span class="hljs-title function_">applySegment</span><span class="hljs-params">(</span><br><span class="hljs-params">        <span class="hljs-meta">@RequestParam</span> String bizTag, </span><br><span class="hljs-params">        <span class="hljs-meta">@RequestParam</span> <span class="hljs-type">int</span> step)</span> &#123;<br><br>        <span class="hljs-type">long</span> <span class="hljs-variable">currentMax</span> <span class="hljs-operator">=</span> segmentPool.compute(bizTag, (k, v) -&gt; <br>            v == <span class="hljs-literal">null</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicLong</span>(<span class="hljs-number">0</span>) : v<br>        ).addAndGet(step);<br><br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SegmentResponse</span>(<br>            currentMax - step + <span class="hljs-number">1</span>, <br>            currentMax<br>        );<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h3 id="客户端本地缓冲管理器"><a href="#客户端本地缓冲管理器" class="headerlink" title="客户端本地缓冲管理器"></a>客户端本地缓冲管理器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SegmentBuffer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">InitializingBean</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> Segment currentSegment;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> Segment nextSegment;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ExecutorService</span> <span class="hljs-variable">loader</span> <span class="hljs-operator">=</span> <br>        Executors.newSingleThreadExecutor();<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> Long <span class="hljs-title function_">nextId</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (currentSegment.getCurrent() &gt; currentSegment.getMax()) &#123;<br>            <span class="hljs-keyword">if</span> (nextSegment == <span class="hljs-literal">null</span> || nextSegment.getCurrent() &gt; nextSegment.getMax()) &#123;<br>                loadSegments();<br>            &#125;<br>            currentSegment = nextSegment;<br>        &#125;<br>        <span class="hljs-keyword">return</span> currentSegment.incrementAndGet();<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">loadSegments</span><span class="hljs-params">()</span> &#123;<br>        loader.submit(() -&gt; &#123;<br>            nextSegment = fetchNewSegment();<br>        &#125;);<br>    &#125;<br><br>    <span class="hljs-comment">// 省略容错机制</span><br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h3 id="MyBatisPlus-自定义ID生成器"><a href="#MyBatisPlus-自定义ID生成器" class="headerlink" title="MyBatisPlus 自定义ID生成器"></a>MyBatisPlus 自定义ID生成器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">HybridIdGenerator</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">IdentifierGenerator</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> SegmentBuffer buffer;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Number <span class="hljs-title function_">nextId</span><span class="hljs-params">(Object entity)</span> &#123;<br>        <span class="hljs-keyword">return</span> buffer.nextId();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="性能对比测试"><a href="#性能对比测试" class="headerlink" title="性能对比测试"></a>性能对比测试</h2><h3 id="压力测试结果（单节点）"><a href="#压力测试结果（单节点）" class="headerlink" title="压力测试结果（单节点）"></a>压力测试结果（单节点）</h3><table>
+</tbody>
+</table>
+<h2 id="核心实现模块"><a class="markdownIt-Anchor" href="#核心实现模块"></a> 核心实现模块</h2>
+<h3 id="分布式号段服务端"><a class="markdownIt-Anchor" href="#分布式号段服务端"></a> 分布式号段服务端</h3>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@RestController</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SegmentController</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, AtomicLong&gt; segmentPool = <br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;();<br><br>    <span class="hljs-meta">@PostMapping(&quot;/segment/apply&quot;)</span><br>    <span class="hljs-keyword">public</span> SegmentResponse <span class="hljs-title function_">applySegment</span><span class="hljs-params">(</span><br><span class="hljs-params">        <span class="hljs-meta">@RequestParam</span> String bizTag, </span><br><span class="hljs-params">        <span class="hljs-meta">@RequestParam</span> <span class="hljs-type">int</span> step)</span> &#123;<br><br>        <span class="hljs-type">long</span> <span class="hljs-variable">currentMax</span> <span class="hljs-operator">=</span> segmentPool.compute(bizTag, (k, v) -&gt; <br>            v == <span class="hljs-literal">null</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">AtomicLong</span>(<span class="hljs-number">0</span>) : v<br>        ).addAndGet(step);<br><br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SegmentResponse</span>(<br>            currentMax - step + <span class="hljs-number">1</span>, <br>            currentMax<br>        );<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="客户端本地缓冲管理器"><a class="markdownIt-Anchor" href="#客户端本地缓冲管理器"></a> 客户端本地缓冲管理器</h3>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SegmentBuffer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">InitializingBean</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> Segment currentSegment;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> Segment nextSegment;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ExecutorService</span> <span class="hljs-variable">loader</span> <span class="hljs-operator">=</span> <br>        Executors.newSingleThreadExecutor();<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> Long <span class="hljs-title function_">nextId</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (currentSegment.getCurrent() &gt; currentSegment.getMax()) &#123;<br>            <span class="hljs-keyword">if</span> (nextSegment == <span class="hljs-literal">null</span> || nextSegment.getCurrent() &gt; nextSegment.getMax()) &#123;<br>                loadSegments();<br>            &#125;<br>            currentSegment = nextSegment;<br>        &#125;<br>        <span class="hljs-keyword">return</span> currentSegment.incrementAndGet();<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">loadSegments</span><span class="hljs-params">()</span> &#123;<br>        loader.submit(() -&gt; &#123;<br>            nextSegment = fetchNewSegment();<br>        &#125;);<br>    &#125;<br><br>    <span class="hljs-comment">// 省略容错机制</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="mybatisplus-自定义id生成器"><a class="markdownIt-Anchor" href="#mybatisplus-自定义id生成器"></a> MyBatisPlus 自定义ID生成器</h3>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">HybridIdGenerator</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">IdentifierGenerator</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> SegmentBuffer buffer;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Number <span class="hljs-title function_">nextId</span><span class="hljs-params">(Object entity)</span> &#123;<br>        <span class="hljs-keyword">return</span> buffer.nextId();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="性能对比测试"><a class="markdownIt-Anchor" href="#性能对比测试"></a> 性能对比测试</h2>
+<h3 id="压力测试结果单节点"><a class="markdownIt-Anchor" href="#压力测试结果单节点"></a> 压力测试结果（单节点）</h3>
+<table>
 <thead>
 <tr>
 <th>并发线程数</th>
@@ -462,41 +471,52 @@
 <th>内存占用对比</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>100</td>
-<td>9,800&#x2F;s</td>
-<td>48,200&#x2F;s</td>
+<td>9,800/s</td>
+<td>48,200/s</td>
 <td>+15%</td>
 </tr>
 <tr>
 <td>500</td>
-<td>12,400&#x2F;s</td>
-<td>51,300&#x2F;s</td>
+<td>12,400/s</td>
+<td>51,300/s</td>
 <td>+18%</td>
 </tr>
 <tr>
 <td>1000</td>
-<td>11,900&#x2F;s</td>
-<td>49,800&#x2F;s</td>
+<td>11,900/s</td>
+<td>49,800/s</td>
 <td>+22%</td>
 </tr>
-</tbody></table>
-<h3 id="故障模拟场景"><a href="#故障模拟场景" class="headerlink" title="故障模拟场景"></a>故障模拟场景</h3><ol>
+</tbody>
+</table>
+<h3 id="故障模拟场景"><a class="markdownIt-Anchor" href="#故障模拟场景"></a> 故障模拟场景</h3>
+<ol>
 <li><strong>时钟回拨5秒</strong>：原生方案产生1300个异常，混合方案零异常</li>
 <li><strong>服务端宕机</strong>：客户端缓存支持15分钟正常运作</li>
 <li><strong>网络抖动</strong>：自动降级为本地随机数补充模式</li>
 </ol>
-<h2 id="工程化实践要点"><a href="#工程化实践要点" class="headerlink" title="工程化实践要点"></a>工程化实践要点</h2><ol>
-<li><p><strong>双缓冲预热机制</strong>：提前加载下一个号段避免等待</p>
+<h2 id="工程化实践要点"><a class="markdownIt-Anchor" href="#工程化实践要点"></a> 工程化实践要点</h2>
+<ol>
+<li>
+<p><strong>双缓冲预热机制</strong>：提前加载下一个号段避免等待</p>
 </li>
-<li><p><strong>动态步长调整</strong>：根据吞吐量自动计算最佳号段长度</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 动态步长算法示例</span><br><span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">calculateStep</span><span class="hljs-params">(<span class="hljs-type">int</span> currentQPS)</span> &#123;<br> <span class="hljs-type">int</span> <span class="hljs-variable">baseStep</span> <span class="hljs-operator">=</span> <span class="hljs-number">1000</span>;<br> <span class="hljs-type">double</span> <span class="hljs-variable">factor</span> <span class="hljs-operator">=</span> Math.log10(currentQPS / <span class="hljs-number">1000.0</span>);<br> <span class="hljs-keyword">return</span> (<span class="hljs-type">int</span>) (baseStep * Math.pow(<span class="hljs-number">2</span>, factor));<br>&#125;<br></code></pre></td></tr></table></figure></li>
-<li><p><strong>异常熔断策略</strong>：在服务中心不可用时切换降级模式</p>
+<li>
+<p><strong>动态步长调整</strong>：根据吞吐量自动计算最佳号段长度</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 动态步长算法示例</span><br><span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">calculateStep</span><span class="hljs-params">(<span class="hljs-type">int</span> currentQPS)</span> &#123;<br> <span class="hljs-type">int</span> <span class="hljs-variable">baseStep</span> <span class="hljs-operator">=</span> <span class="hljs-number">1000</span>;<br> <span class="hljs-type">double</span> <span class="hljs-variable">factor</span> <span class="hljs-operator">=</span> Math.log10(currentQPS / <span class="hljs-number">1000.0</span>);<br> <span class="hljs-keyword">return</span> (<span class="hljs-type">int</span>) (baseStep * Math.pow(<span class="hljs-number">2</span>, factor));<br>&#125;<br></code></pre></td></tr></table></figure>
 </li>
-<li><p><strong>ID压缩存储</strong>：采用Base62编码缩短长度</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">原始长整型：135790246813579 (15位)<br>Base62编码：2Cst5WJ (7位)<br></code></pre></td></tr></table></figure></li>
+<li>
+<p><strong>异常熔断策略</strong>：在服务中心不可用时切换降级模式</p>
+</li>
+<li>
+<p><strong>ID压缩存储</strong>：采用Base62编码缩短长度</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">原始长整型：135790246813579 (15位)<br>Base62编码：2Cst5WJ (7位)<br></code></pre></td></tr></table></figure>
+</li>
 </ol>
-<h2 id="实施效果"><a href="#实施效果" class="headerlink" title="实施效果"></a>实施效果</h2><p>在某物流系统订单模块的应用数据：</p>
+<h2 id="实施效果"><a class="markdownIt-Anchor" href="#实施效果"></a> 实施效果</h2>
+<p>在某物流系统订单模块的应用数据：</p>
 <ul>
 <li>日均处理订单量从360万提升至2100万</li>
 <li>数据库插入耗时降低58%</li>
@@ -569,6 +589,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -621,12 +647,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -645,61 +665,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/09/22/AI-For-Beginners/">AI-For-Beginners</a>
+                    <a href="/2025/01/29/DeepSpeech/">DeepSpeech</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/06/24/MybatisPlus%E8%87%AA%E5%8A%A8%E5%A1%AB%E5%85%85%E5%BF%BD%E7%95%A5%E5%AD%98%E5%9C%A8%E5%80%BC%E7%9B%B4%E6%8E%A5%E5%A1%AB%E5%85%85/">MybatisPlus自动填充忽略存在值直接填充</a>
+                    <a href="/2025/07/30/healthchecks/">healthchecks</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/05/25/centos-80%E7%AB%AF%E5%8F%A3%E8%A2%AB%E5%8D%A0%E7%94%A8%E6%8E%92%E6%9F%A5-%E8%A7%A3%E5%86%B3/">centos 80端口被占用排查+解决</a>
+                    <a href="/2022/03/02/image-comparison/">image-comparison</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/24/promisees/">promisees</a>
+                    <a href="/2023/02/06/js%E5%8F%91%E9%80%81%E9%80%9A%E7%9F%A5/">js发送通知</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/05/29/stream-query/">stream-query</a>
+                    <a href="/2025/12/20/social-engineer-toolkit/">social-engineer-toolkit</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/10/04/tunix/">tunix</a>
+                    <a href="/2025/11/02/torchforge/">torchforge</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/22/webpack%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86/">webpack资源管理</a>
+                    <a href="/2023/08/21/vuepress2%E4%B8%80%E6%AC%A1%E6%80%A7%E8%8E%B7%E5%8F%96%E6%89%80%E6%9C%89frontmatter/">vuepress2一次性获取所有frontmatter</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/12/win11%E5%91%BD%E4%BB%A4/">win11命令</a>
+                    <a href="/2020/09/20/%E6%96%B0%E7%94%B5%E8%84%91%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/">新电脑搭建博客</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/04/28/%E4%B8%8D%E8%A6%81%E7%94%A8%E9%AD%94%E6%B3%95%E5%80%BC%EF%BC%81%EF%BC%81%EF%BC%81/">不要用魔法值！！！</a>
+                    <a href="/2024/09/11/%E8%AF%AD%E6%B3%95%E9%AB%98%E4%BA%AEshiki/">语法高亮shiki</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/30/%E5%9B%BE%E7%89%87%E6%87%92%E5%8A%A0%E8%BD%BD%EF%BC%88%E4%BA%8C%EF%BC%89/">图片懒加载（二）</a>
+                    <a href="/2021/06/25/%E9%A1%B9%E7%9B%AE%E9%83%A8%E7%BD%B2%E5%8F%8A%E7%89%88%E6%9C%AC%E5%8F%91%E5%B8%83/">项目部署及版本发布</a>
                 </span>
             </li>
             
@@ -732,73 +752,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 17.97991857635758px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 12.09192748902789px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.973374036570668px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.61806221587437px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 15.79787204318247px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 16.62717313935385px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.07169862989283px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.15176440988019px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 18.24116850077841px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.20165606531477px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 10.589678143709595px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 9.625640233719105px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 14.385689348900193px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 10.819432298622987px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10.41046554825482px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 17.663330767361554px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.958436831289019px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 13.148171364233772px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 15.351158893511162px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 16.248905726107072px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 18.92727855613329px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 18.381704028589308px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 19.937604729442153px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.181635624056327px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 14.337223860588445px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 18.6207057025702px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 18.78286450862031px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 14.505065240208387px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 8.420044536570948px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 11.869942993966573px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 12.115789971498135px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 8.269342232315772px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 14.086269670676662px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 12.303025795093813px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 8.833185359064863px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 12.740990016639923px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 13.768817784271498px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.791745086109716px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 12.396784613505922px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 17.25205901911655px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 17.678839076218004px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.150815072083535px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 15.739744015024161px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 19.614707746905495px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 8.165114512045387px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 8.89096818833319px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 17.793940252434062px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 17.62214397740589px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.56379434759389px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 16.397453442476575px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 19.552005023791317px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 11.928591029825537px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 13.257598077389558px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 17.85293273727295px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 17.33325374834535px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 15.86311123292052px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 18.377385973285264px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 18.836631640635108px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 9.295674325610161px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 9.803011515577039px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 9.37175158144333px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 12.42270749251126px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 14.783437615167763px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10.722725761472995px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 17.850741445044402px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 9.457182619829158px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 16.091496367330237px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.076912011882616px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

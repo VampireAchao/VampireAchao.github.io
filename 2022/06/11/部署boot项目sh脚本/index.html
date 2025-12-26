@@ -15,7 +15,7 @@
   
   
   <title>部署boot项目sh脚本 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>部署boot项目sh脚本</span>
     </div>
@@ -401,7 +401,6 @@
 </blockquote>
 <p>分享一个部署<code>boot</code>项目的<code>sh</code>脚本</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><code class="hljs sh"><span class="hljs-comment">#环境变量</span><br><span class="hljs-built_in">source</span> /etc/profile<br><span class="hljs-comment">#!/bin/sh</span><br><span class="hljs-comment">#jdk</span><br>JAVA_HOME=/此处换成真实jdk路径<br><span class="hljs-built_in">export</span> PATH=<span class="hljs-variable">$PATH</span>:<span class="hljs-variable">$JAVA_HOME</span>/bin<br><span class="hljs-built_in">export</span> BUILD_ID=dontkillme<br><span class="hljs-comment">#定义程序名 及jar包的名</span><br>PROJECT_NAME=此处换成真实jar名称.jar<br>LOG_NAME=日志名.<span class="hljs-built_in">log</span><br><span class="hljs-comment">## 编写判断程序是否正在运行的方法</span><br><span class="hljs-function"><span class="hljs-title">isExist</span></span>() &#123;<br>  <span class="hljs-comment">## 首先查找进程号</span><br>  pid=$(ps -ef | grep <span class="hljs-variable">$&#123;PROJECT_NAME&#125;</span> | grep -v <span class="hljs-string">&quot;grep&quot;</span> | awk <span class="hljs-string">&#x27;&#123;print $2&#125;&#x27;</span>)<br>  <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;pid&#125;</span>&quot;</span><br>  <span class="hljs-comment">## 如果进程号不存在，则返回0 否则返回1</span><br>  <span class="hljs-keyword">if</span> [ -z <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;pid&#125;</span>&quot;</span> ]; <span class="hljs-keyword">then</span><br>    <span class="hljs-built_in">return</span> 0<br>  <span class="hljs-keyword">else</span><br>    <span class="hljs-built_in">return</span> 1<br>  <span class="hljs-keyword">fi</span><br>&#125;<br><span class="hljs-comment">## 编写启动程序方法</span><br><span class="hljs-function"><span class="hljs-title">start</span></span>() &#123;<br>  <span class="hljs-comment">## 调用 判断程序是否正在运行的方法</span><br>  isExist<br>  <span class="hljs-comment">## 判断方法返回值是否等于0 ，等于则不存在</span><br>  <span class="hljs-keyword">if</span> [ $? -eq <span class="hljs-string">&quot;0&quot;</span> ]; <span class="hljs-keyword">then</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;PROJECT_NAME&#125;</span> is starting ......&quot;</span><br>    <span class="hljs-built_in">nohup</span> java  -jar <span class="hljs-variable">$&#123;PROJECT_NAME&#125;</span> --spring.profiles.active=prod &gt;<span class="hljs-variable">$&#123;LOG_NAME&#125;</span> 2&gt;&amp;1 &amp;<br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;PROJECT_NAME&#125;</span> startup success&quot;</span><br>  <span class="hljs-keyword">else</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;PROJECT_NAME&#125;</span> is already running, pid=<span class="hljs-variable">$&#123;pid&#125;</span>&quot;</span><br>    restart<br>  <span class="hljs-keyword">fi</span><br>&#125;<br><span class="hljs-comment">## 编写停止程序的方法</span><br><span class="hljs-function"><span class="hljs-title">stop</span></span>() &#123;<br>  <span class="hljs-comment">## 调用 判断程序是否正在运行</span><br>  isExist<br>  <span class="hljs-comment">## 判断是否存在，返回值0不存在</span><br>  <span class="hljs-keyword">if</span> [ $? -eq <span class="hljs-string">&quot;0&quot;</span> ]; <span class="hljs-keyword">then</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;PROJECT_NAME&#125;</span> is not running ......&quot;</span><br>  <span class="hljs-keyword">else</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;PROJECT_NAME&#125;</span> is already running, pid=<span class="hljs-variable">$&#123;pid&#125;</span>, prepare kill it &quot;</span><br>    <span class="hljs-built_in">kill</span> -9 <span class="hljs-variable">$&#123;pid&#125;</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;PROJECT_NAME&#125;</span> has been successfully killed ......&quot;</span><br>  <span class="hljs-keyword">fi</span><br>&#125;<br><span class="hljs-comment">## 编写重启方法</span><br><span class="hljs-function"><span class="hljs-title">restart</span></span>() &#123;<br>  <span class="hljs-comment">## 先停止再启动</span><br>  stop<br>  start<br>&#125;<br><br><span class="hljs-comment">## 程序最开始执行的</span><br><span class="hljs-comment">## 根据用户输入，判断执行方法</span><br><span class="hljs-keyword">case</span> <span class="hljs-string">&quot;<span class="hljs-variable">$1</span>&quot;</span> <span class="hljs-keyword">in</span><br><span class="hljs-string">&quot;start&quot;</span>)<br>  start<br>  ;;<br><span class="hljs-string">&quot;stop&quot;</span>)<br>  stop<br>  ;;<br><span class="hljs-string">&quot;restart&quot;</span>)<br>  restart<br>  ;;<br>*)<br>  <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;please enter the correct commands: &quot;</span><br>  <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;such as : sh startup.sh [ start | stop | restart ]&quot;</span><br>  ;;<br><span class="hljs-keyword">esac</span><br></code></pre></td></tr></table></figure>
-
 
     </div>
 </article>
@@ -467,6 +466,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -519,12 +524,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -543,61 +542,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/08/21/docker%E8%BF%90%E8%A1%8Czookeeper/">docker运行zookeeper</a>
+                    <a href="/2020/10/25/android%E9%80%89%E6%8B%A9%E6%A1%86/">android选择框</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/03/17/full-stack-fastapi-template/">full-stack-fastapi-template</a>
+                    <a href="/2021/11/05/flink%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B/">flink快速开始</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/09/12/hutool%E5%8A%A8%E6%80%81%E7%BC%96%E8%AF%91-lombok/">hutool动态编译+lombok</a>
+                    <a href="/2021/04/23/idea2021%E6%9B%B4%E6%94%B9%E5%86%85%E5%AD%98%E8%AE%BE%E7%BD%AE/">idea2021更改内存设置</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/09/15/idea%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%BF%81%E7%A7%BB/">idea配置文件迁移</a>
+                    <a href="/2020/09/13/idea%E5%BF%AB%E6%8D%B7%E7%94%9F%E6%88%90%E5%BA%8F%E5%88%97%E5%8C%96id/">idea快捷生成序列化id</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/09/25/java%E5%87%BD%E6%95%B0%E9%98%B2%E6%8A%96/">java函数防抖</a>
+                    <a href="/2023/02/19/idea%E9%87%8Cmaven%E6%89%A7%E8%A1%8C%E6%97%B6%E6%8E%A7%E5%88%B6%E5%8F%B0%E4%B9%B1%E7%A0%81/">idea里maven执行时控制台乱码</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/09/02/js%E8%8E%B7%E5%8F%96url%E4%B8%8A%E7%9A%84%E5%8F%82%E6%95%B0/">js获取url上的参数</a>
+                    <a href="/2023/04/12/markmap/">markmap</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/02/28/mysql%E5%8E%BB%E6%8E%89decimal%E6%9C%AB%E5%B0%BE%E7%9A%840/">mysql去掉decimal末尾的0</a>
+                    <a href="/2023/01/31/neutrino-proxy/">neutrino-proxy</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/11/11/sshx/">sshx</a>
+                    <a href="/2021/05/12/vue%E5%AD%90%E7%BB%84%E4%BB%B6%E8%B0%83%E7%94%A8%E7%88%B6%E7%BB%84%E4%BB%B6%E6%96%B9%E6%B3%95/">vue子组件调用父组件方法</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/04/04/vercel/">vercel</a>
+                    <a href="/2021/09/11/%E6%9F%A5%E7%9C%8Bapk%E7%9A%84sha1%E7%AD%BE%E5%90%8D/">查看apk的sha1签名</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/09/09/%E5%AE%89%E5%8D%93%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">安卓开发环境搭建</a>
+                    <a href="/2021/11/13/%E7%AE%AD%E5%A4%B4%E5%87%BD%E6%95%B0%E4%B8%8Ethis%E6%8C%87%E5%90%91%E6%8E%A2%E7%A9%B6/">箭头函数与this指向探究</a>
                 </span>
             </li>
             
@@ -630,73 +629,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 15.449914103382888px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 16.74421802166948px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.67824572143449px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.369202645408889px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 8.782909274925606px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 11.126008032949336px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.500718121825162px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 10.942657207630901px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.384039658258363px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.946578982871946px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 15.910456063203341px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 18.183677870785722px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 18.678301829319803px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 16.930850943101003px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.225318874002582px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.857805969514214px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.07389405198213px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 16.69464427425296px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 12.866117766336679px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 16.890725929988797px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 19.16269140887029px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 11.812064648728061px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 14.164633332381541px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 18.415527150743348px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 8.9712535949146px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 13.000537249088708px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 10.57470269037653px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 11.317318840088497px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 14.172596406095051px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 15.371777093972419px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 15.286248942091518px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 9.677085833162655px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 18.168678880801863px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 12.309767574782887px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 11.53997950314893px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 19.18724430327982px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.371920536900129px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.966183016644125px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 14.259320239991794px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 13.051981191802518px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 11.050765935430402px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.311561431730095px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 8.692740617425883px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 14.57286102338497px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 17.518272188640758px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 15.82197261748449px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 13.931159112166075px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 9.632569835700862px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.814908591426935px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 8.25239873718862px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 10.616347686735704px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 12.60037365688887px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 13.395210625627058px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 13.824884088836995px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 17.285010115413517px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.95718140706553px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 9.944084564905861px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 13.362914427668862px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 17.2354166493174px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 16.69926805556358px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 8.247139326614446px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 14.691964536403715px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 8.215795186469407px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10.813695970806746px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 17.160736218274607px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 10.152804787233219px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.055663743132154px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.612310571501204px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

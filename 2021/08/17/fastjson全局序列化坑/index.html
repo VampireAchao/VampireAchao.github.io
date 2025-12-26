@@ -15,7 +15,7 @@
   
   
   <title>fastjson全局序列化坑 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>fastjson全局序列化坑</span>
     </div>
@@ -399,23 +399,22 @@
         <blockquote>
 <p>偌大的城市，绵延无尽，并非是我眼见的让我停住了脚步，而是我所看不见的。——《海上钢琴师》</p>
 </blockquote>
-<p>今天遇到这样一个问题：<br>序列化出现了与预期不一致的效果，重现代码很简单，就返回一个<code>list</code>，包含几个对象</p>
+<p>今天遇到这样一个问题：<br />
+序列化出现了与预期不一致的效果，重现代码很简单，就返回一个<code>list</code>，包含几个对象</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@GetMapping</span><br><span class="hljs-keyword">public</span> Result <span class="hljs-title function_">testQueryParam</span><span class="hljs-params">(CommonDTO commonDTO)</span> &#123;<br>    <span class="hljs-keyword">final</span> <span class="hljs-type">UserDetail</span> <span class="hljs-variable">userDetail</span> <span class="hljs-operator">=</span> UserDetail.builder().build();<br>    <span class="hljs-keyword">return</span> Result.ok().data(Arrays.asList(userDetail, userDetail, userDetail));<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>但可以看到我这里第一条数据是正确的，第二条开始就变成了<code>&#123;$ref: &quot;$.data[0]&quot;&#125;</code></p>
-<p><img src="/imgs/oss/picGo/image-20210817201607951.png" alt="image-20210817201607951"></p>
+<p><img src="/imgs/oss/picGo/image-20210817201607951.png" alt="image-20210817201607951" /></p>
 <p>这是因为我们在使用<code>fastjson</code>作为<code>mvc</code>全局序列化框架的时候</p>
 <blockquote>
 <p>在<code>fastjson</code>中，会自动检测循环引用，并且输出为<code>fastjson</code>专有的引用表示格式。但这个不能被其他JSON库识别，也不能被浏览器识别，所以<code>fastjson</code>提供了关闭循环引用检测的功能。使用如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> com.alibaba.fastjson.serializer.SerializerFeature;<br><br>JSON.toJSONString(obj, SerializerFeature.DisableCircularReferenceDetect);<br></code></pre></td></tr></table></figure>
 </blockquote>
-<p><code>fastjson</code>文档链接：<a target="_blank" rel="noopener" href="https://gitee.com/wenshao/fastjson/wikis/pages?sort_id=1591202&doc_id=10706">https://gitee.com/wenshao/fastjson/wikis/pages?sort_id=1591202&amp;doc_id=10706</a></p>
+<p><code>fastjson</code>文档链接：<a target="_blank" rel="noopener" href="https://gitee.com/wenshao/fastjson/wikis/pages?sort_id=1591202&amp;doc_id=10706">https://gitee.com/wenshao/fastjson/wikis/pages?sort_id=1591202&amp;doc_id=10706</a></p>
 <p>处理方式：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.simplescaffold.config;<br><br><span class="hljs-keyword">import</span> cn.hutool.core.collection.CollectionUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.ArrayUtil;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.parser.ParserConfig;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.serializer.SerializeConfig;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.serializer.SerializerFeature;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.support.config.FastJsonConfig;<br><span class="hljs-keyword">import</span> com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.metadata.OrderItem;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.toolkit.LambdaUtils;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.toolkit.support.SFunction;<br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.extension.plugins.pagination.Page;<br><span class="hljs-keyword">import</span> com.ruben.simplescaffold.exception.PageException;<br><span class="hljs-keyword">import</span> com.ruben.simplescaffold.handler.GlobalTimeResolver;<br><span class="hljs-keyword">import</span> com.ruben.simplescaffold.utils.Opt;<br><span class="hljs-keyword">import</span> org.apache.ibatis.reflection.property.PropertyNamer;<br><span class="hljs-keyword">import</span> org.springframework.boot.autoconfigure.web.servlet.error.ErrorViewResolver;<br><span class="hljs-keyword">import</span> org.springframework.boot.web.servlet.MultipartConfigFactory;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Bean;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Configuration;<br><span class="hljs-keyword">import</span> org.springframework.core.MethodParameter;<br><span class="hljs-keyword">import</span> org.springframework.http.MediaType;<br><span class="hljs-keyword">import</span> org.springframework.http.converter.HttpMessageConverter;<br><span class="hljs-keyword">import</span> org.springframework.util.unit.DataSize;<br><span class="hljs-keyword">import</span> org.springframework.util.unit.DataUnit;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.WebDataBinder;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.support.WebDataBinderFactory;<br><span class="hljs-keyword">import</span> org.springframework.web.context.request.NativeWebRequest;<br><span class="hljs-keyword">import</span> org.springframework.web.method.support.HandlerMethodArgumentResolver;<br><span class="hljs-keyword">import</span> org.springframework.web.method.support.ModelAndViewContainer;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.config.annotation.EnableWebMvc;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.config.annotation.WebMvcConfigurer;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;<br><br><span class="hljs-keyword">import</span> javax.servlet.MultipartConfigElement;<br><span class="hljs-keyword">import</span> javax.servlet.http.HttpServletRequest;<br><span class="hljs-keyword">import</span> java.time.LocalDateTime;<br><span class="hljs-keyword">import</span> java.util.*;<br><span class="hljs-keyword">import</span> java.util.stream.Stream;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * web配置类</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2021/5/18 0018 14:52</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Configuration</span><br><span class="hljs-meta">@EnableWebMvc</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">WebConfig</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">WebMvcConfigurer</span> &#123;<br>    <br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> converters 转换器</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@since</span> 2021/5/21 0021 15:08</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">configureMessageConverters</span><span class="hljs-params">(List&lt;HttpMessageConverter&lt;?&gt;&gt; converters)</span> &#123;<br>        <span class="hljs-type">FastJsonHttpMessageConverter</span> <span class="hljs-variable">fastJsonConverter</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FastJsonHttpMessageConverter</span>();<br>        <span class="hljs-comment">// 设置允许ContentType</span><br>        List&lt;MediaType&gt; supportedMediaTypes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        supportedMediaTypes.add(MediaType.APPLICATION_JSON);<br>        supportedMediaTypes.add(MediaType.APPLICATION_ATOM_XML);<br>        supportedMediaTypes.add(MediaType.APPLICATION_FORM_URLENCODED);<br>        supportedMediaTypes.add(MediaType.APPLICATION_OCTET_STREAM);<br>        supportedMediaTypes.add(MediaType.APPLICATION_PDF);<br>        supportedMediaTypes.add(MediaType.APPLICATION_RSS_XML);<br>        supportedMediaTypes.add(MediaType.APPLICATION_XHTML_XML);<br>        supportedMediaTypes.add(MediaType.APPLICATION_XML);<br>        supportedMediaTypes.add(MediaType.IMAGE_GIF);<br>        supportedMediaTypes.add(MediaType.IMAGE_JPEG);<br>        supportedMediaTypes.add(MediaType.IMAGE_PNG);<br>        supportedMediaTypes.add(MediaType.TEXT_EVENT_STREAM);<br>        supportedMediaTypes.add(MediaType.TEXT_HTML);<br>        supportedMediaTypes.add(MediaType.TEXT_MARKDOWN);<br>        supportedMediaTypes.add(MediaType.TEXT_PLAIN);<br>        supportedMediaTypes.add(MediaType.TEXT_XML);<br>        fastJsonConverter.setSupportedMediaTypes(supportedMediaTypes);<br>        <span class="hljs-type">FastJsonConfig</span> <span class="hljs-variable">fjc</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FastJsonConfig</span>();<br>        <span class="hljs-comment">// 配置序列化策略</span><br>        <span class="hljs-comment">// ID_WORKER 生成主键太长导致 js 精度丢失</span><br>        <span class="hljs-comment">// JavaScript 无法处理 Java 的长整型 Long 导致精度丢失，具体表现为主键最后两位永远为 0，解决思路： Long 转为 String 返回</span><br>        fjc.setSerializerFeatures(SerializerFeature.BrowserCompatible,<br>                <span class="hljs-comment">// 在fastjson中，会自动检测循环引用，并且输出为fastjson专有的引用表示格式。但这个不能被其他JSON库识别，也不能被浏览器识别，所以fastjson提供了关闭循环引用检测的功能。</span><br>                SerializerFeature.DisableCircularReferenceDetect,<br>                <span class="hljs-comment">// 列化枚举值为数据库存储值</span><br>                SerializerFeature.WriteEnumUsingToString);<br>        <span class="hljs-type">SerializeConfig</span> <span class="hljs-variable">serializeConfig</span> <span class="hljs-operator">=</span> SerializeConfig.globalInstance;<br>        <span class="hljs-comment">// 设置全局LocalDateTime转换</span><br>        serializeConfig.put(LocalDateTime.class, (serializer, object, fieldName, fieldType, features) -&gt; Opt.ofNullable(object).ifPresentOrElse(obj -&gt; serializer.out.writeString(((LocalDateTime) obj).format(GlobalTimeResolver.DATE_TIME_FORMATTER)), serializer.out::writeNull));<br>        fjc.setSerializeConfig(serializeConfig);<br>        <span class="hljs-type">ParserConfig</span> <span class="hljs-variable">parserConfig</span> <span class="hljs-operator">=</span> ParserConfig.getGlobalInstance();<br>        fjc.setParserConfig(parserConfig);<br>        fastJsonConverter.setFastJsonConfig(fjc);<br>        converters.add(fastJsonConverter);<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p><img src="/imgs/oss/picGo/image-20210817202358414.png" alt="image-20210817202358414"></p>
+<p><img src="/imgs/oss/picGo/image-20210817202358414.png" alt="image-20210817202358414" /></p>
 <p>然后正常</p>
-<p><img src="/imgs/oss/picGo/image-20210817202433808.png" alt="image-20210817202433808"></p>
+<p><img src="/imgs/oss/picGo/image-20210817202433808.png" alt="image-20210817202433808" /></p>
 
     </div>
 </article>
@@ -481,6 +480,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -533,12 +538,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -557,61 +556,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/09/10/Stirling-PDF/">Stirling-PDF</a>
+                    <a href="/2022/02/09/cargo%E9%85%8D%E7%BD%AE%E9%95%9C%E5%83%8F%E6%BA%90/">cargo配置镜像源</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/08/14/TinyVue%E7%BB%84%E4%BB%B6%E5%BA%93/">TinyVue组件库</a>
+                    <a href="/2024/12/31/china-regions/">china_regions</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/27/h2database/">h2database</a>
+                    <a href="/2024/07/07/css%E7%9A%84%E9%80%8F%E8%A7%86%E6%95%88%E6%9E%9Cperspective/">css的透视效果perspective</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/20/layui%E6%95%B0%E6%8D%AE%E8%A1%A8%E6%A0%BC/">layui数据表格</a>
+                    <a href="/2023/11/03/open-feign%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96decoder/">open-feign自定义反序列化decoder</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/06/03/pnpm/">pnpm</a>
+                    <a href="/2025/07/07/oss-compass/">oss-compass</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/12/26/pug/">pug</a>
+                    <a href="/2023/08/06/vaadin/">vaadin</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/07/16/uniapp%E6%89%93%E7%94%B5%E8%AF%9D/">uniapp打电话</a>
+                    <a href="/2024/04/29/webview%E9%9C%80%E8%A6%81%E9%87%8D%E6%96%B0%E6%B8%B2%E6%9F%93%E6%96%B9%E6%A1%88/">webview需要重新渲染方案</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/04/29/%E4%B8%8D%E8%A6%81%E5%86%8D%E9%97%AE%E6%88%91%E5%89%8D%E7%AB%AF%E5%A6%82%E4%BD%95%E8%AE%A9%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%BD%AC%E6%88%90Date%E4%BA%86/">不要再问我前端如何让字符串转成Date了</a>
+                    <a href="/2022/03/25/you-might-not-need-peek/">you might not need peek</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/01/05/xxl-job-restful-api/">xxl-job restful api</a>
+                    <a href="/2020/08/24/%E5%85%BC%E5%AE%B9IE%E6%B5%8F%E8%A7%88%E5%99%A8/">兼容IE浏览器</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/20/%E8%AE%BE%E7%BD%AE%E5%B9%B6%E8%A1%8C%E6%B5%81%E6%9C%80%E5%A4%A7%E7%BA%BF%E7%A8%8B%E6%95%B0/">设置并行流最大线程数</a>
+                    <a href="/2024/05/13/%E6%B7%BB%E5%8A%A0OceanBase-MybatisPlus%E6%A1%88%E4%BE%8B/">添加OceanBase-MybatisPlus案例</a>
                 </span>
             </li>
             
@@ -644,73 +643,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 13.428941296656326px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 10.886897587241307px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.67061739922118px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.70272133923398px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 16.234132153240093px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 8.430496429546238px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.060311373745858px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.01725276268123px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.04037211700033px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.523064119064683px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 8.86085954082759px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 8.850510462658349px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 15.170710723380305px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 16.953667953754575px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.5897369420531px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 14.686980445904581px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.302369710306712px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.810092102112279px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 9.772366536799655px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 16.668861006391438px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 16.138060410286784px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 11.3484552117867px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 19.469541294444117px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 15.152656654419207px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 9.997046163268035px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 19.406066190485173px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 10.52540624790835px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 19.254850304767483px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 15.727336501537872px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 11.967479720309456px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 12.40326709768279px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 17.193922105824335px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 19.72919990342044px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 18.724499398615613px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 9.42025145294274px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 13.10214132923485px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.491735195678391px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 8.738579555375573px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 9.728907079365637px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 16.21831960394958px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 17.690798939468728px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 16.67900910439466px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 14.599721051295868px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 13.96793281181116px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 10.56010979180432px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 9.790455164010666px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 12.74396496668152px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 15.824969289164896px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 8.272193914673169px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 15.601939873431224px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 19.678300286743905px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 8.219835283879883px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 15.938473703614829px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 8.312148512562398px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 15.758792344409844px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.00533627462378px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 12.345612498477262px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 13.009899772113172px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 8.72971529491987px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 19.196260238013668px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 9.076604756464318px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 8.936559571433136px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 18.738991240965007px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 9.820334233110513px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 12.566593988914484px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 14.447864156035006px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 15.948148030738135px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.747806313121565px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

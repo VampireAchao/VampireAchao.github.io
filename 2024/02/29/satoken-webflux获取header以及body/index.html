@@ -15,7 +15,7 @@
   
   
   <title>satoken+webflux获取header以及body | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>satoken+webflux获取header以及body</span>
     </div>
@@ -401,7 +401,6 @@
 </blockquote>
 <p>代码如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><br><span class="hljs-keyword">import</span> cn.dev33.satoken.context.SaHolder;<br><span class="hljs-keyword">import</span> cn.dev33.satoken.context.SaTokenContextForThreadLocalStorage;<br><span class="hljs-keyword">import</span> cn.dev33.satoken.reactor.context.SaReactorSyncHolder;<br><span class="hljs-keyword">import</span> cn.dev33.satoken.reactor.filter.SaReactorFilter;<br><span class="hljs-keyword">import</span> cn.dev33.satoken.router.SaRouter;<br><span class="hljs-keyword">import</span> jakarta.annotation.Resource;<br><span class="hljs-keyword">import</span> org.jetbrains.annotations.NotNull;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Bean;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Lazy;<br><span class="hljs-keyword">import</span> org.springframework.core.io.buffer.DataBuffer;<br><span class="hljs-keyword">import</span> org.springframework.core.io.buffer.DataBufferFactory;<br><span class="hljs-keyword">import</span> org.springframework.core.io.buffer.DataBufferUtils;<br><span class="hljs-keyword">import</span> org.springframework.core.io.buffer.DefaultDataBufferFactory;<br><span class="hljs-keyword">import</span> org.springframework.http.server.reactive.ServerHttpRequestDecorator;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><span class="hljs-keyword">import</span> org.springframework.web.server.ServerWebExchange;<br><span class="hljs-keyword">import</span> org.springframework.web.server.WebFilterChain;<br><span class="hljs-keyword">import</span> reactor.core.publisher.Flux;<br><span class="hljs-keyword">import</span> reactor.core.publisher.Mono;<br><br><span class="hljs-keyword">import</span> java.util.Objects;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * SaReactorFilter</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> achao@apache.org</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SaReactorFilter</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">SaReactorFilter</span> &#123;<br><br>    <span class="hljs-meta">@Lazy</span><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> DataBufferFactory dataBufferFactory;<br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> AgoraProperties agoraProperties;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">SaReactorReactorFilter</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-comment">// 拦截所有路由</span><br>        addInclude(<span class="hljs-string">&quot;/**&quot;</span>);<br>        setAuth(router -&gt; &#123;<br>            SaRouter.match(<span class="hljs-string">&quot;/api/rtc/**&quot;</span>).check(r -&gt; &#123;<br>                <span class="hljs-comment">// 获取header中的值</span><br>                <span class="hljs-type">var</span> <span class="hljs-variable">token</span> <span class="hljs-operator">=</span> SaTokenContextForThreadLocalStorage.getRequest().getHeader(<span class="hljs-string">&quot;token&quot;</span>);<br>                <span class="hljs-keyword">if</span> (token == <span class="hljs-literal">null</span>) &#123;<br>                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApiClientException</span>(<span class="hljs-string">&quot;请检查请求头是否包含token&quot;</span>);<br>                &#125;<br>                <span class="hljs-comment">// 获取body</span><br>                <span class="hljs-type">var</span> <span class="hljs-variable">requestBody</span> <span class="hljs-operator">=</span> SaHolder.getStorage().get(<span class="hljs-string">&quot;requestBody&quot;</span>, <span class="hljs-string">&quot;&quot;</span>);<br>                <span class="hljs-keyword">if</span> (requestBody == <span class="hljs-literal">null</span>) &#123;<br>                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApiClientException</span>(<span class="hljs-string">&quot;请检查请求体是否为空&quot;</span>);<br>                &#125;<br>               <br>            &#125;);<br>        &#125;);<br>    &#125;<br><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-keyword">public</span> DataBufferFactory <span class="hljs-title function_">dataBufferFactory</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultDataBufferFactory</span>();<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Mono&lt;Void&gt; <span class="hljs-title function_">filter</span><span class="hljs-params">(ServerWebExchange exchange, WebFilterChain chain)</span> &#123;<br>        SaReactorSyncHolder.setContext(exchange);<br>        <span class="hljs-keyword">return</span> DataBufferUtils.join(exchange.getRequest().getBody())<br>                .flatMap(dataBuffer -&gt; &#123;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">requestBody</span> <span class="hljs-operator">=</span> DataBufferUtil.dataBufferToString(dataBuffer);<br>                    SaHolder.getStorage().set(<span class="hljs-string">&quot;requestBody&quot;</span>, requestBody);<br>                    <span class="hljs-type">ServerHttpRequestDecorator</span> <span class="hljs-variable">decoratedRequest</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ServerHttpRequestDecorator</span>(exchange.getRequest()) &#123;<br>                        <span class="hljs-keyword">public</span> <span class="hljs-meta">@Override</span> <span class="hljs-meta">@NotNull</span> Flux&lt;DataBuffer&gt; <span class="hljs-title function_">getBody</span><span class="hljs-params">()</span> &#123;<br>                            <span class="hljs-keyword">return</span> Flux.just(dataBufferFactory.wrap(requestBody.getBytes()));<br>                        &#125;<br>                    &#125;;<br>                    <span class="hljs-keyword">return</span> <span class="hljs-built_in">super</span>.filter(exchange.mutate().request(decoratedRequest).build(), chain);<br>                &#125;);<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
 <p>对应的<code>DataBufferUtil</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><br><span class="hljs-keyword">import</span> lombok.experimental.UtilityClass;<br><span class="hljs-keyword">import</span> org.springframework.core.io.buffer.DataBuffer;<br><span class="hljs-keyword">import</span> org.springframework.core.io.buffer.DataBufferUtils;<br><br><span class="hljs-keyword">import</span> java.nio.charset.StandardCharsets;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * DataBufferUtil</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> achao@apache.org</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@UtilityClass</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DataBufferUtil</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">dataBufferToString</span><span class="hljs-params">(DataBuffer dataBuffer)</span> &#123;<br>        <span class="hljs-type">byte</span>[] bytes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[dataBuffer.readableByteCount()];<br>        dataBuffer.read(bytes);<br>        DataBufferUtils.release(dataBuffer); <span class="hljs-comment">// 释放DataBuffer资源</span><br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(bytes, StandardCharsets.UTF_8);<br>    &#125;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
 
@@ -469,6 +468,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -521,12 +526,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -545,61 +544,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/26/PersistJobDataAfterExecution%E6%B3%A8%E8%A7%A3/">PersistJobDataAfterExecution注解</a>
+                    <a href="/2024/07/19/css%E5%AE%9E%E7%8E%B0%E6%AF%9B%E7%8E%BB%E7%92%83%E6%95%88%E6%9E%9C/">css实现毛玻璃效果</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/12/03/PostConstruct%E4%BD%BF%E7%94%A8/">@PostConstruct使用</a>
+                    <a href="/2022/10/25/jackson%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/">jackson时区问题</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/10/09/Sa-Token%E4%B8%ADSerializationException/">Sa-Token中SerializationException</a>
+                    <a href="/2024/04/16/mybatis%E5%88%A4%E6%96%AD%E6%89%B9%E9%87%8F%E6%93%8D%E4%BD%9C%E6%98%AF%E5%90%A6%E5%85%A8%E9%83%A8%E6%89%A7%E8%A1%8C%E6%88%90%E5%8A%9F/">mybatis判断批量操作是否全部执行成功</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/10/21/SafeVarargs/">@SafeVarargs</a>
+                    <a href="/2025/11/21/open-source-games/">open-source-games</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/04/09/copilot/">copilot</a>
+                    <a href="/2022/04/16/springboot%E8%BF%9E%E6%8E%A5oracle/">springboot连接oracle</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/07/09/css%E9%80%8F%E8%A7%86%E6%95%88%E6%9E%9C%E4%BD%8D%E7%BD%AEperspective-origin/">css透视效果位置perspective-origin</a>
+                    <a href="/2023/10/10/srs%E4%BF%A1%E4%BB%A4java%E7%89%88/">srs信令java版</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/14/druid%E7%9B%91%E6%8E%A7%E9%85%8D%E7%BD%AE/">druid监控配置</a>
+                    <a href="/2024/03/22/toParamStr%E6%94%AF%E6%8C%81%E6%95%B0%E7%BB%84/">toParamStr支持数组</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/02/12/higress/">higress</a>
+                    <a href="/2022/12/31/unocss/">unocss</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/21/mp%E4%B8%ADtypeHandler%E8%87%AA%E5%8A%A8%E8%8E%B7%E5%8F%96%E5%AD%97%E6%AE%B5%E7%B1%BB%E5%9E%8B/">mp中typeHandler自动获取字段类型</a>
+                    <a href="/2020/07/06/%E8%A7%A3%E9%99%A4%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8bat/">解除端口占用bat</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/06/16/%E7%BD%91%E9%A1%B5%E8%AE%A9%E8%BD%AF%E4%BB%B6%E8%AF%86%E5%88%AB%E7%9A%84%E5%B0%8F%E5%8D%A1%E7%89%87/">网页让软件识别的小卡片</a>
+                    <a href="/2023/09/28/%E9%80%9A%E8%BF%87%E6%9D%A1%E4%BB%B6%E8%B7%B3%E8%BF%87%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">通过条件跳过单元测试</a>
                 </span>
             </li>
             
@@ -632,73 +631,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 19.898748210378425px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 14.865668074488223px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.206857346546728px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 16.17964532951749px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 16.026573165429536px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 19.937008515107472px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 16.40753809394203px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.628284974355925px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 15.124817696936951px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 8.259338998655341px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 13.606978881613424px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 18.11015871503986px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 19.242436973589253px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 19.65447592655725px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10.974934081935025px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.923723254440759px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.089666051530557px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 14.110796443934031px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 14.244931713365506px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 13.737549520257616px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 13.879203226882069px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 11.682702608429544px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 17.014322594412086px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 15.273755579371194px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 10.49625472940108px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 11.666021262495402px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 9.512383699235407px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 14.717224625848324px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 11.221144655943979px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 9.030412907784525px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 8.692496893152937px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 12.638586477907468px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 14.162311246706011px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 9.081338465869209px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 19.470853051301273px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 19.70946962474183px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.151239422022176px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 12.435203106667409px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 18.001568711041482px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 19.531548000815523px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 18.98589380259893px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 10.548916274672184px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 19.231327268870388px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 9.01860547358132px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 14.031956941321427px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 8.422516108572879px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 18.123418886765453px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 11.36716559951933px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.768386404443497px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.622881194329004px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 19.798471667572898px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 14.256370633241728px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 15.587836321637825px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 18.068884784275106px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 9.489527614777227px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 12.937917084712073px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 10.968600995670434px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 14.608559895578448px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 14.2821063767543px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 16.309406754969782px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 17.253972270892252px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 18.694406294838718px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 8.919946645262646px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 12.71496037740331px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 9.609474118534832px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 17.65869089256788px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.03316357730748px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.26817158041594px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

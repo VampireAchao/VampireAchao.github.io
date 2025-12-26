@@ -15,7 +15,7 @@
   
   
   <title>引入一个boot模块坑 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>引入一个boot模块坑</span>
     </div>
@@ -401,40 +401,35 @@
 </blockquote>
 <p>这个坑蛮棘手的</p>
 <p>事发场景：<code>main-boot</code>引入<code>common-boot</code>模块，<code>common-boot</code>模块是一个<code>spring-boot</code>模块</p>
-<p><img src="/imgs/oss/picGo/image-20220515110336277.png" alt="image-20220515110336277"></p>
+<p><img src="/imgs/oss/picGo/image-20220515110336277.png" alt="image-20220515110336277" /></p>
 <p>关键<code>GAV</code>构成如下：</p>
 <p><code>common-boot</code></p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">parent</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>2.6.7<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">relativePath</span>/&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">parent</span>&gt;</span><br><br><span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.ruben<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>common-boot<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><br><span class="hljs-tag">&lt;<span class="hljs-name">build</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">plugins</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">plugin</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">plugin</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">plugins</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">build</span>&gt;</span><br></code></pre></td></tr></table></figure>
-
 <p>其中<code>common-boot</code>我们编写一个<code>IService</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.service;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 接口</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/5/15 10:23</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">IService</span> &#123;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>然后拿到<code>main-boot</code>中引用</p>
 <p><code>main-boot</code>的<code>pom.xml</code></p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependencies</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.ruben<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>common-boot<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependencies</span>&gt;</span><br></code></pre></td></tr></table></figure>
-
 <p>写个实现类继承</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.service.impl;<br><br><span class="hljs-keyword">import</span> com.ruben.service.IService;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 服务实现类</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/5/15 10:24</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ServiceImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">IService</span> &#123;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p><img src="/imgs/oss/picGo/image-20220515110548896.png" alt="image-20220515110548896"></p>
+<p><img src="/imgs/oss/picGo/image-20220515110548896.png" alt="image-20220515110548896" /></p>
 <p>然后我们首先<code>mvn install</code>一下<code>common-boot</code></p>
 <p>我们尝试在<code>main-boot</code>进行<code>mvn compile</code>却发现编译报错</p>
-<p><img src="/imgs/oss/picGo/image-20220515111036418.png" alt="image-20220515111036418"></p>
+<p><img src="/imgs/oss/picGo/image-20220515111036418.png" alt="image-20220515111036418" /></p>
 <p>说是找不到符号</p>
 <p>此时我们其实可以根据<code>common-boot</code>的<code>jar</code>拆包查看</p>
 <p>发现其目录结构不太对劲</p>
-<p><img src="/imgs/oss/picGo/image-20220515111209505.png" alt="image-20220515111209505"></p>
+<p><img src="/imgs/oss/picGo/image-20220515111209505.png" alt="image-20220515111209505" /></p>
 <p>我们的包变成了<code>BOOT-INF</code></p>
 <p>这时候我们可以在<code>common-boot</code>的<code>pom.xml</code>配置一下<code>spring-boot-maven-plugin</code></p>
 <p>在<code>configuration</code>下设置<code>skip</code>为<code>true</code></p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">build</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">plugins</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">plugin</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">configuration</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">skip</span>&gt;</span>true<span class="hljs-tag">&lt;/<span class="hljs-name">skip</span>&gt;</span><br>            <span class="hljs-tag">&lt;/<span class="hljs-name">configuration</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">plugin</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">plugins</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">build</span>&gt;</span><br></code></pre></td></tr></table></figure>
-
 <p>或者干脆直接去掉这个<code>plugin</code>配置</p>
 <p>再次<code>mvn install</code>打包、解包，发现正常了</p>
-<p><img src="/imgs/oss/picGo/image-20220515111751776.png" alt="image-20220515111751776"></p>
+<p><img src="/imgs/oss/picGo/image-20220515111751776.png" alt="image-20220515111751776" /></p>
 <p>然后我们在<code>main-boot</code>再次进行编译，发现成功</p>
-<p><img src="/imgs/oss/picGo/image-20220515111851453.png" alt="image-20220515111851453"></p>
-<p>注意如果还是不成功，我们可以清除一下<code>idea</code>缓存，或者执行<a href="https://vampireachao.github.io/2020/12/08/%E9%87%8D%E6%96%B0%E7%94%9F%E6%88%90-idea%E4%BB%A5%E5%8F%8A-iml%E6%96%87%E4%BB%B6/">这里的命令</a>进行刷新依赖、重新生成<code>idea</code>项目模块配置文件</p>
+<p><img src="/imgs/oss/picGo/image-20220515111851453.png" alt="image-20220515111851453" /></p>
+<p>注意如果还是不成功，我们可以清除一下<code>idea</code>缓存，或者执行<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2020/12/08/%E9%87%8D%E6%96%B0%E7%94%9F%E6%88%90-idea%E4%BB%A5%E5%8F%8A-iml%E6%96%87%E4%BB%B6/">这里的命令</a>进行刷新依赖、重新生成<code>idea</code>项目模块配置文件</p>
 
     </div>
 </article>
@@ -500,6 +495,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -552,12 +553,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -576,61 +571,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/07/09/Collectors-flatMapping/">Collectors.flatMapping</a>
+                    <a href="/2021/06/24/Number/">Number</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/01/05/GitHub%E6%96%87%E4%BB%B6%E5%8A%A0%E9%80%9F/">GitHub文件加速</a>
+                    <a href="/2025/06/22/WeClone/">WeClone</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/10/06/camel+minio%E5%AE%9E%E7%8E%B0%E9%A2%84%E7%AD%BE%E5%90%8DURL%E4%B8%8A%E4%BC%A0/">camel+minio实现预签名URL上传</a>
+                    <a href="/2025/02/27/animejs%E7%AE%80%E5%8D%95%E7%A4%BA%E4%BE%8B/">animejs简单示例</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/04/30/java%E6%B3%9B%E5%9E%8B%E6%8C%87%E5%AE%9A%E7%BB%A7%E6%89%BF%E5%92%8C%E5%AE%9E%E7%8E%B0/">java泛型指定继承和实现</a>
+                    <a href="/2025/07/13/choosealicense-com/">choosealicense.com</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/04/06/jitpack-io/">jitpack.io</a>
+                    <a href="/2024/09/27/python%E5%8C%85%E7%AE%A1%E7%90%86Rye/">python包管理Rye</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/12/18/opencode/">opencode</a>
+                    <a href="/2023/04/07/sketch-js/">sketch.js</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/01/25/org-apache-ibatis-binding-BindingException-Invalid-bound-statement-not-found/">BindingException:Invalid bound statement not found</a>
+                    <a href="/2023/12/24/spring-state-machine%E6%8C%81%E4%B9%85%E5%8C%96restore%E8%B8%A9%E5%9D%91/">spring-state-machine持久化restore踩坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/19/%E5%85%B3%E8%81%94%E6%9B%B4%E6%96%B0%E5%B0%81%E8%A3%85%EF%BC%88%E4%B8%89%EF%BC%89/">关联更新封装（三）</a>
+                    <a href="/2021/07/25/uniapp%E9%98%BB%E6%AD%A2navigator%E5%86%92%E6%B3%A1/">uniapp阻止navigator冒泡</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/07/29/%E7%B4%A2%E5%BC%95%E6%93%8D%E4%BD%9C/">索引操作</a>
+                    <a href="/2021/07/26/%E5%9C%A8uniapp%E4%B8%AD%E5%BC%95%E5%85%A5%E5%9C%B0%E5%9B%BE/">在uniapp中引入地图</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/10/%E8%A7%84%E5%88%99%E5%BC%95%E6%93%8Eice/">规则引擎ice</a>
+                    <a href="/2021/06/22/%E9%9A%8F%E6%9C%BA%E7%AB%AF%E5%8F%A3/">随机端口</a>
                 </span>
             </li>
             
@@ -663,73 +658,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 19.563389934603265px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 13.33919301272945px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.910275488949978px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.568968570864783px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 17.937729517589588px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 9.006499875729332px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 9.7132830241742px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 14.96198113561452px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.02062336125674px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 17.76497505051381px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 9.735024332514909px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 12.021418190286774px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 15.793012248423695px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 11.68204754827796px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.341377996161285px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 16.713357880569895px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.887609652988953px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 14.166234669634743px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 10.971404677092345px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 17.05886695062929px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 11.215144427982704px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 15.464710522219827px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 16.770409708475743px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.47484446149326px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 8.201148486365426px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 18.93611597093313px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 16.678202188278576px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 18.046644272844475px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 10.305257150560333px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 17.280826540061256px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 12.089218433209961px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 9.801025691101078px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 19.92403067893928px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 9.448794827655288px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 19.93556739385042px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 12.416189767581479px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.321783341199502px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 18.027840494366988px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 17.587938805866315px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 17.050779283823317px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 19.71845391199851px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 18.10261644884239px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 17.361610338607427px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 14.716077710519585px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 12.330802512369775px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 14.081372999569048px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 15.492069266776651px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 9.40001593801929px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 9.947967407614232px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 10.497024527622523px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 11.267272404829534px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 19.370136310631203px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 15.112730477960934px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 17.43851203955737px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.052485669638237px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.504158697938294px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 17.436786590946465px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 19.331128315370993px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 17.15052790388334px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 12.880017411702159px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 9.993984406436077px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 12.004576396977205px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 15.43428010764136px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 11.320123409650172px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 18.35586654200486px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 11.24384546952962px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.63878068235094px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 17.107830176138595px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

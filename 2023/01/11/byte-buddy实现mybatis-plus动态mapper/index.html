@@ -15,7 +15,7 @@
   
   
   <title>byte-buddy实现mybatis-plus动态mapper | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>byte-buddy实现mybatis-plus动态mapper</span>
     </div>
@@ -401,13 +401,10 @@
 </blockquote>
 <p>构造动态<code>mapper</code>部分代码如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">buildMapper</span><span class="hljs-params">(Configuration configuration, Class&lt;?&gt; entityClass)</span> &#123;<br>    <span class="hljs-keyword">if</span> (!(configuration <span class="hljs-keyword">instanceof</span> MybatisConfiguration)) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;configuration must be MybatisConfiguration&quot;</span>);<br>    &#125;<br>    ENTITY_MAPPER_CLASS_CACHE.computeIfAbsent(entityClass, k -&gt; &#123;<br>        Class&lt;?&gt; dynamicMapper = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteBuddy</span>()<br>                .makeInterface(TypeDescription.Generic.Builder.parameterizedType(IMapper.class, entityClass).build())<br>                .name(String.format(<span class="hljs-string">&quot;io.github.vampireachao.mapper.%sMapper&quot;</span>, entityClass.getSimpleName()))<br>                .make()<br>                .load(ClassUtils.class.getClassLoader())<br>                .getLoaded();<br>        configuration.addMapper(dynamicMapper);<br>        <span class="hljs-keyword">return</span> dynamicMapper;<br>    &#125;);<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>这里是放到一个<code>map</code>里，获取的地方如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; Class&lt;?&gt; getMapperClass(Class&lt;T&gt; clazz) &#123;<br>    <span class="hljs-keyword">if</span> (clazz == <span class="hljs-literal">null</span> || clazz.isPrimitive() || SimpleTypeRegistry.isSimpleType(clazz) || clazz.isInterface()) &#123;<br>        <span class="hljs-keyword">throw</span> ExceptionUtils.mpe(<span class="hljs-string">&quot;找不到指定的class！请仅在明确确定会有 class 的时候，调用该方法&quot;</span>);<br>    &#125;<br>    Class&lt;?&gt; targetClass = ClassUtils.getUserClass(clazz);<br>    Class&lt;?&gt; mapperClass = ENTITY_MAPPER_CLASS_CACHE.get(targetClass);<br>    <span class="hljs-keyword">if</span> (<span class="hljs-literal">null</span> != mapperClass) &#123;<br>        <span class="hljs-keyword">return</span> mapperClass;<br>    &#125;<br>    Class&lt;?&gt; currentClass = clazz;<br>    <span class="hljs-keyword">while</span> (<span class="hljs-literal">null</span> == mapperClass &amp;&amp; Object.class != currentClass) &#123;<br>        currentClass = currentClass.getSuperclass();<br>        mapperClass = ENTITY_MAPPER_CLASS_CACHE.get(ClassUtils.getUserClass(currentClass));<br>    &#125;<br>    <span class="hljs-keyword">if</span> (mapperClass == <span class="hljs-literal">null</span>) &#123;<br>        mapperClass = ClassUtils.toClassConfident(getTableInfo(clazz).getCurrentNamespace());<br>    &#125;<br>    <span class="hljs-keyword">if</span> (mapperClass != <span class="hljs-literal">null</span>) &#123;<br>        ENTITY_MAPPER_CLASS_CACHE.put(targetClass, mapperClass);<br>    &#125;<br>    <span class="hljs-keyword">return</span> mapperClass;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>使用：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Test</span><br><span class="hljs-keyword">void</span> <span class="hljs-title function_">testBuildMapper</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">UserInfo</span> <span class="hljs-variable">userInfo</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UserInfo</span>() &#123;&#123;<br>        setId(<span class="hljs-number">1L</span>);<br>        setName(<span class="hljs-string">&quot;Jone&quot;</span>);<br>    &#125;&#125;;<br>    <span class="hljs-type">Configuration</span> <span class="hljs-variable">configuration</span> <span class="hljs-operator">=</span> TableInfoHelper.getTableInfo(UserInfo.class).getConfiguration();<br>    Database.buildMapper(configuration, UserInfo.class);<br>    <span class="hljs-type">TableInfo</span> <span class="hljs-variable">tableInfo</span> <span class="hljs-operator">=</span> TableInfoHelper.getTableInfo(userInfo.getClass());<br>    Assertions.assertNotNull(tableInfo);<br>    Assertions.assertFalse(Database.list(userInfo.getClass()).isEmpty());<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>完整源码：<a target="_blank" rel="noopener" href="https://gitee.com/VampireAchao/stream-query">https://gitee.com/VampireAchao/stream-query</a></p>
 
     </div>
@@ -474,6 +471,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -526,12 +529,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -550,61 +547,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/05/12/Converter%E9%9B%86%E5%90%88%E8%BD%AC%E6%8D%A2/">Converter集合转换</a>
+                    <a href="/2021/05/02/Git%E6%B3%A8%E9%94%80%E6%9C%AC%E5%9C%B0%E8%B4%A6%E6%88%B7/">Git注销本地账户</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/11/28/cannot-open-shared-object-file-No-such-file-or-directory/">cannot open shared object file: No such file or directory</a>
+                    <a href="/2025/11/09/LocalAI/">LocalAI</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/12/01/debug%E3%81%AEChrome%E7%AF%87/">debugのChrome篇</a>
+                    <a href="/2021/11/27/event/">event</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/07/02/gitee%E3%80%81github%E3%80%81maven%E5%9B%BE%E6%A0%87/">gitee、github、maven图标</a>
+                    <a href="/2023/09/07/mac%E8%8E%B7%E5%8F%96maven-gpg-key/">mac获取maven-gpg-key</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/02/03/kotlin%E6%B3%9B%E5%9E%8B%E5%A4%9A%E4%B8%AA%E4%B8%8A%E7%95%8C/">kotlin泛型多个上界</a>
+                    <a href="/2021/02/13/mybatis-plus%E5%AE%9E%E7%8E%B0%E5%A4%9A%E7%A7%9F%E6%88%B7/">mybatis-plus实现多租户</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/07/18/macos%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9%E5%88%B0ios/">macos共享文件夹到ios</a>
+                    <a href="/2021/01/25/org-apache-ibatis-binding-BindingException-Invalid-bound-statement-not-found/">BindingException:Invalid bound statement not found</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/">reduce补充二</a>
+                    <a href="/2025/01/30/readability/">readability</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/11/23/toastify-js/">toastify-js</a>
+                    <a href="/2024/10/03/requestFullscreen/">requestFullscreen</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/02/uniapp%E6%92%AD%E6%94%BE%E9%9F%B3%E9%A2%91/">uniapp播放音频</a>
+                    <a href="/2022/10/06/%E7%BC%96%E5%86%99mybatis%E8%84%B1%E6%95%8F%E6%8F%92%E4%BB%B6/">编写mybatis脱敏插件</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/06/09/%E5%BE%AE%E4%BF%A1Markdown%E7%BC%96%E8%BE%91%E5%99%A8/">微信Markdown编辑器</a>
+                    <a href="/2021/06/29/%E9%80%9A%E8%BF%87Function%E8%8E%B7%E5%8F%96%E5%B1%9E%E6%80%A7%E5%AF%B9%E5%BA%94%E5%AD%97%E6%AE%B5/">通过Function获取属性对应字段</a>
                 </span>
             </li>
             
@@ -637,73 +634,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 9.76745643838284px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 19.597589406866074px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 18.201359225890887px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 15.705090746665935px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 14.852621217148414px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 19.804254044847973px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.254651153458674px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 10.680754757545614px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.58136887225776px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.549957092023977px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 16.93058994227631px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 8.536693238534728px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 16.99810189457017px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 14.725165529693658px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.430328547666647px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.5761321052278px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.71054592567847px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 15.564198686325213px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 10.939260149135958px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 12.502706243303557px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 16.52263035866281px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 19.368874362751033px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 13.280577159066343px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.127802073219732px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 17.630482241625053px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 18.20530812734912px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 18.102275488912873px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 16.353662302129518px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 14.517139296824098px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 14.879569969673746px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 13.14142445368338px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 19.494362595094206px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 18.58769611721374px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 16.544417599393757px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 17.09447284664858px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 14.149998785515614px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.958600713016917px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.384103044520906px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 14.139267559339553px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 17.807478097624895px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 13.137258144521764px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 16.860117636885334px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 16.39836601331356px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 12.660689439513957px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 17.6411768074559px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 11.140671655980348px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 17.297633250448023px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 19.311659074798907px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 12.317618861426654px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.562200987805493px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 19.347558604568935px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 8.795309541844595px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 11.596247032556889px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 8.389066684652462px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.285081941929814px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.783251247512815px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 17.328984098455262px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 10.172026560530075px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 9.971423509268305px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 8.56708993679483px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 19.605965762799066px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 13.91468481186657px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 15.375997905420112px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.478604391280836px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 16.636116253174265px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 15.36066555107956px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.95380444516324px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.309382176755504px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

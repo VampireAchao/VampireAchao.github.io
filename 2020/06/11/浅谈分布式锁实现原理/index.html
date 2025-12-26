@@ -15,7 +15,7 @@
   
   
   <title>浅谈分布式锁实现原理 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>浅谈分布式锁实现原理</span>
     </div>
@@ -401,32 +401,28 @@
 <p>执行这个命令，如果它判断这个锁的名字，也就是key存在的时候，不做操作</p>
 <p>假设我这里有段代码，我需要给他加锁以保证线程安全，解决分布式下的资源共享问题</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">lockKey</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;myLock&quot;</span>;<br><span class="hljs-type">Boolean</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> stringRedisTemplate.opsForValue().setIfAbsent(lockKey, <span class="hljs-string">&quot;achao&quot;</span>);  <span class="hljs-comment">//加锁</span><br><span class="hljs-keyword">if</span> (!result) &#123;<br>    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Exception</span>(<span class="hljs-string">&quot;error!&quot;</span>);<br>&#125;<br><span class="hljs-comment">//执行业务</span><br>System.out.println(<span class="hljs-string">&quot;执行业务&quot;</span>);<br>stringRedisTemplate.delete(lockKey);  <span class="hljs-comment">//释放锁</span><br></code></pre></td></tr></table></figure>
-
 <p>现在有个问题，就是如果我按上面这样写，如果我们中途程序执行的时候抛出了一个异常，那么我们的锁就永远得不到释放，下一个线程过来，发现锁没释放，就导致整个系统卡死</p>
-<p>为了解决这个问题，我们加上try&#x2F;finally语句</p>
+<p>为了解决这个问题，我们加上try/finally语句</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">lockKey</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;myLock&quot;</span>;<br>Boolean result;<br><span class="hljs-keyword">try</span> &#123;<br>    result = stringRedisTemplate.opsForValue().setIfAbsent(lockKey, <span class="hljs-string">&quot;achao&quot;</span>);<br>    <span class="hljs-keyword">if</span> (!result) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Exception</span>(<span class="hljs-string">&quot;error!&quot;</span>);<br>    &#125;<br>    <span class="hljs-comment">//执行业务</span><br>    System.out.println(<span class="hljs-string">&quot;执行业务&quot;</span>);<br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    stringRedisTemplate.delete(lockKey);			<span class="hljs-comment">//释放锁</span><br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>这样之后，程序执行出了异常，咱们的锁也能得到释放了</p>
 <p>但是如果执行到一半，程序挂了。。。比如服务器死机，或者重启等等，这样我们的锁还是得不到释放</p>
 <p>所以，我们可以给这个锁设置个有效期</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">lockKey</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;myLock&quot;</span>;<br>Boolean result;<br><span class="hljs-keyword">try</span> &#123;<br>    result = stringRedisTemplate.opsForValue().setIfAbsent(lockKey, <span class="hljs-string">&quot;achao&quot;</span>);		<span class="hljs-comment">//加锁</span><br>    stringRedisTemplate.expire(lockKey, <span class="hljs-number">30</span>, TimeUnit.SECONDS);		<span class="hljs-comment">//设置有效期</span><br>    <span class="hljs-keyword">if</span> (!result) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Exception</span>(<span class="hljs-string">&quot;error!&quot;</span>);<br>    &#125;<br>    <span class="hljs-comment">//执行业务</span><br>    System.out.println(<span class="hljs-string">&quot;执行业务&quot;</span>);<br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    stringRedisTemplate.delete(lockKey);<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
 <p>但这样还有个问题。。。</p>
 <p>我在执行第一句加锁，刚执行完，我第二句设置有效期还没执行，这。。。就跟上面一样了</p>
 <p>所以我们又来，把它俩合成一条代码</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">result = stringRedisTemplate.opsForValue().setIfAbsent(lockKey, <span class="hljs-string">&quot;achao&quot;</span>,<span class="hljs-number">10</span>,TimeUnit.SECONDS);<br></code></pre></td></tr></table></figure>
-
 <p>这样，就不会出现那种问题了，但你以为这就结束了？？？</p>
 <p>不！</p>
 <p>设想，在高并发下，我们第一个线程进来，他的锁有效期是10秒，但他执行了15秒，在10秒的时候他的锁有效期到了，这时候，他释放了锁。</p>
 <p>第二个线程，他的锁有效期也是十秒，他在第一个线程执行到10秒的时候开始执行，它看到前面的锁已经失效，那么他又可以加锁了！</p>
-<h4 id="这个时候！"><a href="#这个时候！" class="headerlink" title="这个时候！"></a><strong>这个时候！</strong></h4><p>两个线程再执行了5秒，第一个线程执行完业务逻辑，到了finally语句的时候，他执行释放锁的操作，可是这个锁。。。是第二个线程的锁！</p>
+<h4 id="这个时候"><a class="markdownIt-Anchor" href="#这个时候"></a> <strong>这个时候！</strong></h4>
+<p>两个线程再执行了5秒，第一个线程执行完业务逻辑，到了finally语句的时候，他执行释放锁的操作，可是这个锁。。。是第二个线程的锁！</p>
 <p>然后第三个线程，它发现前面的锁被释放掉了，然后它又可以加锁了。。。</p>
 <p>第二个线程执行到finally的时候又释放了第三把锁。。。</p>
 <p>这样我们就相当于没有锁了</p>
 <p>我们这个时候就需要给requestId一个随机值</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">lockKey</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;myLock&quot;</span>;<br>Boolean result;<br><span class="hljs-type">String</span> <span class="hljs-variable">requestId</span> <span class="hljs-operator">=</span> UUID.randomUUID().toString();	<span class="hljs-comment">//生成随机值</span><br><span class="hljs-keyword">try</span> &#123;<br>    result = stringRedisTemplate.opsForValue().setIfAbsent(lockKey, requestId, <span class="hljs-number">10</span>, TimeUnit.SECONDS);<br>    <span class="hljs-keyword">if</span> (!result) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Exception</span>(<span class="hljs-string">&quot;error!&quot;</span>);<br>    &#125;<br>    <span class="hljs-comment">//执行业务</span><br>    System.out.println(<span class="hljs-string">&quot;执行业务&quot;</span>);<br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    <span class="hljs-keyword">if</span> (requestId.equals(stringRedisTemplate.opsForValue().get(lockKey))) &#123;<br>        stringRedisTemplate.delete(lockKey);<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
 <p>这样，就不会删除到别的线程的锁了</p>
 <p>然而，这个时间设置很令人头疼，如果锁失效时间设置为5s，可能太少，但如果设置为30s，也可能不够。。。比如mysql执行卡住了，遇到了慢查询之类的</p>
 <p>但如果我设置非常久。。。比如设置个30分钟，那如果执行到finally之前服务器死机了，这样就变成30分钟锁释放了才能再执行下一个线程了。。。</p>
@@ -435,7 +431,6 @@
 <p>这就是分布式锁的底层原理了，具体实现这个锁续命的操作，可以使用redisson</p>
 <p>redisson调用LUA脚本（一个小众化脚本语言）实现，用的hash保证原子性，内部机制采用C语言实现</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">lockKey</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;myLock&quot;</span>;<br><span class="hljs-type">RLock</span> <span class="hljs-variable">lock</span> <span class="hljs-operator">=</span> redisson.getLock(lockKey);					<span class="hljs-comment">//1 获得锁对象</span><br><span class="hljs-keyword">try</span> &#123;<br>    lock.lock();					<span class="hljs-comment">//2  加锁（默认设置了有效时间，并开启分支线程定时续命）</span><br>    <span class="hljs-comment">//业务</span><br>    System.out.println(<span class="hljs-string">&quot;业务&quot;</span>);<br>&#125;<span class="hljs-keyword">finally</span> &#123;<br>    lock.unlock();				<span class="hljs-comment">//3  解锁</span><br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>就这样，redisson帮我们做了以上所有操作，一个很漂亮的分布式锁，就只需要这三行代码</p>
 
     </div>
@@ -502,6 +497,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -554,12 +555,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -578,61 +573,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/12/24/1brc/">1brc</a>
+                    <a href="/2025/08/19/LLMs-from-scratch/">LLMs-from-scratch</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/14/BibiGPT/">BibiGPT</a>
+                    <a href="/2020/11/29/Transactional/">@Transactional</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/06/29/brew%E5%AE%89%E8%A3%85nvm%E3%80%81node%E5%8F%8A%E9%85%8D%E7%BD%AE/">brew安装nvm、node及配置</a>
+                    <a href="/2024/06/20/github-readme-stats/">github-readme-stats</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/09/25/cim/">cim</a>
+                    <a href="/2021/06/07/idea%E5%90%AF%E5%8A%A8%E6%97%B6%E9%BB%98%E8%AE%A4%E9%80%89%E6%8B%A9%E9%A1%B9%E7%9B%AE/">idea启动时默认选择项目</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/07/03/idea%E6%89%93%E5%8D%B0%E6%96%AD%E7%82%B9%E6%97%A5%E5%BF%97/">idea打印断点日志</a>
+                    <a href="/2024/02/05/ios%E7%A6%81%E7%94%A8%E5%A4%9C%E9%97%B4%E6%A8%A1%E5%BC%8F/">ios禁用夜间模式</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/12/02/js%E8%BF%9B%E8%A1%8C%E6%B7%B1%E6%8B%B7%E8%B4%9D/">js进行深拷贝</a>
+                    <a href="/2021/10/12/mybatis-plus%E8%BF%87%E6%BB%A4%E4%B8%8D%E9%9C%80%E8%A6%81%E6%9F%A5%E8%AF%A2%E7%9A%84%E5%AD%97%E6%AE%B5/">mybatis-plus过滤不需要查询的字段</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/10/22/protocol%E7%A4%BA%E4%BE%8B/">protocol示例</a>
+                    <a href="/2021/02/28/quartz%E6%8C%87%E5%AE%9A%E6%97%B6%E9%97%B4%E7%82%B9%E8%A7%A6%E5%8F%91/">quartz指定时间点触发</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/06/12/quay/">quay</a>
+                    <a href="/2021/04/28/%E4%B8%8D%E8%A6%81%E7%94%A8%E9%AD%94%E6%B3%95%E5%80%BC%EF%BC%81%EF%BC%81%EF%BC%81/">不要用魔法值！！！</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/02/04/rewriteBatchedStatements/">rewriteBatchedStatements</a>
+                    <a href="/2024/09/05/%E9%AB%98%E6%95%88%E5%8E%8B%E7%BC%A9%E5%BA%93%EF%BC%9ASnappy-Java/">高效压缩库：Snappy Java</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/02/12/%E6%97%A5%E6%9C%9F%E6%97%B6%E9%97%B4%E7%9A%84%E6%A0%BC%E5%BC%8F%E5%8C%96%E7%BC%96%E7%A0%81/">日期时间的格式化编码</a>
+                    <a href="/2021/01/24/quartz/">quartz</a>
                 </span>
             </li>
             
@@ -665,73 +660,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 15.958185448184825px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 9.608898200336629px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.045191729579109px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.352222451911743px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 15.91299296542266px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 19.419965705999843px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.301393799368906px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 8.968155263893873px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.665455288154986px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.234215069655331px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 15.71367017682956px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 13.573856431427235px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 11.993223481159564px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 14.846415821345825px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.51108656176718px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 12.902167628215203px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 13.909979047796021px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 19.581714228928085px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 13.314666177823884px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 13.915659735202883px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 8.80745094064393px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 18.018268625811963px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 16.762254506581638px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 12.938334123198192px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 14.468266678014178px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 14.626568595353193px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 14.194320271968751px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 14.512092256411314px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 13.568519803199171px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 14.55885981570869px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 12.775987992359191px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 15.621452468460738px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.424688604593758px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 11.39983851828363px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 17.009984147854368px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 15.515880522917845px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.950074718278142px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 13.185866630305249px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 10.043110489244599px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 8.486167576116495px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 10.095649708459163px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 18.156017402244473px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 9.52656911143345px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 16.646030544407843px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 18.86777008317402px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 14.074811286826687px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 18.42441620584863px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 10.928475899109838px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 15.907012796498421px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 10.05859123939539px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 14.780880308131392px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 13.77402272117779px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 18.564644597865207px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 11.460523268650068px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.855396463386388px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.13471019340389px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 8.21916343916852px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 18.15157645270247px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 9.177864022922247px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 11.113324061824212px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 17.830842205567137px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 8.054829514490702px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.81320875475407px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.693555441972084px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 12.412734796839107px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 12.122777966870817px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.99283342419789px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.584018492964116px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

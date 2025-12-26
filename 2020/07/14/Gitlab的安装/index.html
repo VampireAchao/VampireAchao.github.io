@@ -15,7 +15,7 @@
   
   
   <title>Gitlab的安装 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>Gitlab的安装</span>
     </div>
@@ -396,78 +396,66 @@
         </center>
     </div>
     <div class="content-article">
-        <h3 id="Gitlab安装"><a href="#Gitlab安装" class="headerlink" title="Gitlab安装"></a>Gitlab安装</h3><p>1.安装相关依赖</p>
+        <h3 id="gitlab安装"><a class="markdownIt-Anchor" href="#gitlab安装"></a> Gitlab安装</h3>
+<p>1.安装相关依赖</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">yum -y install policycoreutils openssh-server openssh-clients postfix<br></code></pre></td></tr></table></figure>
-
 <p>2.启动ssh服务&amp;设置为开机启动</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">systemctl enable sshd &amp;&amp; sudo systemctl start sshd<br></code></pre></td></tr></table></figure>
-
 <p>3.设置postfix开机自启，并启动，postfix支持gitlab发信功能</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">systemctl enable postfix &amp;&amp; sudo systemctl start postfix<br></code></pre></td></tr></table></figure>
-
 <p>如果报这个错</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">Job for postfix.service failed because the control process exited with error code. See &quot;systemctl status postfix.service&quot; and &quot;journalctl -xe&quot; for details.<br></code></pre></td></tr></table></figure>
-
 <p>可以采取以下解决方案</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">#</span><span class="language-bash">修改 /etc/postfix/main.cf的设置</span><br><span class="hljs-meta prompt_">#</span><span class="language-bash">别写反了。。。</span><br>inet_protocols = ipv4<br>inet_interfaces = all<br></code></pre></td></tr></table></figure>
-
 <p>4.开放ssh以及http服务，然后重新加载防火墙列表</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">firewall-cmd --add-service=ssh --permanent<br>firewall-cmd --add-service=http --permanent<br>firewall-cmd --reload<br></code></pre></td></tr></table></figure>
-
 <p>5.下载gitlab包，并且安装</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">#</span><span class="language-bash">在线下载安装包</span><br>wget https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7/gitlab-ce-12.4.2-ce.0.el7.x86_64.rpm<br>rpm -i gitlab-ce-12.4.2-ce.0.el7.x86_64.rpm<br></code></pre></td></tr></table></figure>
-
 <p>6.修改gitlab配置</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">vi /etc/gitlab/gitlab.rb<br></code></pre></td></tr></table></figure>
-
 <p>修改gitlab访问地址和端口，默认80，我们改成82，改这两处</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">external_url &#x27;https://121.89.163.191:82&#x27;<br>nginx[&#x27;listen_port&#x27;]=82<br></code></pre></td></tr></table></figure>
-
 <p>7.重载配置及启动gitlab</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">gitlab-ctl reconfigure<br>gitlab-ctl restart<br></code></pre></td></tr></table></figure>
-
 <p>8.把端口添加到防火墙</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">firewall-cmd --zone=public --add-port=82/tcp --permanent<br>firewall-cmd --reload<br></code></pre></td></tr></table></figure>
-
 <p>如果一直502，查看8080端口是否被占用</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">#</span><span class="language-bash">查看端口</span><br>netstat -ntpl<br><span class="hljs-meta prompt_">#</span><span class="language-bash">停止端口</span><br>kill -9 4789<br></code></pre></td></tr></table></figure>
-
 <p>之后重启</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">gitlab-ctl restart<br></code></pre></td></tr></table></figure>
-
 <p>进去了后改密码…</p>
 <p>左上角创建一个group（有手就行）</p>
 <img src="/imgs/oss/picGo20200714193142.png" alt="gitlab" style="zoom:100%;" />
-
 <p>new project</p>
-<h3 id="接下来是push项目"><a href="#接下来是push项目" class="headerlink" title="接下来是push项目"></a>接下来是push项目</h3><p>创建项目，8088端口</p>
+<h3 id="接下来是push项目"><a class="markdownIt-Anchor" href="#接下来是push项目"></a> 接下来是push项目</h3>
+<p>创建项目，8088端口</p>
 <p>然后在idea的</p>
 <blockquote>
 <p>VCS-&gt;Enable Version Control Integration…</p>
 </blockquote>
-<p><img src="/imgs/oss/picGo/image-20200804222027830.png" alt="image-20200804222027830"></p>
+<p><img src="/imgs/oss/picGo/image-20200804222027830.png" alt="image-20200804222027830" /></p>
 <p>打开后选择<code>Git</code>创建版本控制库</p>
-<p><img src="/imgs/oss/picGo/image-20200804222050074.png" alt="image-20200804222050074"></p>
-<p><img src="/imgs/oss/picGo/image-20200804222146217.png" alt="image-20200804222146217"></p>
+<p><img src="/imgs/oss/picGo/image-20200804222050074.png" alt="image-20200804222050074" /></p>
+<p><img src="/imgs/oss/picGo/image-20200804222146217.png" alt="image-20200804222146217" /></p>
 <p>开始写代码</p>
 <p>然后右键项目根路径<code>Add</code>代码，<code>commit</code>代码…</p>
-<p><img src="/imgs/oss/picGo/image-20200804222759496.png" alt="image-20200804222759496"></p>
-<p><img src="/imgs/oss/picGo/image-20200804222858444.png" alt="image-20200804222858444"></p>
-<p><img src="/imgs/oss/picGo/image-20200804223327715.png" alt="image-20200804223327715"></p>
-<p><img src="/imgs/oss/picGo/image-20200804223402838.png" alt="image-20200804223402838"></p>
-<p><img src="/imgs/oss/picGo/image-20200804223435012.png" alt="image-20200804223435012"></p>
+<p><img src="/imgs/oss/picGo/image-20200804222759496.png" alt="image-20200804222759496" /></p>
+<p><img src="/imgs/oss/picGo/image-20200804222858444.png" alt="image-20200804222858444" /></p>
+<p><img src="/imgs/oss/picGo/image-20200804223327715.png" alt="image-20200804223327715" /></p>
+<p><img src="/imgs/oss/picGo/image-20200804223402838.png" alt="image-20200804223402838" /></p>
+<p><img src="/imgs/oss/picGo/image-20200804223435012.png" alt="image-20200804223435012" /></p>
 <p>以及<code>Remotes</code>里添加我们的远程仓库</p>
-<p><img src="/imgs/oss/picGo/image-20200804223502609.png" alt="image-20200804223502609"></p>
+<p><img src="/imgs/oss/picGo/image-20200804223502609.png" alt="image-20200804223502609" /></p>
 <p><code>push</code></p>
-<p><img src="/imgs/oss/picGo/image-20200804223638515.png" alt="image-20200804223638515"></p>
+<p><img src="/imgs/oss/picGo/image-20200804223638515.png" alt="image-20200804223638515" /></p>
 <p>也可以去管理远程仓库</p>
-<p><img src="/imgs/oss/picGo/image-20200804223733362.png" alt="image-20200804223733362"></p>
-<p><img src="/imgs/oss/picGo/image-20200804223834907.png" alt="image-20200804223834907"></p>
+<p><img src="/imgs/oss/picGo/image-20200804223733362.png" alt="image-20200804223733362" /></p>
+<p><img src="/imgs/oss/picGo/image-20200804223834907.png" alt="image-20200804223834907" /></p>
 <p>对了，中途弹出的输入用户名和密码</p>
 <p>如果密码输错了，可以去</p>
 <p><code>windows</code>控制面板-&gt;用户账户-&gt;凭据管理器找到<code>windows</code>凭据</p>
 <p>然后删除对应的凭据就行了</p>
-<p><img src="/imgs/oss/picGo/image-20200804224042359.png" alt="image-20200804224042359"></p>
+<p><img src="/imgs/oss/picGo/image-20200804224042359.png" alt="image-20200804224042359" /></p>
 
     </div>
 </article>
@@ -533,6 +521,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -585,12 +579,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -609,61 +597,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/22/apache-apisix/">apache-apisix</a>
+                    <a href="/2025/03/11/PTFakeTouch/">PTFakeTouch</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/01/28/gitea/">gitea</a>
+                    <a href="/2025/01/19/VictoriaMetrics/">VictoriaMetrics</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/17/icss/">icss</a>
+                    <a href="/2025/07/21/Z-library/">Z-library</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/04/12/mysql%E5%A4%A7%E5%B0%8F%E5%86%99%E8%B8%A9%E5%9D%91/">mysql大小写踩坑</a>
+                    <a href="/2023/01/13/idea%E8%B7%B3%E8%BD%ACclass%E6%96%87%E4%BB%B6/">idea跳转class文件</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/">reduce补充二</a>
+                    <a href="/2024/07/23/mdn%E5%AD%A6%E4%B9%A0web%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/">mdn学习web游戏开发</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/08/22/ts%E7%9A%84-%E5%92%8C-%E7%B1%BB%E5%9E%8B/">ts的&amp;和|类型</a>
+                    <a href="/2023/02/27/mp%E5%AF%B9%E8%B1%A1%E9%9B%86%E5%90%88in%E6%9F%A5%E8%AF%A2/">mp对象集合in查询</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/08/17/vuepress%E8%8E%B7%E5%8F%96%E6%89%80%E6%9C%89%E9%A1%B5%E9%9D%A2frontmatter/">vuepress获取所有页面frontmatter</a>
+                    <a href="/2025/05/31/remix/">remix</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/09/28/yt-dlp/">yt-dlp</a>
+                    <a href="/2022/09/20/%E4%B8%AD%E7%BC%80%E8%A1%A8%E7%A4%BA%E6%B3%95/">中缀表示法</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/08/06/%E6%90%AD%E5%BB%BAspring-springmvc%E9%A1%B9%E7%9B%AE/">搭建spring+springmvc项目</a>
+                    <a href="/2024/04/03/%E4%BD%BF%E7%94%A8oceanbase/">使用oceanbase</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/11/13/%E7%AE%AD%E5%A4%B4%E5%87%BD%E6%95%B0%E4%B8%8Ethis%E6%8C%87%E5%90%91%E6%8E%A2%E7%A9%B6/">箭头函数与this指向探究</a>
+                    <a href="/2024/03/07/%E6%9E%81%E5%85%89%E6%8E%A8%E9%80%81%E6%8A%A5%E9%94%996027/">极光推送报错6027</a>
                 </span>
             </li>
             
@@ -696,73 +684,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 16.29947107343296px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 12.919457047846167px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 19.937739167953605px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 9.195335992852181px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 12.605959671943069px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 16.862903783365358px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.398887164399458px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.956819092078682px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 8.1888289204148px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.66409620730261px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 10.375588421647617px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 9.89775326703219px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 18.408039439312986px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 12.266699379343326px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 16.4188309269596px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.74275112708207px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 13.901806923304804px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.178512799932832px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 17.37524322319635px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 11.986432723187683px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 9.781870237911487px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 9.080103765107985px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 14.153156891134667px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 9.632862155302885px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 11.420079605801728px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 11.549121132563442px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 17.25429924691612px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 19.43398895800587px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 13.380868907902887px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 15.432799079221658px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 11.081898157109585px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 11.097355153986516px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 10.38243390052273px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 15.810949531174403px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 15.440413373551639px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 12.280543445854075px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.465328264060588px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 17.415026008129846px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 15.844052530909668px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 13.96706951845174px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 16.26940207458282px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.594700428975477px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 17.706922785402327px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 18.21318339934135px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 16.05140471128273px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 19.567107399299594px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 18.254087556657378px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 16.734713912711435px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 14.090754424716707px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 16.02742658460955px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 18.75032340625509px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 9.55375316849894px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 12.632109201032245px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 9.378483185850005px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.901059981876088px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.7078831679863px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 11.23895150204638px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 17.02386783223413px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 16.56342774942989px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 19.476656291476015px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 15.853355401638646px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 10.190991552069812px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 15.442562907239175px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 18.83167015099022px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 12.114539287257166px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 8.820076246633652px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 19.576262831453207px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 18.622336027828354px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

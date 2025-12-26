@@ -15,7 +15,7 @@
   
   
   <title>gson坑 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>gson坑</span>
     </div>
@@ -402,30 +402,23 @@
 <p>前两天使用<code>Gson</code>中遇到一个坑</p>
 <p>同事使用</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Gson</span> <span class="hljs-variable">gson</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">GsonBuilder</span>().excludeFieldsWithoutExposeAnnotation().create();<br></code></pre></td></tr></table></figure>
-
 <p>创建<code>gson</code>对象</p>
 <p>所以到我这，出现了字段不序列化，或者反序列化不了的问题</p>
 <p>例如下面这个类</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Data</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Serializable</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">serialVersionUID</span> <span class="hljs-operator">=</span> <span class="hljs-number">509877226276918727L</span>;<br>    <span class="hljs-meta">@Expose</span><br>    <span class="hljs-keyword">private</span> String firstName;<br>    <span class="hljs-meta">@Expose(serialize = false)</span><br>    <span class="hljs-keyword">private</span> String lastName;<br>    <span class="hljs-meta">@Expose(serialize = false, deserialize = false)</span><br>    <span class="hljs-keyword">private</span> String emailAddress;<br>    <span class="hljs-keyword">private</span> String password;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>使用以下代码进行序列化</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Gson</span> <span class="hljs-variable">gson</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">GsonBuilder</span>().excludeFieldsWithoutExposeAnnotation().create();<br><span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br>user.setFirstName(<span class="hljs-string">&quot;Supa&quot;</span>);<br>user.setLastName(<span class="hljs-string">&quot;Hino&quot;</span>);<br>user.setEmailAddress(<span class="hljs-string">&quot;achao1441470436@gmail.com&quot;</span>);<br>user.setPassword(<span class="hljs-string">&quot;39a8456c26584ba987d4a9f1f8f75fc1&quot;</span>);<br><span class="hljs-type">String</span> <span class="hljs-variable">userJson</span> <span class="hljs-operator">=</span> gson.toJson(user);<br>System.out.println(userJson);<br></code></pre></td></tr></table></figure>
-
 <p>输出结果为</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">&#123;&quot;firstName&quot;:&quot;Supa&quot;&#125;<br></code></pre></td></tr></table></figure>
-
 <p>可以看到只有<code>firstName</code>被序列化了</p>
 <p>这是因为我们只有<code>firstName</code>上加了<code>@Expose</code>并且<code>serialize</code>值为<code>true</code></p>
 <p>如果没有这个注解或者<code>serialize</code>为<code>false</code>时，它就不会被序列化</p>
 <p>但注意还有个属性<code>deserialize</code>，当它为<code>false</code>时，反序列化<code>json</code>到对象时，会过滤该属性</p>
 <p>例如我使用这段<code>json</code>去反序列化</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;firstName&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Supa&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;lastName&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Hino&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;emailAddress&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;achao1441470436@gmail.com&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;password&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;39a8456c26584ba987d4a9f1f8f75fc1&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
-
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">myJson</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&#123;\&quot;firstName\&quot;:\&quot;Supa\&quot;,\&quot;lastName\&quot;:\&quot;Hino\&quot;,\&quot;emailAddress\&quot;:\&quot;achao1441470436@gmail.com\&quot;,\&quot;password\&quot;:\&quot;39a8456c26584ba987d4a9f1f8f75fc1\&quot;&#125;&quot;</span>;<br><span class="hljs-type">User</span> <span class="hljs-variable">myUser</span> <span class="hljs-operator">=</span> gson.fromJson(myJson, User.class);<br>System.out.println(myUser);<br></code></pre></td></tr></table></figure>
-
 <p>输出结果</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">User(firstName=Supa, lastName=Hino, emailAddress=null, password=null)<br></code></pre></td></tr></table></figure>
-
 <p>所以在使用<code>Gson</code>的时候，一定要注意<code>Gson</code>对象是如何创建的</p>
 
     </div>
@@ -492,6 +485,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -544,12 +543,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -568,61 +561,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/26/PersistJobDataAfterExecution%E6%B3%A8%E8%A7%A3/">PersistJobDataAfterExecution注解</a>
+                    <a href="/2022/10/10/MockMvc/">MockMvc</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/11/17/Stream%E6%B5%81%E3%81%AE%E4%BA%8C%E7%BB%B4%E6%95%B0%E7%BB%84List-List-%E4%BA%92%E8%BD%AC/">Stream流の二维数组List&lt;List&gt;互转</a>
+                    <a href="/2020/11/15/android%E9%9A%90%E8%97%8F%E8%BD%AF%E9%94%AE%E7%9B%98/">android隐藏软键盘</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/12/27/hexo%E4%B8%BB%E9%A2%98%E9%9B%86%E6%88%90pug/">hexo主题集成pug</a>
+                    <a href="/2021/12/18/layui%E6%A8%A1%E5%9D%97%E5%85%A5%E9%97%A8/">layui模块入门</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/07/16/java%E9%98%BF%E9%87%8C%E4%BA%91%E4%BC%81%E4%B8%9A%E9%82%AE%E7%AE%B1%E5%8F%91%E9%80%81%E9%82%AE%E4%BB%B6/">java阿里云企业邮箱发送邮件</a>
+                    <a href="/2025/06/17/macos%E5%92%8Clinux%E6%9F%A5%E7%9C%8B%E6%95%B0%E6%8D%AE%E7%BA%BF%E7%9A%84%E9%80%9F%E7%8E%87/">macos和linux查看数据线的速率</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/07/26/mp%E8%87%AA%E5%AE%9A%E4%B9%89sql%E6%B3%A8%E5%85%A5/">mp自定义sql注入</a>
+                    <a href="/2024/06/17/natapp%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E8%BF%9E%E6%8E%A5%E4%B8%8D%E4%B8%8A/">natapp内网穿透连接不上</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/08/nvue%E4%B8%ADlist%E7%BB%84%E4%BB%B6%E4%B8%8B%E6%8B%89%E5%88%B7%E6%96%B0%E5%90%8E%E6%97%A0%E6%B3%95%E4%B8%8A%E6%8B%89%E5%8A%A0%E8%BD%BD%E6%9B%B4%E5%A4%9A/">nvue中list组件下拉刷新后无法上拉加载更多</a>
+                    <a href="/2023/04/10/spotless/">spotless</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/12/19/sherpa-ncnn%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB/">sherpa-ncnn端到端语音识别</a>
+                    <a href="/2020/11/27/springboot%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">springboot单元测试</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/05/29/stream-query/">stream-query</a>
+                    <a href="/2023/09/16/tldraw/">tldraw</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/11/04/typescript-exercises%EF%BC%88%E4%B9%9D%EF%BC%89/">typescript-exercises（九）</a>
+                    <a href="/2020/10/31/%E8%B6%85%E7%BA%A7%E7%AE%80%E5%8D%95%E7%9A%84%E5%AE%89%E5%8D%93%E5%9B%BE%E7%89%87%E4%B8%8B%E8%BD%BD/">超级简单的安卓图片下载</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/06/08/vuesax%E4%B8%80%E4%BA%9B%E7%BB%84%E4%BB%B6%E6%89%BE%E4%B8%8D%E5%88%B0%E8%B8%A9%E5%9D%91/">vuesax一些组件找不到踩坑</a>
+                    <a href="/2022/06/11/%E9%83%A8%E7%BD%B2boot%E9%A1%B9%E7%9B%AEsh%E8%84%9A%E6%9C%AC/">部署boot项目sh脚本</a>
                 </span>
             </li>
             
@@ -655,73 +648,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 10.320851940416325px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 12.872542731340564px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.554885643384818px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 16.929094101150902px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 9.967224111614536px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 14.13447860244916px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 16.492530117105414px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.689004678275964px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.387515302497338px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.771574395416122px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 11.725968402325158px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 16.24833693099751px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 13.359549224933147px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 15.01373356366423px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.685694509346778px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10.05418310416739px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.646212974993588px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.01433623480062px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 19.77047741309761px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 10.647986565063755px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 19.735345433672677px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 10.98113988121532px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 10.731670709473079px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 15.311033167349557px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 11.373236938831955px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 19.59485958816812px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 14.150496951415587px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 8.309633371704177px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 19.032528189698915px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 12.763216370897485px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 13.244037671283674px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 19.379942754816845px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 12.698755089617446px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 17.004387866580302px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 14.89525785100651px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 14.653734798310808px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.7235972800129px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.141852619452493px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 19.155037429998664px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 15.391206070859129px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 12.115124637047405px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 9.110295875196549px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 19.45556779756226px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 8.108103083248619px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 8.162984793022222px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 19.89669118913435px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 16.438813584621712px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 19.107991804317386px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 10.528064154707748px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 15.105063713869043px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 12.782506893665317px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 8.45823781199087px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 15.193411051949244px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 14.120858353136125px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 15.864620704417117px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.927022356047278px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 8.465856384083072px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 18.367729614469955px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 11.546854348570609px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 13.890266466501107px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 14.524449520279095px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 8.430696482073325px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 14.464676313752246px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 12.354869115161435px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 10.096769592088327px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 12.550421532801712px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 17.367493226317947px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.566987793470279px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

@@ -15,7 +15,7 @@
   
   
   <title>mybatis中@Many | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>mybatis中@Many</span>
     </div>
@@ -399,19 +399,16 @@
         <blockquote>
 <p>吃饭先喝汤，不用请药方——佚名</p>
 </blockquote>
-<p>之前写了<a href="https://vampireachao.github.io/2023/03/05/mybatis%E4%B8%AD-One/">mybatis中@One</a></p>
+<p>之前写了<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2023/03/05/mybatis%E4%B8%AD-One/">mybatis中@One</a></p>
 <p>今天写个<code>@Many</code>的</p>
 <p>首先还是代码：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.mapper;<br><br><span class="hljs-keyword">import</span> com.ruben.pojo.po.UserInfo;<br><span class="hljs-keyword">import</span> org.apache.ibatis.annotations.*;<br><span class="hljs-keyword">import</span> org.apache.ibatis.cursor.Cursor;<br><span class="hljs-keyword">import</span> org.apache.ibatis.session.RowBounds;<br><br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-meta">@Mapper</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">UserMapper</span> &#123;<br><br>    <span class="hljs-meta">@Select(&quot;SELECT * FROM user_info&quot;)</span><br>    <span class="hljs-meta">@Results(&#123;</span><br><span class="hljs-meta">            @Result(column = &quot;id&quot;, property = &quot;id&quot;),</span><br><span class="hljs-meta">            @Result(column = &quot;name&quot;, property = &quot;name&quot;),</span><br><span class="hljs-meta">            @Result(column = &quot;age&quot;, property = &quot;age&quot;),</span><br><span class="hljs-meta">            @Result(column = &quot;email&quot;, property = &quot;email&quot;),</span><br><span class="hljs-meta">            @Result(property = &quot;userRoles&quot;, javaType = List.class, column = &quot;userRole.userId = id&quot;,</span><br><span class="hljs-meta">                    many = @Many(select = &quot;com.ruben.mapper.UserRoleMapper.selectListCursor&quot;))</span><br><span class="hljs-meta">    &#125;)</span><br>    List&lt;UserInfo&gt; <span class="hljs-title function_">selectList</span><span class="hljs-params">(RowBounds rowBounds)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>这里的<code>UserRoleMapper.selectListCursor</code>还是没动，感觉这里不应该是<code>userRole.userId</code>，直接使用<code>userId</code>、<code>roleId</code>会更好</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-meta">&lt;?xml version=<span class="hljs-string">&quot;1.0&quot;</span> encoding=<span class="hljs-string">&quot;UTF-8&quot;</span> ?&gt;</span><br><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">mapper</span></span><br><span class="hljs-meta">        <span class="hljs-keyword">PUBLIC</span> <span class="hljs-string">&quot;-//mybatis.org//DTD Mapper 3.0//EN&quot;</span></span><br><span class="hljs-meta">        <span class="hljs-string">&quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">mapper</span> <span class="hljs-attr">namespace</span>=<span class="hljs-string">&quot;com.ruben.mapper.UserRoleMapper&quot;</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">resultMap</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;userRole&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;com.ruben.pojo.po.UserRole&quot;</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;id&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;id&quot;</span>/&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;user_id&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;userId&quot;</span>/&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;role_id&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;roleId&quot;</span>/&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">association</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;role&quot;</span></span><br><span class="hljs-tag">                     <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;id = role_id&quot;</span></span><br><span class="hljs-tag">                     <span class="hljs-attr">javaType</span>=<span class="hljs-string">&quot;com.ruben.pojo.po.RoleInfo&quot;</span></span><br><span class="hljs-tag">                     <span class="hljs-attr">select</span>=<span class="hljs-string">&quot;com.ruben.mapper.RoleMapper.getById&quot;</span></span><br><span class="hljs-tag">                     <span class="hljs-attr">fetchType</span>=<span class="hljs-string">&quot;lazy&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">resultMap</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">select</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;selectListCursor&quot;</span> <span class="hljs-attr">resultMap</span>=<span class="hljs-string">&quot;userRole&quot;</span>&gt;</span><br>        select *<br>        from user_role<br>        <span class="hljs-tag">&lt;<span class="hljs-name">where</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;userRole.userId != null&quot;</span>&gt;</span><br>                AND user_id = #&#123;userRole.userId&#125;<br>            <span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">if</span> <span class="hljs-attr">test</span>=<span class="hljs-string">&quot;userRole.roleId != null&quot;</span>&gt;</span><br>                AND role_id = #&#123;userRole.roleId&#125;<br>            <span class="hljs-tag">&lt;/<span class="hljs-name">if</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">where</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">select</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">mapper</span>&gt;</span><br></code></pre></td></tr></table></figure>
-
 <p>然后结合之前的代码，这里写个单元测试：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Test</span><br><span class="hljs-keyword">void</span> <span class="hljs-title function_">testMany</span><span class="hljs-params">(<span class="hljs-meta">@Autowired</span> UserMapper userMapper)</span> &#123;<br>    List&lt;UserInfo&gt; users = userMapper.selectList(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RowBounds</span>(<span class="hljs-number">0</span>, <span class="hljs-number">5</span>));<br>    Assertions.assertEquals(<span class="hljs-string">&quot;admin&quot;</span>, users.get(<span class="hljs-number">0</span>).getUserRoles().get(<span class="hljs-number">0</span>).getRole().getRoleName());<br>    Assertions.assertEquals(<span class="hljs-string">&quot;user&quot;</span>, users.get(<span class="hljs-number">0</span>).getUserRoles().get(<span class="hljs-number">1</span>).getRole().getRoleName());<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>运行结果：</p>
-<p><img src="/imgs/oss/blog/vampireachao/image-20230306231317420.png" alt="image-20230306231317420"></p>
+<p><img src="/imgs/oss/blog/vampireachao/image-20230306231317420.png" alt="image-20230306231317420" /></p>
 
     </div>
 </article>
@@ -477,6 +474,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -529,12 +532,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -553,61 +550,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/07/20/GitHub-CLI/">GitHub CLI</a>
+                    <a href="/2021/01/11/BCryptPasswordEncoder/">BCryptPasswordEncoder</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/22/git%E6%8F%90%E4%BA%A4%E5%A4%A7%E5%B0%8F%E5%86%99%E9%97%AE%E9%A2%98/">git提交大小写问题</a>
+                    <a href="/2022/10/05/RainEffect/">RainEffect</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/03/24/kimi/">kimi</a>
+                    <a href="/2025/10/29/apache-shenyu%E5%A4%84%E7%90%86discoveryType%E9%97%AE%E9%A2%98/">apache-shenyu处理discoveryType问题</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/12/06/let%E5%92%8Cconst%E5%91%BD%E4%BB%A4/">let和const命令</a>
+                    <a href="/2025/06/21/data-engineer-handbook/">data-engineer-handbook</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/12/08/minimind/">minimind</a>
+                    <a href="/2023/09/04/mdit-vue/">mdit-vue</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/04/26/mysql%E9%9A%8F%E6%9C%BA%E6%9F%A5%E8%AF%A2%EF%BC%88%E4%BA%8C%EF%BC%89/">mysql随机查询（二）</a>
+                    <a href="/2022/02/23/react%E5%AE%8C%E6%88%90%E4%BA%95%E5%AD%97%E6%A3%8B%E5%B0%8F%E6%B8%B8%E6%88%8F/">react完成井字棋小游戏</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/05/11/nightingale/">nightingale</a>
+                    <a href="/2021/05/10/redis%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81/">redis修改密码</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/01/01/postman%E5%AF%BC%E5%87%BAapi%E6%96%87%E6%A1%A3/">postman导出api文档</a>
+                    <a href="/2025/07/06/ty/">ty</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/03/04/r2dbc%E9%85%8D%E7%BD%AE%E6%9E%9A%E4%B8%BE%E8%BD%AC%E6%8D%A2%E5%99%A8/">r2dbc配置枚举转换器</a>
+                    <a href="/2021/03/20/zipkin/">zipkin</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/03/31/%E5%8D%95%E8%A1%A8%E5%92%8C%E8%BF%9E%E8%A1%A8%EF%BC%9F%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9F/">单表和连表？如何选择？</a>
+                    <a href="/2023/03/12/%E6%96%B0%E7%89%88jdk%E7%9A%84peek%E5%9D%91/">新版jdk的peek坑</a>
                 </span>
             </li>
             
@@ -640,73 +637,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 15.252976425769083px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 8.04255346018056px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 9.689148186045148px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.41800593590338px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 12.488834687174979px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 18.76136614514048px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 12.488932334098607px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 8.382353037512775px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.562994428048206px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 16.451047446290413px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 10.720860828056178px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 16.614115303259005px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 8.045272538355025px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 19.952941880289643px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 15.521000772090668px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.0028351938494px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.1912413494797px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 14.353604801372658px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 17.18713043409855px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 12.720537966256074px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 14.451651891468714px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 14.20685539769799px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 10.16835411702103px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 19.39792215066934px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 14.860696139200137px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 12.520289073478637px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 17.088619459359258px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 17.01606939986133px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 16.374940699425512px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 12.836737791563777px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 8.31604642030166px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 18.1001097262022px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 14.986131853139117px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 16.232423484134696px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 17.677992867802224px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 14.193453771833678px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.64815946112732px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.771967623198364px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 19.257226620909815px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 10.021238797039754px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 19.810080936202315px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.080510356721565px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 14.941829620441112px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 9.461920084046499px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 14.483389707282022px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 9.372010728869032px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 11.500898096681459px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 19.691982241888066px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 14.250943615359624px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 15.074921295648824px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 14.30613558802829px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 9.591586074602766px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 9.059763073590425px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 14.326321404008773px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.460704232277024px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 12.523035210548313px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 8.848038747983022px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 18.49281915272838px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 16.117788860194903px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 9.399935199723018px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 11.108449921474563px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 12.074805614966841px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.201499232328064px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.944077316648379px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 10.988895047777921px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 9.792515356767181px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.934793261917996px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 16.12447685169041px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

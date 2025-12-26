@@ -15,7 +15,7 @@
   
   
   <title>对接有道OCR | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>对接有道OCR</span>
     </div>
@@ -402,12 +402,10 @@
 <p><a target="_blank" rel="noopener" href="https://ai.youdao.com/DOCSIRMA/html/%E6%96%87%E5%AD%97%E8%AF%86%E5%88%ABOCR/API%E6%96%87%E6%A1%A3/%E9%80%9A%E7%94%A8%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB%E6%9C%8D%E5%8A%A1/%E9%80%9A%E7%94%A8%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB%E6%9C%8D%E5%8A%A1-API%E6%96%87%E6%A1%A3.html">有道智云文档</a></p>
 <p>代码如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben;<br><br><span class="hljs-keyword">import</span> cn.hutool.core.codec.Base64;<br><span class="hljs-keyword">import</span> cn.hutool.core.lang.Console;<br><span class="hljs-keyword">import</span> cn.hutool.core.lang.UUID;<br><span class="hljs-keyword">import</span> cn.hutool.crypto.digest.DigestUtil;<br><span class="hljs-keyword">import</span> cn.hutool.extra.tokenizer.Word;<br><span class="hljs-keyword">import</span> cn.hutool.http.HttpRequest;<br><span class="hljs-keyword">import</span> cn.hutool.http.HttpResponse;<br><span class="hljs-keyword">import</span> cn.hutool.http.HttpUtil;<br><span class="hljs-keyword">import</span> cn.hutool.setting.Setting;<br><br><span class="hljs-keyword">import</span> javax.sound.sampled.Line;<br><span class="hljs-keyword">import</span> java.security.MessageDigest;<br><span class="hljs-keyword">import</span> java.security.NoSuchAlgorithmException;<br><span class="hljs-keyword">import</span> java.util.ArrayList;<br><span class="hljs-keyword">import</span> java.util.List;<br><span class="hljs-keyword">import</span> java.util.Map;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * YouDaoOcr</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/9/10</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">YouDaoOcr</span> &#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 地址与鉴权信息，配置文件中</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Setting</span> <span class="hljs-variable">SETTING</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Setting</span>(<span class="hljs-string">&quot;app.setting&quot;</span>);<br><br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        recognize(Base64.encode(HttpUtil.downloadBytes(<span class="hljs-string">&quot;https://VampireAchao.github.io/imgs/preview/3051_3.jpg&quot;</span>)));<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">recognize</span><span class="hljs-params">(String base64Image)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">salt</span> <span class="hljs-operator">=</span> UUID.fastUUID().toString();<br>        <span class="hljs-type">String</span> <span class="hljs-variable">curTime</span> <span class="hljs-operator">=</span> String.valueOf(System.currentTimeMillis() / <span class="hljs-number">1000</span>);<br>        <span class="hljs-type">HttpRequest</span> <span class="hljs-variable">request</span> <span class="hljs-operator">=</span> HttpUtil.createPost(SETTING.get(<span class="hljs-string">&quot;YOU_DAO_OCR_URL&quot;</span>))<br>                .form(<span class="hljs-string">&quot;detectType&quot;</span>, <span class="hljs-string">&quot;10012&quot;</span>)<br>                .form(<span class="hljs-string">&quot;imageType&quot;</span>, <span class="hljs-string">&quot;1&quot;</span>)<br>                .form(<span class="hljs-string">&quot;langType&quot;</span>, <span class="hljs-string">&quot;auto&quot;</span>)<br>                .form(<span class="hljs-string">&quot;img&quot;</span>, base64Image)<br>                .form(<span class="hljs-string">&quot;docType&quot;</span>, <span class="hljs-string">&quot;json&quot;</span>)<br>                .form(<span class="hljs-string">&quot;signType&quot;</span>, <span class="hljs-string">&quot;v3&quot;</span>)<br>                .form(<span class="hljs-string">&quot;curtime&quot;</span>, curTime)<br>                .form(<span class="hljs-string">&quot;appKey&quot;</span>, SETTING.get(<span class="hljs-string">&quot;YOU_DAO_APP_KEY&quot;</span>))<br>                .form(<span class="hljs-string">&quot;salt&quot;</span>, salt)<br>                .form(<span class="hljs-string">&quot;sign&quot;</span>, DigestUtil.sha256Hex(SETTING.get(<span class="hljs-string">&quot;YOU_DAO_APP_KEY&quot;</span>) + truncate(base64Image) + salt + curTime + SETTING.get(<span class="hljs-string">&quot;YOU_DAO_APP_SECRET&quot;</span>)));<br>        <span class="hljs-keyword">try</span> (<span class="hljs-type">HttpResponse</span> <span class="hljs-variable">response</span> <span class="hljs-operator">=</span> request.execute()) &#123;<br>            Console.log(response.body());<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">truncate</span><span class="hljs-params">(String q)</span> &#123;<br>        <span class="hljs-keyword">if</span> (q == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>        &#125;<br>        <span class="hljs-type">int</span> <span class="hljs-variable">len</span> <span class="hljs-operator">=</span> q.length();<br>        <span class="hljs-keyword">return</span> len &lt;= <span class="hljs-number">20</span> ? q : (q.substring(<span class="hljs-number">0</span>, <span class="hljs-number">10</span>) + len + q.substring(len - <span class="hljs-number">10</span>, len));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>配置文件如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs setting">YOU_DAO_OCR_URL = https://openapi.youdao.com/ocrapi<br>YOU_DAO_APP_KEY = &lt;YOUR_YOU_DAO_APP_KEY&gt;<br>YOU_DAO_APP_SECRET = &lt;YOUR_YOU_DAO_APP_SECRET&gt;<br></code></pre></td></tr></table></figure>
-
 <p>执行结果如下：</p>
-<p><img src="/imgs/oss/blog/image-20220910125752346.png" alt="image-20220910125752346"></p>
+<p><img src="/imgs/oss/blog/image-20220910125752346.png" alt="image-20220910125752346" /></p>
 
     </div>
 </article>
@@ -473,6 +471,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -525,12 +529,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -549,61 +547,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/04/ChatGPT%E5%9C%A8JetBrains-IDE%E4%B8%8A%E7%9A%84%E6%8F%92%E4%BB%B6/">ChatGPT在JetBrains-IDE上的插件</a>
+                    <a href="/2023/05/27/Jinx/">Jinx</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/02/26/JS%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B%E5%92%8C%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF%E6%9C%BA%E5%88%B6/">JS的线程模型和事件循环机制</a>
+                    <a href="/2024/04/21/OceanBase%E5%BC%80%E5%8F%91%E8%80%85%E5%A4%A7%E4%BC%9A/">OceanBase开发者大会</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/31/MusicFree/">MusicFree</a>
+                    <a href="/2025/07/16/Reachy-Mini/">Reachy Mini</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/12/30/file%E8%8E%B7%E5%8F%96%E8%B7%AF%E5%BE%84%E5%8C%BA%E5%88%AB/">file获取路径区别</a>
+                    <a href="/2024/08/25/apache-shenyu%E6%8B%89%E5%8F%96swagger%E6%B3%A8%E5%86%8CAPI%E6%96%87%E6%A1%A3%E5%8A%9F%E8%83%BD%E5%8D%87%E7%BA%A7swagger3/">apache-shenyu拉取swagger注册API文档功能升级swagger3</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/11/java-MethodHandle%E8%BD%AC%E5%8F%8D%E5%B0%84%E5%AF%B9%E8%B1%A1/">java MethodHandle转反射对象</a>
+                    <a href="/2024/08/24/jdk%E6%9C%AA%E6%9D%A5%E7%89%B9%E6%80%A7%E5%8F%AF%E7%A9%BA%E8%BF%90%E7%AE%97%E7%AC%A6/">jdk未来特性可空运算符</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/09/21/java%E5%AE%9E%E7%8E%B0%E6%8E%A7%E5%88%B6%E5%8F%B0%E6%89%93%E5%8D%B0%E8%BF%9B%E5%BA%A6%E6%9D%A1/">java实现控制台打印进度条</a>
+                    <a href="/2022/12/31/unocss/">unocss</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/11/28/mybatis-plus%E4%BB%A3%E7%A0%81%E6%96%B9%E5%BC%8F%E9%85%8D%E7%BD%AE/">mybatis-plus代码方式配置</a>
+                    <a href="/2020/10/01/%E5%85%B3%E4%BA%8Ealert/">关于alert</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/03/08/tauri%E5%9C%A8mac%E6%97%A0%E6%B3%95%E6%98%BE%E7%A4%BA%E8%8F%9C%E5%8D%95%E8%B8%A9%E5%9D%91/">tauri在mac无法显示菜单踩坑</a>
+                    <a href="/2021/03/31/%E5%8D%95%E8%A1%A8%E5%92%8C%E8%BF%9E%E8%A1%A8%EF%BC%9F%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9F/">单表和连表？如何选择？</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/11/25/uniapp%E7%94%B5%E9%87%8F%E7%99%BE%E5%88%86%E6%AF%94%E6%98%BE%E7%A4%BA%E7%BB%84%E4%BB%B6/">uniapp电量百分比显示组件</a>
+                    <a href="/2022/10/24/%E7%80%91%E5%B8%83%E6%B5%81%E7%BB%84%E4%BB%B6vue-waterfall/">瀑布流组件vue-waterfall</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/04/08/video-to-ascii/">video-to-ascii</a>
+                    <a href="/2021/05/05/%E8%B6%85%E5%AE%9E%E7%94%A8%E7%9A%84mybatis-plus%E5%B7%A5%E5%85%B7%E7%B1%BB/">超实用的mybatis-plus工具类</a>
                 </span>
             </li>
             
@@ -636,73 +634,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 11.124315441419625px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 9.40317077574819px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.003584565370682px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 12.682089347333122px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 16.746002062487396px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 11.189940776680615px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.967660273321073px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.258131607730066px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.061191398202936px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 17.35852780277785px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 11.620761598854457px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 17.185213497898953px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 13.02745147156611px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 11.000807190238753px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.008966659974px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 12.259015820024892px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 15.235685742492581px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 8.423706165518727px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 16.127934763417173px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 11.035635577936347px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 16.39592149191246px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 13.437184182264602px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 17.57380507662343px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 17.511701072587595px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 16.870051991786614px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 14.704540078015837px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 18.558367104583255px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 15.853357626462117px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 13.715491506735033px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 10.94664633827761px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 12.429485477587937px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 17.27624229729684px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 13.985912815518304px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 8.752995374556939px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 11.965786159088495px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 8.129020462948365px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 17.27155389758525px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.007363362294292px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 16.975160856703205px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 9.796217720533214px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 14.061533428104013px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 17.73201559127313px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 10.037768006222395px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 17.90004095620053px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 14.730885716602632px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 11.958784987333797px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 17.808193865179945px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 16.95037301844955px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 16.211813845782228px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 12.60798435352023px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 13.16322526450347px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 18.462224503322755px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 13.46936851918146px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 12.590104858746212px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.81183607198743px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10.448730291115211px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 18.016755135091916px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 19.574595409863466px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 18.284915386592463px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 12.6905021449036px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 9.609703312947914px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 11.215100056015565px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 9.481649257135608px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 18.73390832068411px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 9.168663709247472px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 13.027606668888641px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 18.905303864640974px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 14.87323729571624px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

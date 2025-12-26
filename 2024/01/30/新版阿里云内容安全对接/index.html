@@ -15,7 +15,7 @@
   
   
   <title>新版阿里云内容安全对接 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>新版阿里云内容安全对接</span>
     </div>
@@ -403,13 +403,10 @@
 <p><a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/467828.html?spm=a2c4g.467825.0.0.7b03275dSTkzDJ">图片审核增强版SDK_内容安全(Content Moderation)-阿里云帮助中心</a></p>
 <p>代码：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><br><span class="hljs-keyword">import</span> cn.hutool.core.thread.AsyncUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.RandomUtil;<br><span class="hljs-keyword">import</span> com.alibaba.nacos.common.utils.JacksonUtils;<br><span class="hljs-keyword">import</span> com.aliyun.auth.credentials.Credential;<br><span class="hljs-keyword">import</span> com.aliyun.auth.credentials.provider.StaticCredentialProvider;<br><span class="hljs-keyword">import</span> com.aliyun.sdk.service.green20220302.AsyncClient;<br><span class="hljs-keyword">import</span> com.aliyun.sdk.service.green20220302.models.ImageModerationRequest;<br><span class="hljs-keyword">import</span> com.aliyun.sdk.service.green20220302.models.ImageModerationResponse;<br><span class="hljs-keyword">import</span> com.aliyun.sdk.service.green20220302.models.ImageModerationResponseBody;<br><br><br><br><span class="hljs-keyword">import</span> darabonba.core.client.ClientOverrideConfiguration;<br><span class="hljs-keyword">import</span> lombok.experimental.UtilityClass;<br><br><span class="hljs-keyword">import</span> java.util.Map;<br><span class="hljs-keyword">import</span> java.util.Objects;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * GreenUtil</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> achao@apache.org</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@UtilityClass</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">GreenUtil</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">AliyunGreenProperties</span> <span class="hljs-variable">aliyunGreenProperties</span> <span class="hljs-operator">=</span> SpringContextHolder.getBean(AliyunGreenProperties.class);<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 图片检测</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> url   需要检测的图片地址</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> label 标签</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> result</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ImageModerationResponseBody.Result <span class="hljs-title function_">inspectImg</span><span class="hljs-params">(String url, GreenLabelEnum label)</span> &#123;<br>        <span class="hljs-type">StaticCredentialProvider</span> <span class="hljs-variable">provider</span> <span class="hljs-operator">=</span> StaticCredentialProvider.create(Credential.builder()<br>                .accessKeyId(aliyunGreenProperties.getAccessKeyId())<br>                .accessKeySecret(aliyunGreenProperties.getAccessKeySecret())<br>                .build());<br><br>        ImageModerationResponse resp;<br>        <span class="hljs-keyword">try</span> (<span class="hljs-type">var</span> <span class="hljs-variable">client</span> <span class="hljs-operator">=</span> AsyncClient.builder()<br>                .region(<span class="hljs-string">&quot;cn-beijing&quot;</span>)<br>                .credentialsProvider(provider)<br>                .overrideConfiguration(ClientOverrideConfiguration.create()<br>                        .setEndpointOverride(<span class="hljs-string">&quot;green-cip.cn-beijing.aliyuncs.com&quot;</span>))<br>                .build()) &#123;<br>            <span class="hljs-type">var</span> <span class="hljs-variable">dataId</span> <span class="hljs-operator">=</span> RandomUtil.randomString(<span class="hljs-number">64</span>);<br>            <span class="hljs-type">var</span> <span class="hljs-variable">map</span> <span class="hljs-operator">=</span> Map.of(<span class="hljs-string">&quot;imageUrl&quot;</span>, url, <span class="hljs-string">&quot;dataId&quot;</span>, dataId);<br>            <span class="hljs-type">ImageModerationRequest</span> <span class="hljs-variable">imageModerationRequest</span> <span class="hljs-operator">=</span> ImageModerationRequest.builder()<br>                    .service(label.getValue())<br>                    .serviceParameters(JacksonUtils.toJson(map))<br>                    .build();<br>            <span class="hljs-type">var</span> <span class="hljs-variable">response</span> <span class="hljs-operator">=</span> client.imageModeration(imageModerationRequest);<br>            resp = AsyncUtil.get(response);<br>        &#125;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">results</span> <span class="hljs-operator">=</span> resp.getBody().getData().getResult();<br>        <span class="hljs-keyword">if</span> (results.isEmpty()) &#123;<br>            <span class="hljs-keyword">return</span> ImageModerationResponseBody.Result.builder().label(GreenliveStreamLabelEnum.NON_LABEL.getLabel()).build();<br>        &#125;<br>        <span class="hljs-keyword">return</span> results.get(<span class="hljs-number">0</span>);<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isViolation</span><span class="hljs-params">(ImageModerationResponseBody.Result normalRes)</span> &#123;<br>        <span class="hljs-keyword">if</span> (GreenliveStreamLabelEnum.NON_LABEL.getLabel().equals(normalRes.getLabel())) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>        &#125;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">labelEnum</span> <span class="hljs-operator">=</span> GreenliveStreamLabelEnum.getByLabel(normalRes.getLabel());<br>        <span class="hljs-keyword">return</span> Objects.nonNull(labelEnum) &amp;&amp; normalRes.getConfidence() &gt;= labelEnum.getConfidence();<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
 <p>对应俩枚举</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><br><span class="hljs-keyword">import</span> cn.hutool.core.util.EnumUtil;<br><span class="hljs-keyword">import</span> lombok.AllArgsConstructor;<br><span class="hljs-keyword">import</span> lombok.Getter;<br><br><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * GreenChildLabelEnum</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> achao@apache.org</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Getter</span><br><span class="hljs-meta">@AllArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">enum</span> <span class="hljs-title class_">GreenliveStreamLabelEnum</span> &#123;<br><br>    NON_LABEL(<span class="hljs-string">&quot;nonLabel&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;暂无匹配&quot;</span>),<br>    PORNOGRAPHIC_ADULTCONTENT(<span class="hljs-string">&quot;pornographic_adultContent&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;疑似含有成人色情内容&quot;</span>),<br>    PORNOGRAPHIC_ADULTTOYS(<span class="hljs-string">&quot;pornographic_adultToys&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面中疑似含有成人器具内容&quot;</span>),<br>    PORNOGRAPHIC_ARTWORK(<span class="hljs-string">&quot;pornographic_artwork&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面中疑似含有艺术品色情内容&quot;</span>),<br>    PORNOGRAPHIC_ADULTCONTENT_TII(<span class="hljs-string">&quot;pornographic_adultContent_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图片中文字疑似色情内容&quot;</span>),<br>    SEXUAL_SUGGESTIVECONTENT(<span class="hljs-string">&quot;sexual_suggestiveContent&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似低俗或性暗示内容&quot;</span>),<br>    SEXUAL_BREASTBUMP(<span class="hljs-string">&quot;sexual_breastBump&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有凸点轮廓内容&quot;</span>),<br>    SEXUAL_CLEAVAGE(<span class="hljs-string">&quot;sexual_cleavage&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有女性乳沟特征&quot;</span>),<br>    SEXUAL_FEMALEUNDERWEAR(<span class="hljs-string">&quot;sexual_femaleUnderwear&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有内衣泳衣内容&quot;</span>),<br>    SEXUAL_FEMALESHOULDER(<span class="hljs-string">&quot;sexual_femaleShoulder&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有肩部性感内容&quot;</span>),<br>    SEXUAL_FEMALELEG(<span class="hljs-string">&quot;sexual_femaleLeg&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有腿部性感内容&quot;</span>),<br>    SEXUAL_MALETOPLESS(<span class="hljs-string">&quot;sexual_maleTopless&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有男性赤膊内容&quot;</span>),<br>    SEXUAL_CARTOON(<span class="hljs-string">&quot;sexual_cartoon&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有卡通性感内容&quot;</span>),<br>    SEXUAL_PREGNANCY(<span class="hljs-string">&quot;sexual_pregnancy&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有孕照哺乳内容&quot;</span>),<br>    SEXUAL_UNDERAGE(<span class="hljs-string">&quot;sexual_underage&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有儿童性感内容&quot;</span>),<br>    POLITICAL_HISTORICALNIHILITY(<span class="hljs-string">&quot;political_historicalNihility&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似涉及虚无历史或不宜传播的历史事件&quot;</span>),<br>    POLITICAL_HISTORICALNIHILITY_TII(<span class="hljs-string">&quot;political_historicalNihility_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字疑似历史虚无&quot;</span>),<br>    POLITICAL_POLITICALFIGURE_1(<span class="hljs-string">&quot;political_politicalFigure_1&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含现任历任领导人&quot;</span>),<br>    POLITICAL_POLITICALFIGURE_2(<span class="hljs-string">&quot;political_politicalFigure_2&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似涉及领导人家属&quot;</span>),<br>    POLITICAL_POLITICALFIGURE_3(<span class="hljs-string">&quot;political_politicalFigure_3&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似涉及省、市政府人员&quot;</span>),<br>    POLITICAL_POLITICALFIGURE_4(<span class="hljs-string">&quot;political_politicalFigure_4&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似涉及国外领导人及家属&quot;</span>),<br>    POLITICAL_POLITICALFIGURE_NAME_TII(<span class="hljs-string">&quot;political_politicalFigure_name_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字含领导人姓名&quot;</span>),<br>    POLITICAL_POLITICALFIGURE_METAPHOR_TII(<span class="hljs-string">&quot;political_politicalFigure_metaphor_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字疑似含有对主要领导人的代称、暗喻&quot;</span>),<br>    POLITICAL_PROHIBITEDPERSON_1(<span class="hljs-string">&quot;political_prohibitedPerson_1&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有国家级落马官员&quot;</span>),<br>    POLITICAL_PROHIBITEDPERSON_2(<span class="hljs-string">&quot;political_prohibitedPerson_2&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有省市级落马官员&quot;</span>),<br>    POLITICAL_PROHIBITEDPERSON_TII(<span class="hljs-string">&quot;political_prohibitedPerson_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;   图中文字含落马官员的姓名 &quot;</span>),<br>    POLITICAL_TAINTEDCELEBRITY(<span class="hljs-string">&quot;political_taintedCelebrity&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含劣迹或重大负面的公众人物&quot;</span>),<br>    POLITICAL_TAINTEDCELEBRITY_TII(<span class="hljs-string">&quot;political_taintedCelebrity_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字疑似有劣迹艺人的姓名&quot;</span>),<br>    POLITICAL_CHINAFLAG(<span class="hljs-string">&quot;political_Chinaflag&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有中国国旗&quot;</span>),<br>    POLITICAL_OTHERFLAG(<span class="hljs-string">&quot;political_otherflag&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有其他国家国旗&quot;</span>),<br>    POLITICAL_CHINAMAP(<span class="hljs-string">&quot;political_Chinamap&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有中国地图&quot;</span>),<br>    POLITICAL_LOGO(<span class="hljs-string">&quot;political_logo&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有禁宣媒体标识&quot;</span>),<br>    POLITICAL_OUTFIT(<span class="hljs-string">&quot;political_outfit&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有军警服装、作战部队服装&quot;</span>),<br>    POLITICAL_BADGE(<span class="hljs-string">&quot;political_badge&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有国徽、党徽&quot;</span>),<br>    POLITICAL_RACISM_TII(<span class="hljs-string">&quot;political_racism_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字疑似含有特殊的表达。更多信息，请参见内容安全控制台&quot;</span>),<br>    VIOLENT_EXPLOSION(<span class="hljs-string">&quot;violent_explosion&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有烟火类内容元素&quot;</span>),<br>    VIOLENT_ARMEDFORCES(<span class="hljs-string">&quot;violent_armedForces&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含暴恐组织&quot;</span>),<br>    VIOLENT_CROWDING(<span class="hljs-string">&quot;violent_crowding&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似有人群聚集&quot;</span>),<br>    VIOLENT_GUN(<span class="hljs-string">&quot;violent_gun&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含枪支&quot;</span>),<br>    VIOLENT_KNIVES(<span class="hljs-string">&quot;violent_Knives&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含刀具&quot;</span>),<br>    VIOLENT_GUNKNIVES_TII(<span class="hljs-string">&quot;violent_gunKnives_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字含枪支刀具的描述&quot;</span>),<br>    VIOLENT_BLOOD(<span class="hljs-string">&quot;violent_blood&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有血腥内容&quot;</span>),<br>    VIOLENT_HORRIFIC(<span class="hljs-string">&quot;violent_horrific&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含惊悚内容&quot;</span>),<br>    VIOLENT_HORRIFIC_TII(<span class="hljs-string">&quot;violent_horrific_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字疑似描述暴力、恐怖的内容&quot;</span>),<br>    VIOLENT_ACU(<span class="hljs-string">&quot;violent_ACU&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含作战服&quot;</span>),<br>    CONTRABAND_DRUG(<span class="hljs-string">&quot;contraband_drug&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似毒品、药品&quot;</span>),<br>    CONTRABAND_DRUG_TII(<span class="hljs-string">&quot;contraband_drug_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字疑似描述违禁毒品&quot;</span>),<br>    CONTRABAND_GAMBLE(<span class="hljs-string">&quot;contraband_gamble&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似赌博物品&quot;</span>),<br>    CONTRABAND_GAMBLE_TII(<span class="hljs-string">&quot;contraband_gamble_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字疑似描述赌博行为&quot;</span>),<br>    CONTRABAND_CERTIFICATE_TII(<span class="hljs-string">&quot;contraband_certificate_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字疑似含办证套现类广告引流&quot;</span>),<br>    RELIGION_FUNERAL(<span class="hljs-string">&quot;religion_funeral&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似含有葬礼灵堂内容&quot;</span>),<br>    RELIGION_BUDDHISM(<span class="hljs-string">&quot;religion_buddhism&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;疑似含有特定服饰或标识。更多信息，请参见内容安全控制台&quot;</span>),<br>    RELIGION_CHRISTIANITY(<span class="hljs-string">&quot;religion_christianity&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;&quot;</span>),<br>    RELIGION_MUSLIM(<span class="hljs-string">&quot;religion_muslim&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;&quot;</span>),<br>    RELIGION_TII(<span class="hljs-string">&quot;religion_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;&quot;</span>),<br>    RACISM_TII(<span class="hljs-string">&quot;racism_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;&quot;</span>),<br>    PDA_KISS(<span class="hljs-string">&quot;PDA_kiss&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含亲吻内容&quot;</span>),<br>    PDA_PHYSICALCONTACT(<span class="hljs-string">&quot;PDA_physicalContact&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含亲密行为&quot;</span>),<br>    OBJECT_LANDMARK(<span class="hljs-string">&quot;object_landmark&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含国内地标内容&quot;</span>),<br>    OBJECT_RMB(<span class="hljs-string">&quot;object_rmb&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含人民币、硬币&quot;</span>),<br>    OBJECT_WN(<span class="hljs-string">&quot;object_wn&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含特定形象&quot;</span>),<br>    PT_LOGOTOSOCIALNETWORK(<span class="hljs-string">&quot;pt_logotoSocialNetwork&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面中含有常见网络社交平台水印&quot;</span>),<br>    PT_QRCODE(<span class="hljs-string">&quot;pt_qrCode&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中包含二维码&quot;</span>),<br>    PT_PROGRAMCODE(<span class="hljs-string">&quot;pt_programCode&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中包含小程序码&quot;</span>),<br>    PT_TODIRECTCONTACT_TII(<span class="hljs-string">&quot;pt_toDirectContact_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图中文字疑似含有特定引流信息。更多信息，请参见内容安全控制台&quot;</span>),<br>    PT_TOSOCIALNETWORK_TII(<span class="hljs-string">&quot;pt_toSocialNetwork_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;&quot;</span>),<br>    PT_TOSHORTVIDEOS_TII(<span class="hljs-string">&quot;pt_toShortVideos_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;&quot;</span>),<br>    PT_INVESTMENT_TII(<span class="hljs-string">&quot;pt_investment_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;&quot;</span>),<br>    PT_RECRUITMENT_TII(<span class="hljs-string">&quot;pt_recruitment_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;&quot;</span>),<br>    PT_CERTIFICATE_TII(<span class="hljs-string">&quot;pt_certificate_tii&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;&quot;</span>),<br>    INAPPROPRIATE_SMOKING(<span class="hljs-string">&quot;inappropriate_smoking&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含烟相关内容&quot;</span>),<br>    INAPPROPRIATE_DRINKING(<span class="hljs-string">&quot;inappropriate_drinking&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含酒相关内容&quot;</span>),<br>    INAPPROPRIATE_TATTOO(<span class="hljs-string">&quot;inappropriate_tattoo&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含纹身内容&quot;</span>),<br>    INAPPROPRIATE_MIDDLEFINGER(<span class="hljs-string">&quot;inappropriate_middleFinger&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含竖中指内容&quot;</span>),<br>    INAPPROPRIATE_FOODWASTING(<span class="hljs-string">&quot;inappropriate_foodWasting&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;画面疑似包含浪费粮食内容&quot;</span>),<br>    QUALITY_MEANINGLESS(<span class="hljs-string">&quot;quality_meaningless&quot;</span>, DEFAULT_CONFIDENCE, <span class="hljs-string">&quot;图片元素过少&quot;</span>),<br>    ;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String label;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">float</span> confidence;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String desc;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> GreenliveStreamLabelEnum <span class="hljs-title function_">getByLabel</span><span class="hljs-params">(String label)</span> &#123;<br>        <span class="hljs-keyword">return</span> EnumUtil.getBy(GreenliveStreamLabelEnum::getLabel, label);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>以及</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><br><span class="hljs-keyword">import</span> lombok.AllArgsConstructor;<br><span class="hljs-keyword">import</span> lombok.Getter;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * GreenLabelEnum</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> achao@apache.org</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Getter</span><br><span class="hljs-meta">@AllArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">enum</span> <span class="hljs-title class_">GreenLabelEnum</span> &#123;<br><br>    BASELINE_CHECK(<span class="hljs-string">&quot;baselineCheck&quot;</span>, <span class="hljs-string">&quot;通用基线检测&quot;</span>),<br>    BASELINE_CHECK_PRO(<span class="hljs-string">&quot;baselineCheck_pro&quot;</span>, <span class="hljs-string">&quot;通用基线检测_专业版&quot;</span>),<br>    BASELINE_CHECK_CB(<span class="hljs-string">&quot;baselineCheck_cb&quot;</span>, <span class="hljs-string">&quot;通用基线检测_海外版&quot;</span>),<br>    TONALITY_IMPROVE(<span class="hljs-string">&quot;tonalityImprove&quot;</span>, <span class="hljs-string">&quot;内容治理检测&quot;</span>),<br>    AIGC_CHECK(<span class="hljs-string">&quot;aigcCheck&quot;</span>, <span class="hljs-string">&quot;AIGC图片检测&quot;</span>),<br>    PROFILE_PHOTO_CHECK(<span class="hljs-string">&quot;profilePhotoCheck&quot;</span>, <span class="hljs-string">&quot;头像图片检测&quot;</span>),<br>    ADVERTISING_CHECK(<span class="hljs-string">&quot;advertisingCheck&quot;</span>, <span class="hljs-string">&quot;营销素材检测&quot;</span>),<br>    LIVE_STREAM_CHECK(<span class="hljs-string">&quot;liveStreamCheck&quot;</span>, <span class="hljs-string">&quot;视频/直播截图检测&quot;</span>),<br>    ;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String value;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String desc;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
-
 <p>使用：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><br><br><br><br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Assertions;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Test;<br><span class="hljs-keyword">import</span> org.springframework.boot.test.context.SpringBootTest;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * GreenTest</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> achao@apache.org</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@SpringBootTest</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">GreenUtilTest</span> &#123;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">inspectImgNotViolationTest</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">normalUrl</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;xxx&quot;</span>;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">normalRes</span> <span class="hljs-operator">=</span> GreenUtil.inspectImg(normalUrl, GreenLabelEnum.LIVE_STREAM_CHECK);<br>        Assertions.assertFalse(GreenUtil.isViolation(normalRes));<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">inspectImgViolationTest</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">yellowUrl</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;xxx&quot;</span>;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">yellowRes</span> <span class="hljs-operator">=</span> GreenUtil.inspectImg(yellowUrl, GreenLabelEnum.LIVE_STREAM_CHECK);<br>        Assertions.assertTrue(GreenUtil.isViolation(yellowRes));<br>        Assertions.assertEquals(GreenliveStreamLabelEnum.PORNOGRAPHIC_ADULTCONTENT, GreenliveStreamLabelEnum.getByLabel(yellowRes.getLabel()));<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
 
@@ -477,6 +474,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -529,12 +532,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -553,61 +550,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/07/23/Git%E5%88%9B%E5%BB%BA%E5%AD%A4%E5%84%BF%E5%88%86%E6%94%AF/">Git创建孤儿分支</a>
+                    <a href="/2022/12/02/Jpom%E6%96%B0%E5%BB%BA%E4%BB%93%E5%BA%93%E9%83%A8%E7%BD%B2%E5%89%8D%E7%AB%AF%E9%A1%B9%E7%9B%AE/">Jpom新建仓库部署前端项目</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/03/03/collectingAndThen/">collectingAndThen</a>
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/12/26/docker%E8%BF%90%E8%A1%8Cseata/">docker运行seata</a>
+                    <a href="/2025/07/12/compose-for-agents/">compose-for-agents</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/03/15/seata%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/">seata实现分布式事务</a>
+                    <a href="/2022/12/28/css%E7%9B%B4%E6%8E%A5%E5%BC%95%E7%94%A8svg%E4%BB%A3%E7%A0%81/">css直接引用svg代码</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/12/11/spring-state-machine%E4%BD%BF%E7%94%A8redis%E6%8C%81%E4%B9%85%E5%8C%96/">spring-state-machine使用redis持久化</a>
+                    <a href="/2021/08/13/jquery%E5%92%8CspringBoot%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/">jquery和springBoot文件上传</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/01/uniapp%E4%B8%ADtextarea%E5%9D%91/">uniapp中textarea坑</a>
+                    <a href="/2021/07/06/js%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E5%9D%91/">js精度丢失坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/28/vue%E4%B8%AD%E6%96%B0%E5%A2%9E%E5%B1%9E%E6%80%A7%E8%A7%86%E5%9B%BE%E9%97%AE%E9%A2%98/">vue中新增属性视图问题</a>
+                    <a href="/2022/08/27/kotlin%E5%BB%B6%E8%BF%9F%E5%B1%9E%E6%80%A7/">kotlin延迟属性</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/09/27/win%E5%AE%89%E8%A3%85docker-desktop%E6%8A%A5%E9%94%99/">win安装docker desktop报错</a>
+                    <a href="/2021/06/06/uniapp%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%8E%B7%E5%8F%96%E7%94%A8%E6%88%B7%E6%89%8B%E6%9C%BA%E5%8F%B7/">uniapp微信小程序获取用户手机号</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/01/29/%E6%AD%A3%E5%88%99%E5%B7%A5%E5%85%B7%E7%B1%BB/">正则工具类</a>
+                    <a href="/2020/09/05/vue%E7%BB%93%E5%90%88elementUI%E8%BF%9B%E8%A1%8C%E5%BF%AB%E9%80%9F%E5%BC%80%E5%8F%91/">vue结合elementUI进行快速开发</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/02/02/%E8%83%A1%E6%A1%83%E5%B7%A5%E5%85%B7%E7%AE%B1SnapHutao/">胡桃工具箱SnapHutao</a>
+                    <a href="/2023/08/04/%E5%87%A0%E4%B8%AAjava%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83%E9%93%BE%E6%8E%A5/">几个java代码规范链接</a>
                 </span>
             </li>
             
@@ -640,73 +637,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 17.07129844964688px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 17.853185206649904px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 14.396122268224515px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 15.983560693246755px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 17.158691703794034px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 14.243721946964545px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 13.30695327828742px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 16.47254411053906px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.456157838113356px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.587268443681694px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 13.797440284845182px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 19.613233165030984px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 9.32051669744942px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 13.360301935430297px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.58139220380817px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.60461299004676px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 16.291299656765098px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 15.769871890792091px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 10.764128213746424px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 16.678958778093808px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 14.121672201284582px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 17.2928741286165px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 12.417622422724882px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 18.937032108904724px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 12.877266939724018px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 9.763005317813764px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 9.392794852251933px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 16.38407396193591px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 17.46183309915579px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 11.910494470081368px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 9.218768319627431px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 16.914052543805298px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 10.231439092682047px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 13.451037785377242px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 8.306741999846516px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 15.164472565269875px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 17.268820177826978px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 16.608111891382062px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 15.872763243137527px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 15.281935268139726px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 10.411366439860334px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 16.63046967742673px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 8.963325739251939px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 15.918093508215364px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 12.307788588676427px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 13.27680546265583px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 14.099314407206386px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 16.55117334845174px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.026224993913946px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 14.637108747361694px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 9.134768754106709px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 12.905039776342209px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 12.159240722684629px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 12.29669820482506px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 13.487543882552206px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 9.93520894425738px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 12.211725408880252px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 19.66482621182909px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 15.620894750742586px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 11.650494496025225px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 15.75896173042532px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 13.725161279194129px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 18.090451450927585px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.647725550914437px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 16.27583755337859px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 16.507455895445503px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 19.729278016639583px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.858472283858223px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

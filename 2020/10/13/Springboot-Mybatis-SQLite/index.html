@@ -15,7 +15,7 @@
   
   
   <title>Springboot+Mybatis+SQLite | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>Springboot+Mybatis+SQLite</span>
     </div>
@@ -404,23 +404,18 @@
 <p>之前没有对数据库添加支持，今天就往里整合<code>SQLite</code>吧！</p>
 <p>首先先引入依赖</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-comment">&lt;!-- https://mvnrepository.com/artifact/org.mybatis.spring.boot/mybatis-spring-boot-starter --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.mybatis.spring.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>mybatis-spring-boot-starter<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>2.1.3<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><br><span class="hljs-comment">&lt;!-- sqlite驱动 --&gt;</span><br><span class="hljs-comment">&lt;!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.xerial<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>sqlite-jdbc<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>3.32.3.2<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
-
 <p>然后添加配置文件</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">spring:<br>  datasource:<br>    url: jdbc:sqlite:data.db<br>    driver-class-name: org.sqlite.JDBC<br></code></pre></td></tr></table></figure>
-
-<p>这个<code>url</code>配置可以参照我之前这篇<a href="https://vampireachao.github.io/2020/10/11/SQLite%E5%85%A5%E9%97%A8%E3%81%AEjava%E5%88%9B%E5%BB%BA%E5%BA%93%E8%A1%A8/">SQLite入门のjava创建库表</a></p>
+<p>这个<code>url</code>配置可以参照我之前这篇<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2020/10/11/SQLite%E5%85%A5%E9%97%A8%E3%81%AEjava%E5%88%9B%E5%BB%BA%E5%BA%93%E8%A1%A8/">SQLite入门のjava创建库表</a></p>
 <p>当时创建的<code>data.db</code>文件在哪，这里就写哪</p>
 <p>然后就开始写吧</p>
 <p>创建<code>Dao</code>接口</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.dao;<br><br><span class="hljs-keyword">import</span> com.ruben.pojo.User;<br><span class="hljs-keyword">import</span> org.apache.ibatis.annotations.*;<br><br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@ClassName</span>: UserDao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Date</span>: 2020/10/11 0011 13:24</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Description</span>:</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Mapper</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">UserDao</span> &#123;<br><br>    <span class="hljs-meta">@SelectProvider(type = UserMapper.class, method = &quot;findUserByCondition&quot;)</span><br>    User <span class="hljs-title function_">findUserByCondition</span><span class="hljs-params">(User user)</span>;<br><br>    <span class="hljs-meta">@InsertProvider(type = UserMapper.class, method = &quot;insertUser&quot;)</span><br>    <span class="hljs-type">int</span> <span class="hljs-title function_">insertUser</span><span class="hljs-params">(User user)</span>;<br>    <br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>然后是<code>Mapper</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.dao;<br><br><span class="hljs-keyword">import</span> com.aliyuncs.utils.StringUtils;<br><span class="hljs-keyword">import</span> com.ruben.pojo.User;<br><span class="hljs-keyword">import</span> com.ruben.utils.StringUtil;<br><span class="hljs-keyword">import</span> org.apache.ibatis.jdbc.SQL;<br><span class="hljs-keyword">import</span> org.thymeleaf.expression.Lists;<br><br><span class="hljs-keyword">import</span> java.util.ArrayList;<br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@ClassName</span>: UserMapper</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Date</span>: 2020/10/11 0011 13:26</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Description</span>:</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UserMapper</span> &#123;<br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">findUserByCondition</span><span class="hljs-params">(User user)</span> &#123;<br>        <span class="hljs-type">SQL</span> <span class="hljs-variable">sql</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SQL</span>();<br>        sql.SELECT(<span class="hljs-string">&quot;id,username,password&quot;</span>);<br>        sql.FROM(<span class="hljs-string">&quot;user&quot;</span>);<br>        <span class="hljs-keyword">if</span> (user.getId() != <span class="hljs-literal">null</span>) &#123;<br>            sql.WHERE(<span class="hljs-string">&quot;id=#&#123;id&#125;&quot;</span>);<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (StringUtils.isNotEmpty(user.getUsername())) &#123;<br>            sql.WHERE(<span class="hljs-string">&quot;username=#&#123;username&#125;&quot;</span>);<br>        &#125;<br>        <span class="hljs-keyword">return</span> sql.toString();<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">insertUser</span><span class="hljs-params">(User user)</span> &#123;<br>        <span class="hljs-type">SQL</span> <span class="hljs-variable">sql</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SQL</span>();<br>        sql.INSERT_INTO(<span class="hljs-string">&quot;user&quot;</span>);<br>        sql.VALUES(<span class="hljs-string">&quot;id,username,password&quot;</span>, <span class="hljs-string">&quot;#&#123;id&#125;,#&#123;username&#125;,#&#123;password&#125;&quot;</span>);<br>        <span class="hljs-keyword">return</span> sql.toString();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p><code>SQLite</code>入门就是这么简单…</p>
 <p>然后把原来的假数据替换成真数据</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> User <span class="hljs-title function_">getUserByUsername</span><span class="hljs-params">(String username)</span> &#123;<br>    <span class="hljs-type">User</span> <span class="hljs-variable">condition</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br>    condition.setUsername(username);<br>    <span class="hljs-comment">//从缓存中获取，获取不到再从数据库中获取</span><br>    <span class="hljs-type">String</span> <span class="hljs-variable">userJson</span> <span class="hljs-operator">=</span> (String) stringRedisTemplate<br>            .opsForHash()<br>            .get(UserConstant.USER_CACHE,<br>                    UserConstant.LOGIN_USER_PRE + username);<br>    <span class="hljs-keyword">if</span> (StringUtils.isEmpty(userJson)) &#123;<br>        <span class="hljs-comment">//从数据库中获取</span><br>        <span class="hljs-keyword">return</span> userDao.findUserByCondition(condition);<br>    &#125;<br>    <span class="hljs-keyword">return</span> JSON.parseObject(userJson, User.class);<br>&#125;<br><br><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> User <span class="hljs-title function_">createUser</span><span class="hljs-params">(User user)</span> &#123;<br>    <span class="hljs-comment">// 密码加密</span><br>    <span class="hljs-type">String</span> <span class="hljs-variable">password</span> <span class="hljs-operator">=</span> Encrypt.SHA512(UserConstant.SALT + user.getUsername() + user.getPassword());<br>    user.setId(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Long</span>(System.currentTimeMillis()).intValue());<br>    user.setPassword(password);<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-type">int</span> <span class="hljs-variable">affect</span> <span class="hljs-operator">=</span> userDao.insertUser(user);<br>        <span class="hljs-keyword">if</span> (affect != <span class="hljs-number">1</span>) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> user;<br>    &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>        e.printStackTrace();<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>&#125;<br><br><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> User <span class="hljs-title function_">findUserByUsername</span><span class="hljs-params">(String username)</span> &#123;<br>    <span class="hljs-type">User</span> <span class="hljs-variable">user</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br>    user.setUsername(username);<br>    <span class="hljs-keyword">return</span> userDao.findUserByCondition(user);<br>&#125;<br><br><span class="hljs-meta">@Override</span><br><span class="hljs-meta">@Transactional</span><br><span class="hljs-keyword">public</span> String <span class="hljs-title function_">register</span><span class="hljs-params">(User user)</span> &#123;<br>    <span class="hljs-comment">// 密码加密</span><br>    <span class="hljs-type">String</span> <span class="hljs-variable">password</span> <span class="hljs-operator">=</span> Encrypt.SHA512(UserConstant.SALT + user.getUsername() + user.getPassword());<br>    user.setId(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Long</span>(System.currentTimeMillis()).intValue());<br>    user.setPassword(password);<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-comment">// 插入用户</span><br>        <span class="hljs-type">int</span> <span class="hljs-variable">affect</span> <span class="hljs-operator">=</span> userDao.insertUser(user);<br>        <span class="hljs-keyword">if</span> (affect != <span class="hljs-number">1</span>) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;添加用户失败&quot;</span>;<br>        &#125;<br>    &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>        e.printStackTrace();<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;添加用户失败&quot;</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>源码还是放在了上面那个项目地址中</p>
 
     </div>
@@ -487,6 +482,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -539,12 +540,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -563,61 +558,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/09/15/HeroUI/">HeroUI</a>
+                    <a href="/2021/03/16/Momo-Code-Sec-inpoector/">Momo Code Sec inpoector</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/06/07/chunjun/">chunjun</a>
+                    <a href="/2023/09/03/apache-shenyu%E6%B7%BB%E5%8A%A0%E5%89%8D%E7%AB%AF%E5%91%8A%E8%AD%A6%E6%A8%A1%E5%9D%97/">apache-shenyu添加前端告警模块</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/05/30/docsify/">docsify</a>
+                    <a href="/2025/12/21/bun/">bun</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/11/12/hutool%E4%BF%AE%E5%A4%8DCollectorUtil-reduceListMap%E4%B8%8ECollectors-groupby%E4%B8%80%E8%B5%B7%E4%BD%BF%E7%94%A8%E6%97%B6%E5%87%BA%E7%8E%B0%E4%B8%8E%E9%A2%84%E6%9C%9F%E4%B8%8D%E7%AC%A6%E7%9A%84%E7%BB%93%E6%9E%9C/">hutool修复CollectorUtil.reduceListMap与Collectors.groupby一起使用时出现与预期不符的结果</a>
+                    <a href="/2024/08/10/codersrank%E5%BC%80%E5%8F%91%E8%80%85%E6%8E%92%E8%A1%8C%E6%A6%9C/">codersrank开发者排行榜</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/07/idea%E5%90%AF%E5%8A%A8%E6%97%B6%E9%BB%98%E8%AE%A4%E9%80%89%E6%8B%A9%E9%A1%B9%E7%9B%AE/">idea启动时默认选择项目</a>
+                    <a href="/2022/08/12/fast-request/">fast request</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/03/js%E5%8A%A8%E6%80%81%E8%B0%83%E7%94%A8%E5%87%BD%E6%95%B0/">js动态调用函数</a>
+                    <a href="/2022/06/05/javadoc-plugin/">javadoc-plugin</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/11/mvc%E9%85%8D%E7%BD%AE%E6%8C%87%E5%AE%9A%E5%8F%82%E6%95%B0%E5%A4%84%E7%90%86/">mvc配置指定参数处理</a>
+                    <a href="/2024/09/28/phpstorm%E9%85%8D%E7%BD%AEdebug%E8%B8%A9%E5%9D%91/">phpstorm配置debug踩坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/05/06/properties-to-yaml-converter/">properties to yaml converter</a>
+                    <a href="/2023/05/28/soya/">soya</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/18/wetest%E4%BA%91%E6%B5%8B%E8%AF%95/">wetest云测试</a>
+                    <a href="/2025/10/04/tunix/">tunix</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/10/20/%E9%80%BB%E8%BE%91%E5%88%A0%E9%99%A4%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%86%B2%E7%AA%81%E5%A4%84%E7%90%86/">逻辑删除与联合索引冲突处理</a>
+                    <a href="/2021/03/31/%E5%8D%95%E8%A1%A8%E5%92%8C%E8%BF%9E%E8%A1%A8%EF%BC%9F%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9F/">单表和连表？如何选择？</a>
                 </span>
             </li>
             
@@ -650,73 +645,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 8.426600984095991px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 10.541609002003833px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 14.054256389230027px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 10.560866699453392px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 15.71082759820208px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 10.585061861598195px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 12.594786088853514px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 10.924919962220994px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 12.644027680570904px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 18.278743963856847px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 15.220593365546083px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 19.256835101335128px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 10.249378928311966px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 9.580256045781374px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.279832028215083px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.591206463317441px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.980268291537467px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.360299867306114px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 8.263940748696616px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 17.14556143077476px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 14.867852314058513px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 15.486558103726015px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 16.277506096506393px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 9.73737403229853px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 9.392065403902997px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 15.707628899034258px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 12.390454205976077px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 10.620889730262478px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 10.946825735879496px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 18.42071147519482px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 17.13878552803191px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 8.226418391529318px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 18.279173425208764px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 16.198060209825616px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 9.755385261816006px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 19.173920059460944px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.982600340294677px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 11.251565489068417px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 12.5986573292872px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 18.29273954403049px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 18.706302250896393px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 18.88784236401858px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 17.15672007112386px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 11.36944168173527px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 10.269180428329928px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 18.451251663196654px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 16.646805707080514px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 12.920576016930736px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 13.817356519512211px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.070494127755007px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 16.523864904761098px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 18.514596632966786px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 19.27517875247841px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 16.47617542618831px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10.778929461287841px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 14.02511953609517px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 11.382811329820104px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 14.860712502297595px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 15.409271136558075px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 18.747993422436103px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 18.116744528939524px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 15.916857947048424px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 19.210631826418954px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 14.428477708105106px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 14.148279285955521px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 8.865535548214801px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 19.184712186101912px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 9.766553992340556px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

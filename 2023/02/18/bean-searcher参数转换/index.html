@@ -15,7 +15,7 @@
   
   
   <title>bean-searcher参数转换 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>bean-searcher参数转换</span>
     </div>
@@ -399,18 +399,15 @@
         <blockquote>
 <p>即使在最丑的孩子身上，也有新鲜的东西，无穷的希望——罗曼·罗兰</p>
 </blockquote>
-<p>昨天写了<a href="https://vampireachao.github.io/2023/02/17/bean-searcher%E6%94%AF%E6%8C%81DbType%E4%B8%BAUNKNOWN%E7%9A%84%E4%BD%BF%E7%94%A8Converter/">bean-searcher支持DbType为UNKNOWN的使用Converter</a></p>
+<p>昨天写了<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2023/02/17/bean-searcher%E6%94%AF%E6%8C%81DbType%E4%B8%BAUNKNOWN%E7%9A%84%E4%BD%BF%E7%94%A8Converter/">bean-searcher支持DbType为UNKNOWN的使用Converter</a></p>
 <p>虽然解决了对应场景的问题：</p>
 <p>前端传入枚举的<code>name</code>，数据库存储类型为<code>tinyint</code>，导致获取<code>DbType</code>为<code>UNKNOWN</code>，从而没有自定义进入<code>Convertor</code>的问题，虽然可以手动在枚举字段上加<code>@DbField(type=DbType.INT)</code>让其进入<code>Converter</code>，但是即便进入了<code>Convertor</code>，由于参数只有<code>DbType</code>为<code>INT</code>，以及实际的<code>String</code>类型的枚举<code>name</code>，导致仍然无法获取到其枚举对应类型，就拿不到<code>name</code>对应的枚举<code>ordinal</code></p>
 <p>但是由于距离发版还有一段时间，或者是低版本想要实现这个需求的场景，就得手动注入<code>ParamResolver </code>了</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> cn.zhxu.bs.*;<br><span class="hljs-keyword">import</span> cn.zhxu.bs.bean.DbType;<br><span class="hljs-keyword">import</span> cn.zhxu.bs.boot.BeanSearcherProperties;<br><span class="hljs-keyword">import</span> cn.zhxu.bs.group.GroupResolver;<br><span class="hljs-keyword">import</span> cn.zhxu.bs.implement.DefaultParamResolver;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2023/2/17 11:33</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BeanSearcherParamResolver</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">DefaultParamResolver</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">BeanSearcherParamResolver</span><span class="hljs-params">(PageExtractor pageExtractor,</span><br><span class="hljs-params">                                     FieldOpPool fieldOpPool,</span><br><span class="hljs-params">                                     List&lt;ParamFilter&gt; paramFilters,</span><br><span class="hljs-params">                                     List&lt;ParamResolver.Convertor&gt; convertors,</span><br><span class="hljs-params">                                     GroupResolver groupResolver,</span><br><span class="hljs-params">                                     BeanSearcherProperties config)</span> &#123;<br>        <span class="hljs-built_in">super</span>(convertors, paramFilters);<br>        setPageExtractor(pageExtractor);<br>        setFieldOpPool(fieldOpPool);<br>        BeanSearcherProperties.<span class="hljs-type">Params</span> <span class="hljs-variable">conf</span> <span class="hljs-operator">=</span> config.getParams();<br>        setOperatorSuffix(conf.getOperatorKey());<br>        setIgnoreCaseSuffix(conf.getIgnoreCaseKey());<br>        setOrderName(conf.getOrder());<br>        setSortName(conf.getSort());<br>        setOrderByName(conf.getOrderBy());<br>        setSeparator(conf.getSeparator());<br>        setOnlySelectName(conf.getOnlySelect());<br>        setSelectExcludeName(conf.getSelectExclude());<br>        BeanSearcherProperties.Params.<span class="hljs-type">Group</span> <span class="hljs-variable">group</span> <span class="hljs-operator">=</span> conf.getGroup();<br>        setGexprName(group.getExprName());<br>        setGroupSeparator(group.getSeparator());<br>        setGroupResolver(groupResolver);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> meta</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> value</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">protected</span> Object <span class="hljs-title function_">convertParamValue</span><span class="hljs-params">(FieldMeta meta, Object value)</span> &#123;<br>        <span class="hljs-keyword">if</span> (value == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>        &#125;<br>        <span class="hljs-type">DbType</span> <span class="hljs-variable">dbType</span> <span class="hljs-operator">=</span> meta.getDbType();<br>        <span class="hljs-keyword">if</span> (dbType.getType() != <span class="hljs-literal">null</span> &amp;&amp; dbType.getType().isInstance(value)) &#123;<br>            <span class="hljs-keyword">return</span> value;<br>        &#125;<br>        Class&lt;?&gt; vType = value.getClass();<br>        <span class="hljs-keyword">for</span> (Convertor convertor : getConvertors()) &#123;<br>            <span class="hljs-keyword">if</span> (convertor <span class="hljs-keyword">instanceof</span> BeanSearcherConvertor) &#123;<br>                <span class="hljs-keyword">if</span> (((BeanSearcherConvertor) convertor).supports(meta, vType)) &#123;<br>                    <span class="hljs-keyword">return</span> ((BeanSearcherConvertor) convertor).convert(meta, value);<br>                &#125;<br>            &#125;<br>            <span class="hljs-keyword">if</span> (convertor.supports(dbType, vType)) &#123;<br>                <span class="hljs-keyword">return</span> convertor.convert(dbType, value);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> value;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>然后此处的<code>BeanSearcherConvertor</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> cn.zhxu.bs.FieldMeta;<br><span class="hljs-keyword">import</span> cn.zhxu.bs.ParamResolver;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2023/2/17 15:05</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">BeanSearcherConvertor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">ParamResolver</span>.Convertor &#123;<br><br>    <span class="hljs-keyword">default</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">supports</span><span class="hljs-params">(FieldMeta meta, Class&lt;?&gt; valueType)</span> &#123;<br>        <span class="hljs-keyword">return</span> supports(meta.getDbType(), valueType);<br>    &#125;<br><br>    <span class="hljs-keyword">default</span> Object <span class="hljs-title function_">convert</span><span class="hljs-params">(FieldMeta meta, Object value)</span> &#123;<br>        <span class="hljs-keyword">return</span> convert(meta.getDbType(), value);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>以及对应的实现：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> cn.hutool.core.util.EnumUtil;<br><span class="hljs-keyword">import</span> cn.zhxu.bs.FieldMeta;<br><span class="hljs-keyword">import</span> cn.zhxu.bs.bean.DbType;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-keyword">import</span> java.util.Objects;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2023/2/17 15:27</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BeanSearcherEnumConvertor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">BeanSearcherConvertor</span> &#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> meta</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> valueType</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">supports</span><span class="hljs-params">(FieldMeta meta, Class&lt;?&gt; valueType)</span> &#123;<br>        <span class="hljs-keyword">return</span> meta.getField().getType().isEnum();<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> meta</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> value</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">convert</span><span class="hljs-params">(FieldMeta meta, Object value)</span> &#123;<br>        <span class="hljs-keyword">final</span> <span class="hljs-type">Enum</span> <span class="hljs-variable">valueEnum</span> <span class="hljs-operator">=</span> EnumUtil.getBy((Class&lt;Enum&gt;) meta.getField().getType(), e -&gt; Objects.equals(e.name(), value));<br>        <span class="hljs-keyword">if</span> (valueEnum == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> valueEnum.ordinal();<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> dbType    需转换的目标类型</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> valueType 值类型</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 是否支持</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">supports</span><span class="hljs-params">(DbType dbType, Class&lt;?&gt; valueType)</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> dbType 目标类型</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> value  待转换的值</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 转换后的值</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">convert</span><span class="hljs-params">(DbType dbType, Object value)</span> &#123;<br>        <span class="hljs-keyword">return</span> value;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>这样，前端就可以传入<code>gender=MALE</code>这样的格式，而实际执行的<code>sql</code>为<code>gender = 1</code>这样了</p>
 
     </div>
@@ -477,6 +474,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -529,12 +532,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -553,61 +550,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/10/24/AjPlus-Captcha/">AjPlus Captcha</a>
+                    <a href="/2022/06/01/RequiredArgsConstructor/">RequiredArgsConstructor</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/06/06/TailwindCss/">TailwindCss</a>
+                    <a href="/2023/11/28/cannot-open-shared-object-file-No-such-file-or-directory/">cannot open shared object file: No such file or directory</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/09/08/WTF-Solidity/">WTF-Solidity</a>
+                    <a href="/2022/05/30/docsify/">docsify</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/02/07/css%E5%BE%AA%E7%8E%AF%E6%B7%A1%E5%85%A5%E6%B7%A1%E5%87%BA%E6%92%AD%E6%94%BE%EF%BC%88%E4%BA%8C%EF%BC%89/">css循环淡入淡出播放（二）</a>
+                    <a href="/2021/03/14/fastJson%E7%9A%84JSONField%E6%B3%A8%E8%A7%A3/">fastJson的JSONField注解</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/07/12/js%E6%88%AA%E5%8F%96%E5%AD%97%E7%AC%A6%E4%B8%B2/">js截取字符串</a>
+                    <a href="/2020/10/22/idea%E5%9B%9E%E6%BB%9Agit%E4%BB%93%E5%BA%93%E4%BB%A3%E7%A0%81/">idea回滚git仓库代码</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/09/30/uView/">uView</a>
+                    <a href="/2023/11/08/js%E6%83%B0%E6%80%A7%E5%87%BD%E6%95%B0/">js惰性函数</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/10/06/uniCloud%E6%9F%A5%E8%AF%A2%E6%95%B0%E6%8D%AE%E5%BA%93/">uniCloud查询数据库</a>
+                    <a href="/2023/08/11/midjourney/">midjourney</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/04/29/webview%E9%9C%80%E8%A6%81%E9%87%8D%E6%96%B0%E6%B8%B2%E6%9F%93%E6%96%B9%E6%A1%88/">webview需要重新渲染方案</a>
+                    <a href="/2024/04/05/org-apache-ibatis-session-AutoMappingUnknownColumnBehavior/">org.apache.ibatis.session.AutoMappingUnknownColumnBehavior</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/03/27/%E6%88%91%E5%9C%A8jdk8%E5%AE%9E%E7%8E%B0%E4%BA%86jdk18%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7/">我在jdk8实现了jdk18的新特性</a>
+                    <a href="/2020/09/05/vue%E7%BB%93%E5%90%88elementUI%E8%BF%9B%E8%A1%8C%E5%BF%AB%E9%80%9F%E5%BC%80%E5%8F%91/">vue结合elementUI进行快速开发</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/07/19/%E6%96%B0%E7%89%88Optional/">新版Optional</a>
+                    <a href="/2020/07/04/%E5%AE%89%E8%A3%85nodejs%E6%97%B6%E5%80%99%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/">安装nodejs时候遇到的坑</a>
                 </span>
             </li>
             
@@ -640,73 +637,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 17.978009275142124px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 16.902482870462748px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 12.054303234298693px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 19.51367379702896px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 16.535862263619602px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 19.517449486998903px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 17.517207388329798px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 19.50150102350324px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.111916419757758px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.273379478164106px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 8.591577324778498px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 12.630934580668761px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 10.81428592067342px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 15.629270585951279px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.708343860946156px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 16.078087458612885px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 11.931735580565869px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.56782904212102px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 19.771535380898307px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 12.292281277746739px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 8.500126315771174px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 11.164607487881714px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 10.0076811651228px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 17.419435714643587px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 14.430161468624837px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 9.285836071440453px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 8.695758833628847px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 8.232595216953332px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 9.034566740931508px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 16.426310071840767px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 11.159349476764078px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 11.0604447787386px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 8.827177909109283px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 19.091170479050604px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 19.635792733968064px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 17.26440058904278px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 8.13444650502927px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 18.584849049921488px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 11.822675232255275px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 12.344004828959928px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 10.64194643714324px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 12.396842781563578px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 13.220472849298979px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 9.06211341795549px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 13.069592806379193px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 13.493713727261717px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 14.730710340284936px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 9.453002676707978px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 15.950229582377233px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.226556802717955px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 14.29663747742028px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 19.320262674252618px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 8.00665357662157px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 9.582306022306778px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 17.47880549138711px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 13.143761260557197px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 13.432212438123873px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 15.314100476625368px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 13.265608006169646px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 13.594759741314348px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 16.494376725533268px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 10.464150248639722px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10.487284573292825px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.54320030119376px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 14.98121082508118px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 12.256247493226878px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 16.243725856228735px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.878747902659972px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

@@ -15,7 +15,7 @@
   
   
   <title>注解支持@Alias同步值 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>注解支持@Alias同步值</span>
     </div>
@@ -403,17 +403,13 @@
 <p>然后我就提交了这个<code>PR</code>：<a target="_blank" rel="noopener" href="https://gitee.com/dromara/hutool/pulls/554">提供<code>AnnotationUtil#getAnnotationAlias</code>，为<code>@Alias</code>注解做别名支持的适配</a></p>
 <p>代码如下(找不到方法可以去看<a target="_blank" rel="noopener" href="https://gitee.com/dromara/hutool/blob/0e5329850a7eda0e558ed20854e58a90d70db7e8/hutool-core/src/main/java/cn/hutool/core/annotation/AnnotationUtil.java"><code>hutool</code>源码</a>)：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> cn.hutool.core.exceptions.UtilException;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.ArrayUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.ObjectUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.ReflectUtil;<br><span class="hljs-keyword">import</span> cn.hutool.core.util.StrUtil;<br><br><span class="hljs-keyword">import</span> java.lang.annotation.Annotation;<br><span class="hljs-keyword">import</span> java.lang.annotation.Documented;<br><span class="hljs-keyword">import</span> java.lang.annotation.ElementType;<br><span class="hljs-keyword">import</span> java.lang.annotation.Inherited;<br><span class="hljs-keyword">import</span> java.lang.annotation.Retention;<br><span class="hljs-keyword">import</span> java.lang.annotation.RetentionPolicy;<br><span class="hljs-keyword">import</span> java.lang.annotation.Target;<br><span class="hljs-keyword">import</span> java.lang.annotation.*;<br><span class="hljs-keyword">import</span> java.lang.reflect.AnnotatedElement;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.lang.reflect.Proxy;<br><span class="hljs-keyword">import</span> java.util.HashMap;<br><span class="hljs-keyword">import</span> java.util.Map;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 注解工具类&lt;br&gt;</span><br><span class="hljs-comment"> * 快速获取注解对象、注解值等工具封装</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> looly</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 4.0.9</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AnnotationUtil</span> &#123;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 获取别名支持后的注解</span><br><span class="hljs-comment">	 *</span><br><span class="hljs-comment">	 * <span class="hljs-doctag">@param</span> annotationEle  被注解的类</span><br><span class="hljs-comment">	 * <span class="hljs-doctag">@param</span> annotationType 注解类型Class</span><br><span class="hljs-comment">	 * <span class="hljs-doctag">@param</span> &lt;T&gt;            注解类型</span><br><span class="hljs-comment">	 * <span class="hljs-doctag">@return</span> 别名支持后的注解</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-meta">@SuppressWarnings(&quot;unchecked&quot;)</span><br>	<span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Annotation</span>&gt; T <span class="hljs-title function_">getAnnotationAlias</span><span class="hljs-params">(AnnotatedElement annotationEle, Class&lt;T&gt; annotationType)</span> &#123;<br>		<span class="hljs-type">T</span> <span class="hljs-variable">annotation</span> <span class="hljs-operator">=</span> getAnnotation(annotationEle, annotationType);<br>		<span class="hljs-type">Object</span> <span class="hljs-variable">o</span> <span class="hljs-operator">=</span> Proxy.newProxyInstance(annotationType.getClassLoader(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;annotationType&#125;, (proxy, method, args) -&gt; &#123;<br>			<span class="hljs-type">Alias</span> <span class="hljs-variable">alias</span> <span class="hljs-operator">=</span> method.getAnnotation(Alias.class);<br>			<span class="hljs-keyword">if</span> (ObjectUtil.isNotNull(alias) &amp;&amp; StrUtil.isNotBlank(alias.value())) &#123;<br>				<span class="hljs-type">Method</span> <span class="hljs-variable">aliasMethod</span> <span class="hljs-operator">=</span> annotationType.getMethod(alias.value());<br>				<span class="hljs-keyword">return</span> ReflectUtil.invoke(annotation, aliasMethod);<br>			&#125;<br>			<span class="hljs-keyword">return</span> method.invoke(args);<br>		&#125;);<br>		<span class="hljs-keyword">return</span> (T) o;<br>	&#125;<br>    <br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>最终效果路哥进行了一些调整</p>
 <p>然后使用方式也很简单，我们写一个注解，然后给它用一个<code>@Alias</code>别名，关联我们注解中另一个属性：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> cn.hutool.core.annotation;<br><br><span class="hljs-keyword">import</span> java.lang.annotation.ElementType;<br><span class="hljs-keyword">import</span> java.lang.annotation.Retention;<br><span class="hljs-keyword">import</span> java.lang.annotation.RetentionPolicy;<br><span class="hljs-keyword">import</span> java.lang.annotation.Target;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 用于单元测试的注解类&lt;br&gt;</span><br><span class="hljs-comment"> * 注解类相关说明见：https://www.cnblogs.com/xdp-gacl/p/3622275.html</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> looly</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> */</span><br><span class="hljs-comment">// Retention注解决定MyAnnotation注解的生命周期</span><br><span class="hljs-meta">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="hljs-comment">// Target注解决定MyAnnotation注解可以加在哪些成分上，如加在类身上，或者属性身上，或者方法身上等成分</span><br><span class="hljs-meta">@Target(&#123; ElementType.METHOD, ElementType.TYPE &#125;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-meta">@interface</span> AnnotationForTest &#123;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 注解的默认属性值</span><br><span class="hljs-comment">	 *</span><br><span class="hljs-comment">	 * <span class="hljs-doctag">@return</span> 属性值</span><br><span class="hljs-comment">	 */</span><br>	String <span class="hljs-title function_">value</span><span class="hljs-params">()</span> <span class="hljs-keyword">default</span> <span class="hljs-string">&quot;&quot;</span>;<br><br>	<span class="hljs-meta">@Alias(&quot;value&quot;)</span><br>	String <span class="hljs-title function_">retry</span><span class="hljs-params">()</span> <span class="hljs-keyword">default</span> <span class="hljs-string">&quot;&quot;</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>然后我们把这个注解加在一个类上面</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@AnnotationForTest(&quot;测试&quot;)</span><br><span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ClassWithAnnotation</span>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">test</span><span class="hljs-params">()</span>&#123;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>我们来获取这个<code>Class</code>上注解的值</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Test</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">getAnnotationSyncAlias</span><span class="hljs-params">()</span> &#123;<br>	<span class="hljs-comment">// 直接获取</span><br>	Assert.assertEquals(<span class="hljs-string">&quot;&quot;</span>, ClassWithAnnotation.class.getAnnotation(AnnotationForTest.class).retry());<br><br>	<span class="hljs-comment">// 加别名适配</span><br>	<span class="hljs-type">AnnotationForTest</span> <span class="hljs-variable">annotation</span> <span class="hljs-operator">=</span> AnnotationUtil.getAnnotationAlias(ClassWithAnnotation.class, AnnotationForTest.class);<br>	Assert.assertEquals(<span class="hljs-string">&quot;测试&quot;</span>, annotation.retry());<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>大家可以很明显地看出来，这里我们默认给<code>AnnotationForTest</code>上的<code>value</code>赋值，但我们取<code>retry</code>，因为我们加了<code>@Alias</code>注解且使用了<code>getAnnotationSyncAlias</code>方式获取，所以我们取到的<code>retry</code>值实际上是<code>value</code>的值，两者进行了同步</p>
 
     </div>
@@ -480,6 +476,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -532,12 +534,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -556,61 +552,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/01/06/Date%E8%BD%AC%E6%8D%A2/">Date转换</a>
+                    <a href="/2025/07/23/Git%E5%88%9B%E5%BB%BA%E5%AD%A4%E5%84%BF%E5%88%86%E6%94%AF/">Git创建孤儿分支</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/10/02/Komodo-IDE/">Komodo IDE</a>
+                    <a href="/2022/12/02/Jpom%E6%96%B0%E5%BB%BA%E4%BB%93%E5%BA%93%E9%83%A8%E7%BD%B2%E5%89%8D%E7%AB%AF%E9%A1%B9%E7%9B%AE/">Jpom新建仓库部署前端项目</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/10/06/camel+minio%E5%AE%9E%E7%8E%B0%E9%A2%84%E7%AD%BE%E5%90%8DURL%E4%B8%8A%E4%BC%A0/">camel+minio实现预签名URL上传</a>
+                    <a href="/2024/07/08/ai%E5%B7%A5%E5%85%B7%E7%AE%B1latentbox/">ai工具箱latentbox</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/08/17/gitee%E4%B8%8Apush%E4%BB%A3%E7%A0%81%E6%8A%A5%E9%94%99fatal-the-remote-end-hung-up-unexpectedly/">gitee上push代码报错fatal: the remote end hung up unexpectedly</a>
+                    <a href="/2021/05/09/finalShell/">finalShell</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/19/hutool-bom/">hutool-bom</a>
+                    <a href="/2024/05/05/git%E4%BF%AE%E6%94%B9%E4%B8%8A%E6%AC%A1%E6%8F%90%E4%BA%A4%E6%97%B6%E9%97%B4/">git修改上次提交时间</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/10/12/mybatis-plus%E8%BF%87%E6%BB%A4%E4%B8%8D%E9%9C%80%E8%A6%81%E6%9F%A5%E8%AF%A2%E7%9A%84%E5%AD%97%E6%AE%B5/">mybatis-plus过滤不需要查询的字段</a>
+                    <a href="/2023/02/12/h2%E6%8D%A2hsqldb%E6%9C%80%E6%96%B0%E7%89%88%E6%8A%A5%E9%94%99/">h2换hsqldb最新版报错</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/07/20/mysql%E4%BD%BF%E7%94%A8ORDER-BY%E5%92%8CGROUP-BY/">mysql使用ORDER BY和GROUP BY</a>
+                    <a href="/2023/07/04/idea%E9%85%8D%E7%BD%AEproxy/">idea配置proxy</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/30/rolldown-vite/">rolldown-vite</a>
+                    <a href="/2023/04/28/mvc%E5%AF%BC%E5%87%BAexcel%E6%8A%A5%E9%94%99No-converter/">mvc导出excel报错No converter</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/11/04/spring-state-machine%E5%AE%88%E5%8D%AB/">spring-state-machine守卫</a>
+                    <a href="/2022/09/21/three-js/">three.js</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/05/23/%E8%8E%B7%E5%8F%96%E5%9B%BE%E7%89%87dpi/">获取图片dpi</a>
+                    <a href="/2022/02/17/%E5%90%AF%E5%8A%A8%E6%97%B6%E8%8E%B7%E5%8F%96%E7%AB%AF%E5%8F%A3%E5%8F%B7/">启动时获取端口号</a>
                 </span>
             </li>
             
@@ -643,73 +639,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 9.894192178321935px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 8.31092419232474px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 11.134176589489929px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 9.00613882255912px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 9.328752705411201px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 13.780501472892357px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 18.260764861740952px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.67339773615489px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 16.448743029512777px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 19.48057008553371px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 14.886231877960652px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 9.54021806740565px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 18.627618456787204px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 18.17488916102963px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 13.305330761683795px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.826564776221014px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 9.739754743203422px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 11.277285769646703px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 16.61543830468077px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 18.66919512951663px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 11.773849142704002px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 13.727069655565412px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 19.694902111986192px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 18.745681028156902px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 17.576432319556233px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 11.656740403200102px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 18.054491359605287px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 12.689479555240606px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 18.55928037004098px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 12.517598567947148px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 19.473469875604913px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 18.207392977561362px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 11.805086519578822px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 13.595651352735642px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 8.167449450931993px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 14.351485486409029px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.675719743589678px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 8.511841268054301px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 18.144694046643774px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 9.822990421950369px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 9.277335492441175px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 18.701667474246154px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 15.482036155401072px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 13.200207719787182px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 14.591186092678356px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 9.458041073692353px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 9.442184990886997px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 15.55044815488763px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 17.104776043817413px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 12.276380866032277px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 16.75872907489927px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 8.536640562252263px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 18.236599399864275px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 16.9181446025173px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 15.751337680436201px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.007545529530933px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 17.480827391993166px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 13.15421556466357px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 8.412929161384929px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 16.63453412380354px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 10.629940956342613px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 9.51820177011534px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.168702057950757px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 18.87710634076346px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 11.027980574082765px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 9.787744423169855px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 10.664988283217518px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 16.41950486809567px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

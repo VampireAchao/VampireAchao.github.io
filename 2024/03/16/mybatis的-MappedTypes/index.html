@@ -15,7 +15,7 @@
   
   
   <title>mybatis的@MappedTypes | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>mybatis的@MappedTypes</span>
     </div>
@@ -401,12 +401,10 @@
 </blockquote>
 <p>看到<code>com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler</code>的源码</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Copyright (c) 2011-2023, baomidou (jobob@qq.com).</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="hljs-comment"> * you may not use this file except in compliance with the License.</span><br><span class="hljs-comment"> * You may obtain a copy of the License at</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Unless required by applicable law or agreed to in writing, software</span><br><span class="hljs-comment"> * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="hljs-comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="hljs-comment"> * See the License for the specific language governing permissions and</span><br><span class="hljs-comment"> * limitations under the License.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">package</span> com.baomidou.mybatisplus.extension.handlers;<br><br><span class="hljs-keyword">import</span> com.baomidou.mybatisplus.core.toolkit.Assert;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.core.JsonProcessingException;<br><span class="hljs-keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;<br><span class="hljs-keyword">import</span> lombok.extern.slf4j.Slf4j;<br><span class="hljs-keyword">import</span> org.apache.ibatis.type.JdbcType;<br><span class="hljs-keyword">import</span> org.apache.ibatis.type.MappedJdbcTypes;<br><span class="hljs-keyword">import</span> org.apache.ibatis.type.MappedTypes;<br><br><span class="hljs-keyword">import</span> java.io.IOException;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Jackson 实现 JSON 字段类型处理器</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> hubin</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2019-08-25</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Slf4j</span><br><span class="hljs-meta">@MappedTypes(&#123;Object.class&#125;)</span><br><span class="hljs-meta">@MappedJdbcTypes(JdbcType.VARCHAR)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JacksonTypeHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">AbstractJsonTypeHandler</span>&lt;Object&gt; &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> ObjectMapper OBJECT_MAPPER;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Class&lt;?&gt; type;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">JacksonTypeHandler</span><span class="hljs-params">(Class&lt;?&gt; type)</span> &#123;<br>        <span class="hljs-keyword">if</span> (log.isTraceEnabled()) &#123;<br>            log.trace(<span class="hljs-string">&quot;JacksonTypeHandler(&quot;</span> + type + <span class="hljs-string">&quot;)&quot;</span>);<br>        &#125;<br>        Assert.notNull(type, <span class="hljs-string">&quot;Type argument cannot be null&quot;</span>);<br>        <span class="hljs-built_in">this</span>.type = type;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">protected</span> Object <span class="hljs-title function_">parse</span><span class="hljs-params">(String json)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">return</span> getObjectMapper().readValue(json, type);<br>        &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(e);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">protected</span> String <span class="hljs-title function_">toJson</span><span class="hljs-params">(Object obj)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">return</span> getObjectMapper().writeValueAsString(obj);<br>        &#125; <span class="hljs-keyword">catch</span> (JsonProcessingException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(e);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ObjectMapper <span class="hljs-title function_">getObjectMapper</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-literal">null</span> == OBJECT_MAPPER) &#123;<br>            OBJECT_MAPPER = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectMapper</span>();<br>        &#125;<br>        <span class="hljs-keyword">return</span> OBJECT_MAPPER;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setObjectMapper</span><span class="hljs-params">(ObjectMapper objectMapper)</span> &#123;<br>        Assert.notNull(objectMapper, <span class="hljs-string">&quot;ObjectMapper should not be null&quot;</span>);<br>        JacksonTypeHandler.OBJECT_MAPPER = objectMapper;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>这里有个<code>@MappedTypes(&#123;Object.class&#125;)</code></p>
 <p>研究了下，发现它用于指定一个或多个 Java 类型到数据库类型的映射</p>
 <p>例如</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@MappedTypes(UUID.class)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UUIDTypeHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">BaseTypeHandler</span>&lt;UUID&gt; &#123;<br>    <span class="hljs-comment">// 实现类型转换逻辑</span><br>&#125;<br></code></pre></td></tr></table></figure>
-
 <p>这样就会默认使用这个<code>typeHandler</code>而不需要额外在每个字段上指定</p>
 
     </div>
@@ -473,6 +471,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/25/conductor/">conductor</a>
                 </span>
             </li>
@@ -525,12 +529,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/16/ai-toolkit/">ai-toolkit</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -549,61 +547,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/08/19/Delimiter/">Delimiter</a>
+                    <a href="/2025/03/13/Android-Animation-Set/">Android-Animation-Set</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/10/MockMvc/">MockMvc</a>
+                    <a href="/2025/08/08/JSONStream/">JSONStream</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/11/h2-count-orderBy%E8%B8%A9%E5%9D%91/">h2 count+orderBy踩坑</a>
+                    <a href="/2020/12/03/PostConstruct%E4%BD%BF%E7%94%A8/">@PostConstruct使用</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/01/19/idea%E6%8F%92%E4%BB%B6SequenceDiagram%E6%9F%A5%E7%9C%8B%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E9%93%BE/">idea插件SequenceDiagram查看方法调用链</a>
+                    <a href="/2023/09/17/QLExpress/">QLExpress</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/12/15/piper-tts%202/">piper-tts</a>
+                    <a href="/2021/10/02/apktool/">apktool</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/06/11/tensorflowjs/">tensorflowjs</a>
+                    <a href="/2022/06/22/htmlToCanvas/">htmlToCanvas</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/02/09/tis/">tis</a>
+                    <a href="/2023/09/04/mdit-vue/">mdit-vue</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/08/03/uniapp%E5%AF%BC%E5%85%A5%E6%A0%B7%E5%BC%8F%E5%9D%91/">uniapp导入样式坑</a>
+                    <a href="/2022/03/04/replace%E3%80%81replaceAll%E3%80%81replaceFirst/">replace、replaceAll、replaceFirst</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/06/24/%E4%B8%80%E4%BA%9B%E5%B7%A5%E5%85%B7%E7%B1%BB/">一些工具类</a>
+                    <a href="/2025/03/03/vue-loading-overlay/">vue-loading-overlay</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/10/24/%E7%80%91%E5%B8%83%E6%B5%81%E7%BB%84%E4%BB%B6vue-waterfall/">瀑布流组件vue-waterfall</a>
+                    <a href="/2023/08/04/%E5%87%A0%E4%B8%AAjava%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83%E9%93%BE%E6%8E%A5/">几个java代码规范链接</a>
                 </span>
             </li>
             
@@ -636,73 +634,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 13.207836613940163px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 12.917233186688414px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 9.15778179283485px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 14.359595659190553px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 14.10171359874856px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 16.791414734481883px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 17.188903860505643px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.099333289998889px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.982905970079939px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10.313184426996905px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 18.973790378796195px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 15.280302391272418px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 16.028239371213857px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 10.20541885321817px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 14.521817385187983px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.500009423331207px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.075431891561069px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 11.785840808986013px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 8.372194233864727px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 19.588432297200363px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 16.072278303170567px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 8.56062556089607px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 15.19140033433887px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 11.732886363391938px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 15.890141411046343px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 18.93938542735384px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 12.555243939635996px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 18.236813764783406px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 13.089972469462547px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 11.786687455836965px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 10.25039373557115px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 15.9215919505687px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.21055783841998px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 11.95736647594105px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 14.056794821960267px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 17.30194839959215px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 8.739609181225529px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 9.402093738065194px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 11.466055765013124px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 13.195186674403413px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 13.905862906733423px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 16.77290885207376px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 11.036444362974498px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 17.936517272355513px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 8.082746846451029px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 11.279653801570383px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 12.501347726289763px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 11.79470888697416px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 16.423103078047067px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 18.547733239999275px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 15.373979532952763px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 14.983262269026987px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 18.62590331761191px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 9.337205522597316px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 14.147514325231485px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.807296087663026px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 9.776543999595962px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 19.60807893113976px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 17.18032368890944px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 14.260248358188502px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 13.99117031288651px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 11.461356021321686px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.697023079482765px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10.435284135833637px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 17.43834372023624px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 14.510260496906094px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 10.221595992648846px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 18.91543529445773px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
