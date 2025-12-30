@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="/imgs/favicon.ico" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="author" content="阿超">
+  
+  <meta name="description" content="​ 我的名字叫阿超 年龄24岁 家在北京市 未婚 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度">
+  
+  
+  
+  
+  
+  
+  <title>修改logback.xml以及mybatis-config.xml同时打印mybatis和jpa的sql | 阿超</title>
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+
+  
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/aos.css">
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<script src="/js/jquery.min.js"></script>
+
+  
+<script src="/js/bootstrap.min.js"></script>
+
+  
+<script src="/js/aos.js"></script>
+
+  
+<script src="/js/highslide/highslide-full.min.js"></script>
+
+  
+<link rel="stylesheet" href="/js/highslide/highslide.css">
+
+  <style type="text/css">
+    @media (max-width: 768px) {
+      body {
+        background-color: #f0f0f0;
+        background: url('/imgs/xsbg.jpg');
+        background-attachment: fixed;
+      }
+      .live2d-widget-container{
+        zoom: 0.5;
+      }
+      .live2d-achao{
+        width: 150px !important;
+      }
+    }
+  </style>
+  
+  <!--<script type="text/javascript">
+      if (document.images) {
+        var avatar = new Image();
+        avatar.src = '/imgs/head.png'
+        var previews = 't01d54a78939622a708.jpg,t01b5b4a7529cad373b.jpg,t01260c377a60ef55b8.jpg,t01b32959885c781013.jpg,t01c37e049c18d00e4c.jpg,t01e75d2d4734b2c35e.jpg,t013698845e810692d8.jpg,t012ec64f1e1eb1d23f.jpg,t012db749fb526b27cf.jpg,t01a2e705e6e2514c91.jpg,t0106a9c2522bdd29f7.jpg,t0192efea6a01252f4e.jpg,t01794a9e0bc4321c3c.jpg,t01d2ed30550310750e.jpg,t01a98dd6f6ea17e633.jpg,t0198fd348e2ec8b737.jpg,t0177a850faae7b42f4.jpg,t0106a5ab61a284dcb0.jpg,t01e87ea37c4903393c.jpg,t01fbcc933afdb7affd.jpg,t017299242a9d351de9.jpg,t01fd0d30d46b598a1d.jpg,t019ddfb8b5b89b8475.jpg,t019622fab8982a72ec.jpg,t01bb96bd256aaad950.jpg,t01ba97d26345750c04.jpg,t01bf50d8d5d76238c6.jpg,t01cb6096bf8cb0a285.jpg,t01c4e6c901e3efda72.jpg,t01b58ac4d441d1b546.jpg,t01f3c58eaac22c8544.jpg,t01a58e209bfdbf852b.jpg,t016ff89e6fa6041712.jpg,t0195d14f593431562a.jpg,t01c6d95214927e61c0.jpg,t019c86a25782a7044d.jpg,t014a0ca534d64adbba.jpg,t01b24e85dc07d47b0d.jpg,de1934eb4ac9abdb5e8391c829f94671.jpg'.split(',')
+        var previewsPreLoad = []
+        for(var i = 0; i < length; i++) {
+          previewsPreLoad.push(new Image())
+          previewsPreLoad[previewsPreLoad.length - 1].src = '/imgs/preview' + previews[i]
+        }
+      }
+    </script>-->
+  <script type="text/javascript">
+    // 使用message对象封装消息
+    var message = {
+      time: 0,
+      title: document.title,
+      timer: null,
+      // 显示新消息提示
+      show: function () {
+        var title = message.title.replace("【　　　】", "").replace("【新消息】", "");
+        // 定时器，设置消息切换频率闪烁效果就此产生
+        message.timer = setTimeout(function () {
+          message.time++;
+          message.show();
+          if (message.time % 2 == 0) {
+            document.title = "【新消息】" + title
+          } else {
+            document.title = "【　　　】" + title
+          };
+        }, 600);
+        return [message.timer, message.title];
+      },
+      // 取消新消息提示
+      clear: function () {
+        clearTimeout(message.timer);
+        document.title = message.title;
+      }
+    };
+    var hiddenProperty = 'hidden' in document ? 'hidden' :
+      'webkitHidden' in document ? 'webkitHidden' :
+        'mozHidden' in document ? 'mozHidden' : null;
+    var title = document.querySelector('title');
+    var visibilityChangeEvent = hiddenProperty.replace(/hidden/i, 'visibilitychange');
+    var onVisibilityChange = function () {
+      if (!document[hiddenProperty]) {
+        message.clear()
+      } else {
+        message.show()
+      }
+    }
+    document.addEventListener(visibilityChangeEvent, onVisibilityChange);
+
+
+    //随机字
+    $(function () {
+      var a_idx = 0,
+        b_idx = 0;
+      c_idx = 0;
+      jQuery(document).ready(function ($) {
+        $("body").click(function (e) {
+          var a = new Array("Daphne", "Ficus", "Iris", "Maackia", "Lythrum", "Myrica", "Sabia", "Flos", "あなたのことが好きです", "嬉しい", "頑張って！", "大丈夫です"),
+            b = new Array("#09ebfc", "#ff6651", "#ffb351", "#51ff65", "#5197ff", "#a551ff", "#ff51f7", "#ff518e", "#ff5163", "#efff51"),
+            c = new Array("12", "14", "16", "18", "20", "22", "24", "26", "28", "30");
+          var $i = $("<span/>").text(a[a_idx]);
+          a_idx = (a_idx + 1) % a.length;
+          b_idx = (b_idx + 1) % b.length;
+          c_idx = (c_idx + 1) % c.length;
+          var x = e.pageX,
+            y = e.pageY;
+          $i.css({
+            "z-index": 999,
+            "top": y - 20,
+            "left": x,
+            "position": "absolute",
+            "font-weight": "bold",
+            "font-size": c[c_idx] + "px",
+            "cursor": "url(/imgs/mouse1.cur),url(/imgs/mouse1.cur),auto",
+            "color": b[b_idx]
+          });
+          $("body").append($i);
+          $i.animate({
+            "top": y - 180,
+            "opacity": 0
+          }, 1500, function () {
+            $i.remove();
+          });
+        });
+      });
+      var _hmt = _hmt || [];
+    })
+  </script>
+  <!-- 引用看板娘交互所需的样式表 -->
+  <link href='https://VampireAchao.github.io/Pio/static/pio.css' rel='stylesheet' type='text/css'/>
+  <!-- 引用 Live2D 核心组件 -->
+  <script src='https://VampireAchao.github.io/Pio/static/l2d.js'></script>
+  <!-- 引用看板娘交互组件 -->
+  <script src='https://VampireAchao.github.io/Pio/static/pio.js'></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <!-- 背景轮播图功能 -->
+    <section class="hidden-xs">
+    <ul class="cb-slideshow">
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+        <li><span>阿巴</span></li>
+    </ul>
+</section>
+    <!-- 欧尼酱功能, 谁用谁知道 -->
+    
+    <header class="navbar navbar-inverse" id="gal-header">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed"
+                    data-toggle="collapse" data-target=".bs-navbar-collapse"
+                    aria-expanded="false">
+                <span class="fa fa-lg fa-reorder"></span>
+            </button>
+            <a href="https://VampireAchao.gitee.io">
+                
+                    <style>
+                        #gal-header .navbar-brand {
+                            height: 54px;
+                            line-height: 24px;
+                            font-size: 28px;
+                            opacity: 1;
+                            background-color: rgba(0, 0, 0, 0);
+                            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #228DFF, 0 0 35px #228DFF, 0 0 40px #228DFF, 0 0 50px #228DFF, 0 0 75px #228DFF;
+                        }
+                    </style>
+                    <!-- 这里使用文字(navbar_text or config.title) -->
+                    <div class="navbar-brand">阿超</div>
+                
+            </a>
+        </div>
+        <div class="collapse navbar-collapse bs-navbar-collapse">
+            <ul class="nav navbar-nav" id="menu-gal">
+                
+                    
+                        <li class="">
+                            <a href="/">
+                                <i class="fa fa-home"></i>首页
+                            </a>
+                        </li>
+                    
+                
+                    
+                        <li class="">
+                            <a href="/archives">
+                                <i class="fa fa-archive"></i>文章
+                            </a>
+                        </li>
+                    
+                
+                    
+                        
+                            <li class="">
+                                <a href="/categories">
+                                    <i class="fa fa-list"></i>分类
+                                </a>
+                            </li>
+                        
+                    
+                
+                    
+                        
+                            <li class="dropdown">
+                                <!-- TODO 添加hover dropdown效果 -->
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                                   aria-haspopup="true" aria-expanded="false" data-hover="dropdown">
+                                    <i class="fa fa-tags"></i>标签
+                                </a>
+                                <ul class="dropdown-menu">
+                                    
+                                        
+                                            <li>
+                                                <a href="/tags/java/">java</a>
+                                            </li>
+                                        
+                                            <li>
+                                                <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/">软件及插件</a>
+                                            </li>
+                                        
+                                            <li>
+                                                <a href="/tags/ai/">ai</a>
+                                            </li>
+                                        
+                                        
+                                            <li>
+                                                <a href="/tags">...</a>
+                                            </li>
+                                        
+                                    
+                                </ul>
+                            </li>
+                        
+                    
+                
+                    
+                        <li class="">
+                            <a href="/2020/06/02/%E6%88%91%E7%9A%84%E5%9B%9E%E5%BF%86/">
+                                <i class="fa fa-user"></i>关于我
+                            </a>
+                        </li>
+                    
+                
+				<li>
+				    <a href="javascript:themeDbChange();">开关主题</a>
+				</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="pio-container right">
+        <div class="pio-action"></div>
+        <canvas id="pio" width="180" height="280"></canvas>
+    </div>
+    <!-- Live2DCubismCore script -->
+    <script src="https://VampireAchao.github.io/js/live2dcubismcore.js"></script>
+    <!-- Build script -->
+    <script src="https://VampireAchao.github.io/js/bundle.js"></script>
+    <canvas id="live2d" width="300" height="300" class="live2d live2d-achao"
+            style="position: fixed; opacity: 1; left: -45px;bottom: 0; z-index: 99999; pointer-events: none;"></canvas>
+    <script>
+        var pio = new Paul_Pio({
+            "mode": "fixed",
+            "hidden": false,
+            "content": {
+                "welcome": ["欢迎来到阿超的博客~", "欧尼酱！"],
+                "touch": ["今天也是元气满满的一天！", "欧尼酱！", "哈哈哈哈，不要戳了"],
+                "skin": ["想看看我的新服装吗？", "新衣服真漂亮~"],
+                "home": "点击这里回到首页！",
+                "link": "https://VampireAchao.github.io/2020/06/02/%E6%88%91%E7%9A%84%E5%9B%9E%E5%BF%86/",
+                "close": "QWQ 有缘再会吧~",
+                // "referer": "你通过 %t 来到了这里",
+                "custom": [
+                    {
+                        "selector": ".comment-form",
+                        "text": ["欢迎参与本文评论，别发小广告噢~", "快来参加本文的评论吧~"]
+                    }
+                ]
+            },
+            "model": ["https://VampireAchao.github.io/Pio/models/umaru/model.json"]
+        });
+        var resourcesPath = '/'; // 指定资源文件（模型）保存的路径
+        var backImageName = ''; // 指定背景图片
+        var modelDir = ['supa']; // 指定需要加载的模型
+        initDefine(resourcesPath, backImageName, modelDir); // 初始化模型
+        // window.localStorage.clear();    // 清理localStorage
+    </script>
+	<script>
+	function themeDbChange(){
+		let hideTheme = localStorage.getItem("hideTheme")
+		if(hideTheme != 'hideTheme'){
+
+			localStorage.setItem("hideTheme","hideTheme")
+		}else{
+			localStorage.setItem("hideTheme","disHideTheme")
+
+		}
+		themeChange()
+	}
+
+	function themeChange(){
+		let themeClass = [".cb-slideshow",".alert-gal",".pio-container",".live2d-widget-container",".live2d-achao"]
+		let themes = themeClass.map(c=>$(c))
+
+		let hideTheme = localStorage.getItem("hideTheme")
+		console.log({hideTheme})
+		if(hideTheme == 'hideTheme'){
+
+			themes.forEach(t=>t.hide())
+			$("head").children("link[href='/css/style.css']").attr('disabled', 'disabled')
+		}else{
+			themes.forEach(t=>t.show())
+			$("head").children("link[href='/css/style.css']").removeAttr('disabled')
+		}
+	}
+	$(themeChange)
+	</script>
+</header>
+
+    <div id="gal-body">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 gal-right" id="mainstay">
+                    
+<article class="article well article-body" id="article">
+    <div class="breadcrumb">
+        <i class="fa fa-home"></i>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
+        >
+        <span>修改logback.xml以及mybatis-config.xml同时打印mybatis和jpa的sql</span>
+    </div>
+    <!-- 大型设备详细文章 -->
+    <div class="hidden-xs">
+        <div class="title-article">
+            <h1>
+                <a href="/2025/12/30/%E4%BF%AE%E6%94%B9logback-xml%E4%BB%A5%E5%8F%8Amybatis-config-xml%E5%90%8C%E6%97%B6%E6%89%93%E5%8D%B0mybatis%E5%92%8Cjpa%E7%9A%84sql/">修改logback.xml以及mybatis-config.xml同时打印mybatis和jpa的sql</a>
+            </h1>
+        </div>
+        <div class="tag-article">
+            
+            <span class="label label-gal">
+                <i class="fa fa-tags"></i>
+                
+                <a href="/tags/java/">java</a>
+                
+            </span>
+            
+            <span class="label label-gal">
+                <i class="fa fa-calendar"></i> 2025-12-30
+            </span>
+            
+        </div>
+    </div>
+    <!-- 小型设备详细文章 -->
+    <div class="visible-xs">
+        <center>
+            <div class="title-article">
+                <h4>
+                    <a href="/2025/12/30/%E4%BF%AE%E6%94%B9logback-xml%E4%BB%A5%E5%8F%8Amybatis-config-xml%E5%90%8C%E6%97%B6%E6%89%93%E5%8D%B0mybatis%E5%92%8Cjpa%E7%9A%84sql/">修改logback.xml以及mybatis-config.xml同时打印mybatis和jpa的sql</a>
+                </h4>
+            </div>
+            <p>
+                <i class="fa fa-calendar"></i> 2025-12-30
+            </p>
+            <p>
+                
+                <i class="fa fa-tags"></i>
+                
+                <a href="/tags/java/">java</a>
+                
+                
+                
+            </p>
+        </center>
+    </div>
+    <div class="content-article">
+        <blockquote>
+<p>最天才的是时间。——别林斯基</p>
+</blockquote>
+<p>项目背景是<code>apache/shenyu</code>，使用的是<code>mybatis</code>，通过<code>shenyu-admin/src/main/resources/mybatis/mybatis-config.xml</code>来管理相关配置</p>
+<p>此处有一行注释了的</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-comment">&lt;!-- &lt;setting name=&quot;logImpl&quot; value=&quot;STDOUT_LOGGING&quot; /&gt;--&gt;</span><br></code></pre></td></tr></table></figure>
+<p>我们解开注释即可打印<code>mybatis</code>日志</p>
+<p>其次我在该项目中引入<code>jpa</code></p>
+<p>首先<code>shenyu-admin/pom.xml</code>添加依赖:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-data-jpa<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+<p>然后添加一个<code>repository</code>作为操作类，比如<code>shenyu-admin/src/main/java/org/apache/shenyu/admin/repository/ApiRepository.java</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Licensed to the Apache Software Foundation (ASF) under one or more</span><br><span class="hljs-comment"> * contributor license agreements.  See the NOTICE file distributed with</span><br><span class="hljs-comment"> * this work for additional information regarding copyright ownership.</span><br><span class="hljs-comment"> * The ASF licenses this file to You under the Apache License, Version 2.0</span><br><span class="hljs-comment"> * (the &quot;License&quot;); you may not use this file except in compliance with</span><br><span class="hljs-comment"> * the License.  You may obtain a copy of the License at</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Unless required by applicable law or agreed to in writing, software</span><br><span class="hljs-comment"> * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="hljs-comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="hljs-comment"> * See the License for the specific language governing permissions and</span><br><span class="hljs-comment"> * limitations under the License.</span><br><span class="hljs-comment"> */</span><br><br><span class="hljs-keyword">package</span> org.apache.shenyu.admin.repository;<br><br><span class="hljs-keyword">import</span> org.apache.shenyu.admin.model.entity.ApiDO;<br><span class="hljs-keyword">import</span> org.springframework.data.jpa.repository.JpaRepository;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * ApiRepository.</span><br><span class="hljs-comment"> **/</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ApiRepository</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">JpaRepository</span>&lt;ApiDO, String&gt; &#123;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>这里需要注意一下对应的实体类需要添加<code>@Entity</code>和<code>@Table</code>注解，如果要用主键相关方法还得添加一个<code>@Id</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br><span class="line">360</span><br><span class="line">361</span><br><span class="line">362</span><br><span class="line">363</span><br><span class="line">364</span><br><span class="line">365</span><br><span class="line">366</span><br><span class="line">367</span><br><span class="line">368</span><br><span class="line">369</span><br><span class="line">370</span><br><span class="line">371</span><br><span class="line">372</span><br><span class="line">373</span><br><span class="line">374</span><br><span class="line">375</span><br><span class="line">376</span><br><span class="line">377</span><br><span class="line">378</span><br><span class="line">379</span><br><span class="line">380</span><br><span class="line">381</span><br><span class="line">382</span><br><span class="line">383</span><br><span class="line">384</span><br><span class="line">385</span><br><span class="line">386</span><br><span class="line">387</span><br><span class="line">388</span><br><span class="line">389</span><br><span class="line">390</span><br><span class="line">391</span><br><span class="line">392</span><br><span class="line">393</span><br><span class="line">394</span><br><span class="line">395</span><br><span class="line">396</span><br><span class="line">397</span><br><span class="line">398</span><br><span class="line">399</span><br><span class="line">400</span><br><span class="line">401</span><br><span class="line">402</span><br><span class="line">403</span><br><span class="line">404</span><br><span class="line">405</span><br><span class="line">406</span><br><span class="line">407</span><br><span class="line">408</span><br><span class="line">409</span><br><span class="line">410</span><br><span class="line">411</span><br><span class="line">412</span><br><span class="line">413</span><br><span class="line">414</span><br><span class="line">415</span><br><span class="line">416</span><br><span class="line">417</span><br><span class="line">418</span><br><span class="line">419</span><br><span class="line">420</span><br><span class="line">421</span><br><span class="line">422</span><br><span class="line">423</span><br><span class="line">424</span><br><span class="line">425</span><br><span class="line">426</span><br><span class="line">427</span><br><span class="line">428</span><br><span class="line">429</span><br><span class="line">430</span><br><span class="line">431</span><br><span class="line">432</span><br><span class="line">433</span><br><span class="line">434</span><br><span class="line">435</span><br><span class="line">436</span><br><span class="line">437</span><br><span class="line">438</span><br><span class="line">439</span><br><span class="line">440</span><br><span class="line">441</span><br><span class="line">442</span><br><span class="line">443</span><br><span class="line">444</span><br><span class="line">445</span><br><span class="line">446</span><br><span class="line">447</span><br><span class="line">448</span><br><span class="line">449</span><br><span class="line">450</span><br><span class="line">451</span><br><span class="line">452</span><br><span class="line">453</span><br><span class="line">454</span><br><span class="line">455</span><br><span class="line">456</span><br><span class="line">457</span><br><span class="line">458</span><br><span class="line">459</span><br><span class="line">460</span><br><span class="line">461</span><br><span class="line">462</span><br><span class="line">463</span><br><span class="line">464</span><br><span class="line">465</span><br><span class="line">466</span><br><span class="line">467</span><br><span class="line">468</span><br><span class="line">469</span><br><span class="line">470</span><br><span class="line">471</span><br><span class="line">472</span><br><span class="line">473</span><br><span class="line">474</span><br><span class="line">475</span><br><span class="line">476</span><br><span class="line">477</span><br><span class="line">478</span><br><span class="line">479</span><br><span class="line">480</span><br><span class="line">481</span><br><span class="line">482</span><br><span class="line">483</span><br><span class="line">484</span><br><span class="line">485</span><br><span class="line">486</span><br><span class="line">487</span><br><span class="line">488</span><br><span class="line">489</span><br><span class="line">490</span><br><span class="line">491</span><br><span class="line">492</span><br><span class="line">493</span><br><span class="line">494</span><br><span class="line">495</span><br><span class="line">496</span><br><span class="line">497</span><br><span class="line">498</span><br><span class="line">499</span><br><span class="line">500</span><br><span class="line">501</span><br><span class="line">502</span><br><span class="line">503</span><br><span class="line">504</span><br><span class="line">505</span><br><span class="line">506</span><br><span class="line">507</span><br><span class="line">508</span><br><span class="line">509</span><br><span class="line">510</span><br><span class="line">511</span><br><span class="line">512</span><br><span class="line">513</span><br><span class="line">514</span><br><span class="line">515</span><br><span class="line">516</span><br><span class="line">517</span><br><span class="line">518</span><br><span class="line">519</span><br><span class="line">520</span><br><span class="line">521</span><br><span class="line">522</span><br><span class="line">523</span><br><span class="line">524</span><br><span class="line">525</span><br><span class="line">526</span><br><span class="line">527</span><br><span class="line">528</span><br><span class="line">529</span><br><span class="line">530</span><br><span class="line">531</span><br><span class="line">532</span><br><span class="line">533</span><br><span class="line">534</span><br><span class="line">535</span><br><span class="line">536</span><br><span class="line">537</span><br><span class="line">538</span><br><span class="line">539</span><br><span class="line">540</span><br><span class="line">541</span><br><span class="line">542</span><br><span class="line">543</span><br><span class="line">544</span><br><span class="line">545</span><br><span class="line">546</span><br><span class="line">547</span><br><span class="line">548</span><br><span class="line">549</span><br><span class="line">550</span><br><span class="line">551</span><br><span class="line">552</span><br><span class="line">553</span><br><span class="line">554</span><br><span class="line">555</span><br><span class="line">556</span><br><span class="line">557</span><br><span class="line">558</span><br><span class="line">559</span><br><span class="line">560</span><br><span class="line">561</span><br><span class="line">562</span><br><span class="line">563</span><br><span class="line">564</span><br><span class="line">565</span><br><span class="line">566</span><br><span class="line">567</span><br><span class="line">568</span><br><span class="line">569</span><br><span class="line">570</span><br><span class="line">571</span><br><span class="line">572</span><br><span class="line">573</span><br><span class="line">574</span><br><span class="line">575</span><br><span class="line">576</span><br><span class="line">577</span><br><span class="line">578</span><br><span class="line">579</span><br><span class="line">580</span><br><span class="line">581</span><br><span class="line">582</span><br><span class="line">583</span><br><span class="line">584</span><br><span class="line">585</span><br><span class="line">586</span><br><span class="line">587</span><br><span class="line">588</span><br><span class="line">589</span><br><span class="line">590</span><br><span class="line">591</span><br><span class="line">592</span><br><span class="line">593</span><br><span class="line">594</span><br><span class="line">595</span><br><span class="line">596</span><br><span class="line">597</span><br><span class="line">598</span><br><span class="line">599</span><br><span class="line">600</span><br><span class="line">601</span><br><span class="line">602</span><br><span class="line">603</span><br><span class="line">604</span><br><span class="line">605</span><br><span class="line">606</span><br><span class="line">607</span><br><span class="line">608</span><br><span class="line">609</span><br><span class="line">610</span><br><span class="line">611</span><br><span class="line">612</span><br><span class="line">613</span><br><span class="line">614</span><br><span class="line">615</span><br><span class="line">616</span><br><span class="line">617</span><br><span class="line">618</span><br><span class="line">619</span><br><span class="line">620</span><br><span class="line">621</span><br><span class="line">622</span><br><span class="line">623</span><br><span class="line">624</span><br><span class="line">625</span><br><span class="line">626</span><br><span class="line">627</span><br><span class="line">628</span><br><span class="line">629</span><br><span class="line">630</span><br><span class="line">631</span><br><span class="line">632</span><br><span class="line">633</span><br><span class="line">634</span><br><span class="line">635</span><br><span class="line">636</span><br><span class="line">637</span><br><span class="line">638</span><br><span class="line">639</span><br><span class="line">640</span><br><span class="line">641</span><br><span class="line">642</span><br><span class="line">643</span><br><span class="line">644</span><br><span class="line">645</span><br><span class="line">646</span><br><span class="line">647</span><br><span class="line">648</span><br><span class="line">649</span><br><span class="line">650</span><br><span class="line">651</span><br><span class="line">652</span><br><span class="line">653</span><br><span class="line">654</span><br><span class="line">655</span><br><span class="line">656</span><br><span class="line">657</span><br><span class="line">658</span><br><span class="line">659</span><br><span class="line">660</span><br><span class="line">661</span><br><span class="line">662</span><br><span class="line">663</span><br><span class="line">664</span><br><span class="line">665</span><br><span class="line">666</span><br><span class="line">667</span><br><span class="line">668</span><br><span class="line">669</span><br><span class="line">670</span><br><span class="line">671</span><br><span class="line">672</span><br><span class="line">673</span><br><span class="line">674</span><br><span class="line">675</span><br><span class="line">676</span><br><span class="line">677</span><br><span class="line">678</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Licensed to the Apache Software Foundation (ASF) under one or more</span><br><span class="hljs-comment"> * contributor license agreements.  See the NOTICE file distributed with</span><br><span class="hljs-comment"> * this work for additional information regarding copyright ownership.</span><br><span class="hljs-comment"> * The ASF licenses this file to You under the Apache License, Version 2.0</span><br><span class="hljs-comment"> * (the &quot;License&quot;); you may not use this file except in compliance with</span><br><span class="hljs-comment"> * the License.  You may obtain a copy of the License at</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Unless required by applicable law or agreed to in writing, software</span><br><span class="hljs-comment"> * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="hljs-comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="hljs-comment"> * See the License for the specific language governing permissions and</span><br><span class="hljs-comment"> * limitations under the License.</span><br><span class="hljs-comment"> */</span><br><br><span class="hljs-keyword">package</span> org.apache.shenyu.admin.model.entity;<br><br><span class="hljs-keyword">import</span> jakarta.persistence.Entity;<br><span class="hljs-keyword">import</span> jakarta.persistence.Id;<br><span class="hljs-keyword">import</span> jakarta.persistence.Table;<br><span class="hljs-keyword">import</span> org.apache.commons.codec.digest.DigestUtils;<br><span class="hljs-keyword">import</span> org.apache.commons.lang3.StringUtils;<br><span class="hljs-keyword">import</span> org.apache.shenyu.admin.model.dto.ApiDTO;<br><span class="hljs-keyword">import</span> org.apache.shenyu.common.utils.UUIDUtils;<br><br><span class="hljs-keyword">import</span> java.sql.Timestamp;<br><span class="hljs-keyword">import</span> java.util.Date;<br><span class="hljs-keyword">import</span> java.util.Optional;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * api.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Entity</span><br><span class="hljs-meta">@Table(name = &quot;api&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ApiDO</span> &#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * primary key id.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Id</span><br>    <span class="hljs-keyword">private</span> String id;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * the context_path.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String contextPath;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * the apiPath.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String apiPath;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> Integer httpMethod;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * specify the submitted content type for processing requests, such as application/json, text/html;.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String consume;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * specify the content type to be returned. only when the (accept) type in the request header contains the specified type can it be returned;.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String produce;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * api version,for example V0.01.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String version;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * http,dubbo,sofa,tars,websocket,springCloud,motan,grpc.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String rpcType;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 0-unpublished1-published2-offline.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> Integer state;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * extended fields.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String ext;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * apiOwner.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String apiOwner;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * the api description.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String apiDesc;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> Integer apiSource;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * complete documentation of the api, including request parameters and response parameters.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String document;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * document_md5.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String documentMd5;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * create time.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> Date dateCreated;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * update time.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> Date dateUpdated;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getId.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> id</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getId</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> id;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * set id.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> id id</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setId</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String id)</span> &#123;<br>        <span class="hljs-built_in">this</span>.id = id;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getContextPath.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> context path</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getContextPath</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> contextPath;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * set context path.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> contextPath context path</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setContextPath</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String contextPath)</span> &#123;<br>        <span class="hljs-built_in">this</span>.contextPath = contextPath;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getApiPath.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> apiPath</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getApiPath</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> apiPath;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setApiPath.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> apiPath apiPath</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setApiPath</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String apiPath)</span> &#123;<br>        <span class="hljs-built_in">this</span>.apiPath = apiPath;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getHttpMethod.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> http method</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> Integer <span class="hljs-title function_">getHttpMethod</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> httpMethod;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setHttpMethod.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> httpMethod http method</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setHttpMethod</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Integer httpMethod)</span> &#123;<br>        <span class="hljs-built_in">this</span>.httpMethod = httpMethod;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getConsume.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> consume</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getConsume</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> consume;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setConsume.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> consume consume</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setConsume</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String consume)</span> &#123;<br>        <span class="hljs-built_in">this</span>.consume = consume;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getProduce.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> produce</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getProduce</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> produce;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setProduce.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> produce the produce</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setProduce</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String produce)</span> &#123;<br>        <span class="hljs-built_in">this</span>.produce = produce;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getVersion.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> version</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getVersion</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> version;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setVersion.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> version the version</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setVersion</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String version)</span> &#123;<br>        <span class="hljs-built_in">this</span>.version = version;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getRpcType.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> rpc type</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getRpcType</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> rpcType;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setRpcType.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> rpcType the rpc type</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setRpcType</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String rpcType)</span> &#123;<br>        <span class="hljs-built_in">this</span>.rpcType = rpcType;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getState.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> state</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> Integer <span class="hljs-title function_">getState</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> state;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setState.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> state state</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setState</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Integer state)</span> &#123;<br>        <span class="hljs-built_in">this</span>.state = state;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getExt.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span>  extension.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getExt</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> ext;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setExt.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> ext extension</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setExt</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String ext)</span> &#123;<br>        <span class="hljs-built_in">this</span>.ext = ext;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getApiOwner.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> apiOwner</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getApiOwner</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> apiOwner;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setApiOwner.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> apiOwner apiOwner</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setApiOwner</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String apiOwner)</span> &#123;<br>        <span class="hljs-built_in">this</span>.apiOwner = apiOwner;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getApiDesc.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> apiDesc</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getApiDesc</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> apiDesc;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setApiDesc.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> apiDesc apiDesc</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setApiDesc</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String apiDesc)</span> &#123;<br>        <span class="hljs-built_in">this</span>.apiDesc = apiDesc;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getApiSource.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> apiSource</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> Integer <span class="hljs-title function_">getApiSource</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> apiSource;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setSource.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> apiSource apiSource</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setApiSource</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Integer apiSource)</span> &#123;<br>        <span class="hljs-built_in">this</span>.apiSource = apiSource;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getDocument.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> document</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getDocument</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> document;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setDocument.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> document document</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setDocument</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String document)</span> &#123;<br>        <span class="hljs-built_in">this</span>.document = document;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getDocumentMd5.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> document md5</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getDocumentMd5</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> documentMd5;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setDocumentMd5.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> documentMd5 documentMd5</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setDocumentMd5</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String documentMd5)</span> &#123;<br>        <span class="hljs-built_in">this</span>.documentMd5 = documentMd5;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getDateCreated.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> dateCreated</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> Date <span class="hljs-title function_">getDateCreated</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> dateCreated;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setDateCreated.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> dateCreated dateCreated</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setDateCreated</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Date dateCreated)</span> &#123;<br>        <span class="hljs-built_in">this</span>.dateCreated = dateCreated;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * getDateUpdated.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> dateUpdated</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> Date <span class="hljs-title function_">getDateUpdated</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> dateUpdated;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * setDateUpdated.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> dateUpdated dateUpdated</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setDateUpdated</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Date dateUpdated)</span> &#123;<br>        <span class="hljs-built_in">this</span>.dateUpdated = dateUpdated;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * builder.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ApiDOBuilder <span class="hljs-title function_">builder</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApiDOBuilder</span>();<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * buildApiDO.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> apiDTO apiDTO</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> ApiDO</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ApiDO <span class="hljs-title function_">buildApiDO</span><span class="hljs-params">(<span class="hljs-keyword">final</span> ApiDTO apiDTO)</span> &#123;<br><br>        <span class="hljs-keyword">return</span> Optional.ofNullable(apiDTO).map(item -&gt; &#123;<br>            <span class="hljs-type">Timestamp</span> <span class="hljs-variable">currentTime</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Timestamp</span>(System.currentTimeMillis());<br>            <span class="hljs-type">ApiDO</span> <span class="hljs-variable">apiDO</span> <span class="hljs-operator">=</span> ApiDO.builder()<br>                    .contextPath(item.getContextPath())<br>                    .apiPath(item.getApiPath())<br>                    .httpMethod(item.getHttpMethod())<br>                    .consume(item.getConsume())<br>                    .produce(item.getProduce())<br>                    .version(item.getVersion())<br>                    .rpcType(item.getRpcType())<br>                    .state(item.getState())<br>                    .ext(item.getExt())<br>                    .apiOwner(item.getApiOwner())<br>                    .apiDesc(item.getApiDesc())<br>                    .apiSource(item.getApiSource())<br>                    .document(item.getDocument())<br>                    .documentMd5(DigestUtils.md5Hex(item.getDocument()))<br>                    .build();<br>            <span class="hljs-keyword">if</span> (StringUtils.isEmpty(item.getId())) &#123;<br>                apiDO.setId(UUIDUtils.getInstance().generateShortUuid());<br>                apiDO.setDateCreated(currentTime);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                apiDO.setId(item.getId());<br>            &#125;<br>            <span class="hljs-keyword">return</span> apiDO;<br>        &#125;).orElse(<span class="hljs-literal">null</span>);<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ApiDOBuilder</span> &#123;<br><br>        <span class="hljs-keyword">private</span> String id;<br><br>        <span class="hljs-keyword">private</span> String contextPath;<br><br>        <span class="hljs-keyword">private</span> String apiPath;<br><br>        <span class="hljs-keyword">private</span> Integer httpMethod;<br><br>        <span class="hljs-keyword">private</span> String consume;<br><br>        <span class="hljs-keyword">private</span> String produce;<br><br>        <span class="hljs-keyword">private</span> String version;<br><br>        <span class="hljs-keyword">private</span> String rpcType;<br><br>        <span class="hljs-keyword">private</span> Integer state;<br><br>        <span class="hljs-keyword">private</span> String ext;<br><br>        <span class="hljs-keyword">private</span> String apiOwner;<br><br>        <span class="hljs-keyword">private</span> String apiDesc;<br><br>        <span class="hljs-keyword">private</span> Integer apiSource;<br><br>        <span class="hljs-keyword">private</span> String document;<br><br>        <span class="hljs-keyword">private</span> String documentMd5;<br><br>        <span class="hljs-keyword">private</span> Date dateCreated;<br><br>        <span class="hljs-keyword">private</span> Date dateUpdated;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * Construct.</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">private</span> <span class="hljs-title function_">ApiDOBuilder</span><span class="hljs-params">()</span> &#123;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder id.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> id id</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">id</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String id)</span> &#123;<br>            <span class="hljs-built_in">this</span>.id = id;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder contextPath.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> contextPath contextPath</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">contextPath</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String contextPath)</span> &#123;<br>            <span class="hljs-built_in">this</span>.contextPath = contextPath;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder apiPath.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> apiPath apiPath</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">apiPath</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String apiPath)</span> &#123;<br>            <span class="hljs-built_in">this</span>.apiPath = apiPath;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder httpMethod.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> httpMethod httpMethod</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">httpMethod</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Integer httpMethod)</span> &#123;<br>            <span class="hljs-built_in">this</span>.httpMethod = httpMethod;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder httpMethod.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> consume consume</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">consume</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String consume)</span> &#123;<br>            <span class="hljs-built_in">this</span>.consume = consume;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder produce.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> produce produce</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">produce</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String produce)</span> &#123;<br>            <span class="hljs-built_in">this</span>.produce = produce;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder version.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> version version</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">version</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String version)</span> &#123;<br>            <span class="hljs-built_in">this</span>.version = version;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder rpcType.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> rpcType rpcType</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">rpcType</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String rpcType)</span> &#123;<br>            <span class="hljs-built_in">this</span>.rpcType = rpcType;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder state.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> state state</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">state</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Integer state)</span> &#123;<br>            <span class="hljs-built_in">this</span>.state = state;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder ext.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> ext ext</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">ext</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String ext)</span> &#123;<br>            <span class="hljs-built_in">this</span>.ext = ext;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder apiOwner.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> apiOwner apiOwner</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">apiOwner</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String apiOwner)</span> &#123;<br>            <span class="hljs-built_in">this</span>.apiOwner = apiOwner;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder apiDesc.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> apiDesc apiDesc</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">apiDesc</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String apiDesc)</span> &#123;<br>            <span class="hljs-built_in">this</span>.apiDesc = apiDesc;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder apiSource.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> apiSource apiSource</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">apiSource</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Integer apiSource)</span> &#123;<br>            <span class="hljs-built_in">this</span>.apiSource = apiSource;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder document.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> document document</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">document</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String document)</span> &#123;<br>            <span class="hljs-built_in">this</span>.document = document;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder documentMd5.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> documentMd5 documentMd5</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">documentMd5</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String documentMd5)</span> &#123;<br>            <span class="hljs-built_in">this</span>.documentMd5 = documentMd5;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder dateCreated.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> dateCreated dateCreated</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">dateCreated</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Date dateCreated)</span> &#123;<br>            <span class="hljs-built_in">this</span>.dateCreated = dateCreated;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder dateUpdated.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@param</span> dateUpdated dateUpdated</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDOBuilder</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDOBuilder <span class="hljs-title function_">dateUpdated</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Date dateUpdated)</span> &#123;<br>            <span class="hljs-built_in">this</span>.dateUpdated = dateUpdated;<br>            <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>;<br>        &#125;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * builder.</span><br><span class="hljs-comment">         * <span class="hljs-doctag">@return</span> ApiDO</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">public</span> ApiDO <span class="hljs-title function_">build</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-type">ApiDO</span> <span class="hljs-variable">apiDO</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApiDO</span>();<br>            apiDO.setId(id);<br>            apiDO.setContextPath(contextPath);<br>            apiDO.setApiPath(apiPath);<br>            apiDO.setHttpMethod(httpMethod);<br>            apiDO.setConsume(consume);<br>            apiDO.setProduce(produce);<br>            apiDO.setVersion(version);<br>            apiDO.setRpcType(rpcType);<br>            apiDO.setState(state);<br>            apiDO.setExt(ext);<br>            apiDO.setApiOwner(apiOwner);<br>            apiDO.setApiDesc(apiDesc);<br>            apiDO.setApiSource(apiSource);<br>            apiDO.setDocument(document);<br>            apiDO.setDocumentMd5(documentMd5);<br>            apiDO.setDateCreated(dateCreated);<br>            apiDO.setDateUpdated(dateUpdated);<br>            <span class="hljs-keyword">return</span> apiDO;<br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>我们到一个测试类<code>shenyu-admin/src/test/java/org/apache/shenyu/admin/mapper/ApiMapperTest.java</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Licensed to the Apache Software Foundation (ASF) under one or more</span><br><span class="hljs-comment"> * contributor license agreements.  See the NOTICE file distributed with</span><br><span class="hljs-comment"> * this work for additional information regarding copyright ownership.</span><br><span class="hljs-comment"> * The ASF licenses this file to You under the Apache License, Version 2.0</span><br><span class="hljs-comment"> * (the &quot;License&quot;); you may not use this file except in compliance with</span><br><span class="hljs-comment"> * the License.  You may obtain a copy of the License at</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Unless required by applicable law or agreed to in writing, software</span><br><span class="hljs-comment"> * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="hljs-comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="hljs-comment"> * See the License for the specific language governing permissions and</span><br><span class="hljs-comment"> * limitations under the License.</span><br><span class="hljs-comment"> */</span><br><br><span class="hljs-keyword">package</span> org.apache.shenyu.admin.mapper;<br><br><span class="hljs-keyword">import</span> jakarta.annotation.Resource;<br><span class="hljs-keyword">import</span> org.apache.shenyu.admin.AbstractSpringIntegrationTest;<br><span class="hljs-keyword">import</span> org.apache.shenyu.admin.model.entity.ApiDO;<br><span class="hljs-keyword">import</span> org.apache.shenyu.admin.model.page.PageParameter;<br><span class="hljs-keyword">import</span> org.apache.shenyu.admin.model.query.ApiQuery;<br><span class="hljs-keyword">import</span> org.apache.shenyu.admin.repository.ApiRepository;<br><span class="hljs-keyword">import</span> org.apache.shenyu.common.utils.UUIDUtils;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.BeforeEach;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Test;<br><br><span class="hljs-keyword">import</span> java.sql.Timestamp;<br><span class="hljs-keyword">import</span> java.util.Collections;<br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> org.hamcrest.MatcherAssert.assertThat;<br><span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> org.hamcrest.Matchers.greaterThan;<br><span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> org.junit.jupiter.api.Assertions.assertEquals;<br><span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> org.junit.jupiter.api.Assertions.assertNotNull;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Test cases for ApiMapper.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ApiMapperTest</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">AbstractSpringIntegrationTest</span> &#123;<br><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> ApiMapper apiMapper;<br><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> ApiRepository apiRepository;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ApiDO</span> <span class="hljs-variable">apiDO</span> <span class="hljs-operator">=</span> buildApiDO();<br><br>    <span class="hljs-meta">@BeforeEach</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">before</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">ApiDO</span> <span class="hljs-variable">api</span> <span class="hljs-operator">=</span> apiRepository.save(apiDO);<br>        assertNotNull(api);<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">testInsert</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">ApiDO</span> <span class="hljs-variable">newApiDO</span> <span class="hljs-operator">=</span> buildApiDO();<br>        <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> apiMapper.insert(newApiDO);<br>        assertEquals(<span class="hljs-number">1</span>, count);<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">testInsertSelective</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">ApiDO</span> <span class="hljs-variable">newApiDO</span> <span class="hljs-operator">=</span> buildApiDO();<br>        <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> apiMapper.insertSelective(newApiDO);<br>        assertEquals(<span class="hljs-number">1</span>, count);<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">testSelectByPrimaryKey</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">ApiDO</span> <span class="hljs-variable">apiDO</span> <span class="hljs-operator">=</span> apiMapper.selectByPrimaryKey(<span class="hljs-built_in">this</span>.apiDO.getId());<br>        assertNotNull(apiDO);<br>        apiDO = apiRepository.findById(<span class="hljs-built_in">this</span>.apiDO.getId()).orElse(<span class="hljs-literal">null</span>);<br>        assertNotNull(apiDO);<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">testUpdateByPrimaryKeySelective</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">Timestamp</span> <span class="hljs-variable">now</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Timestamp</span>(System.currentTimeMillis());<br>        <span class="hljs-built_in">this</span>.apiDO.setDateUpdated(now);<br>        <span class="hljs-built_in">this</span>.apiDO.setContextPath(<span class="hljs-string">&quot;/dubbo1&quot;</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setApiPath(<span class="hljs-string">&quot;/demo/findById1&quot;</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setHttpMethod(<span class="hljs-number">1</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setVersion(<span class="hljs-string">&quot;V0.02&quot;</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setRpcType(<span class="hljs-string">&quot;dubbo1&quot;</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setState(<span class="hljs-number">1</span>);<br>        <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> apiMapper.updateByPrimaryKeySelective(<span class="hljs-built_in">this</span>.apiDO);<br>        assertEquals(<span class="hljs-number">1</span>, count);<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">testUpdateByPrimaryKey</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">Timestamp</span> <span class="hljs-variable">now</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Timestamp</span>(System.currentTimeMillis());<br>        <span class="hljs-built_in">this</span>.apiDO.setDateUpdated(now);<br>        <span class="hljs-built_in">this</span>.apiDO.setContextPath(<span class="hljs-string">&quot;/dubbo2&quot;</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setApiPath(<span class="hljs-string">&quot;/demo/findById2&quot;</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setHttpMethod(<span class="hljs-number">2</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setVersion(<span class="hljs-string">&quot;V0.03&quot;</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setRpcType(<span class="hljs-string">&quot;dubbo2&quot;</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setState(<span class="hljs-number">2</span>);<br>        <span class="hljs-built_in">this</span>.apiDO.setApiSource(<span class="hljs-number">3</span>);<br>        <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> apiMapper.updateByPrimaryKeySelective(<span class="hljs-built_in">this</span>.apiDO);<br>        assertEquals(<span class="hljs-number">1</span>, count);<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">testSelectByQuery</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">ApiQuery</span> <span class="hljs-variable">query</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApiQuery</span>();<br>        query.setState(<span class="hljs-number">0</span>);<br>        query.setApiPath(<span class="hljs-string">&quot;/demo/findById&quot;</span>);<br>        query.setPageParameter(<span class="hljs-keyword">new</span> <span class="hljs-title class_">PageParameter</span>(<span class="hljs-number">1</span>, <span class="hljs-number">10</span>));<br>        List&lt;ApiDO&gt; apiDOS = apiMapper.selectByQuery(query);<br>        assertThat(apiDOS.size(), greaterThan(<span class="hljs-number">0</span>));<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">testSelectByIds</span><span class="hljs-params">()</span> &#123;<br>        List&lt;String&gt; strings = Collections.singletonList(apiDO.getId());<br>        List&lt;ApiDO&gt; apiDOS = apiMapper.selectByIds(strings);<br>        assertThat(apiDOS.size(), greaterThan(<span class="hljs-number">0</span>));<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">testDeleteByPrimaryKey</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">int</span> <span class="hljs-variable">count</span> <span class="hljs-operator">=</span> apiMapper.deleteByPrimaryKey(<span class="hljs-built_in">this</span>.apiDO.getId());<br>        assertEquals(<span class="hljs-number">1</span>, count);<br>    &#125;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">testDeleteByIds</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">ApiDO</span> <span class="hljs-variable">newApiDO</span> <span class="hljs-operator">=</span> buildApiDO();<br>        apiMapper.insertSelective(newApiDO);<br>        List&lt;String&gt; ids = Collections.singletonList(newApiDO.getId());<br>        <span class="hljs-type">int</span> <span class="hljs-variable">deleteRows</span> <span class="hljs-operator">=</span> apiMapper.deleteByIds(ids);<br>        assertEquals(<span class="hljs-number">1</span>, deleteRows);<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> ApiDO <span class="hljs-title function_">buildApiDO</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">Timestamp</span> <span class="hljs-variable">now</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Timestamp</span>(System.currentTimeMillis());<br>        <span class="hljs-type">ApiDO</span> <span class="hljs-variable">apiDO</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ApiDO</span>();<br>        apiDO.setId(UUIDUtils.getInstance().generateShortUuid());<br>        apiDO.setContextPath(<span class="hljs-string">&quot;/dubbo&quot;</span>);<br>        apiDO.setApiPath(<span class="hljs-string">&quot;/demo/findById&quot;</span>);<br>        apiDO.setHttpMethod(<span class="hljs-number">2</span>);<br>        apiDO.setConsume(<span class="hljs-string">&quot;application/json&quot;</span>);<br>        apiDO.setProduce(<span class="hljs-string">&quot;accept&quot;</span>);<br>        apiDO.setVersion(<span class="hljs-string">&quot;V0.01&quot;</span>);<br>        apiDO.setRpcType(<span class="hljs-string">&quot;dubbo&quot;</span>);<br>        apiDO.setState(<span class="hljs-number">0</span>);<br>        apiDO.setApiOwner(<span class="hljs-string">&quot;admin&quot;</span>);<br>        apiDO.setApiDesc(<span class="hljs-string">&quot;hello world api&quot;</span>);<br>        apiDO.setDocument(<span class="hljs-string">&quot;&#123;\&quot;request\&quot;:&#123;\&quot;id\&quot;:\&quot;123\&quot;&#125;,\&quot;response\&quot;:&#123;\&quot;id\&quot;:\&quot;123\&quot;&#125;&#125;&quot;</span>);<br>        apiDO.setDocumentMd5(<span class="hljs-string">&quot;933833690e1710c7c1f26f9a9cb84659&quot;</span>);<br>        apiDO.setApiSource(<span class="hljs-number">2</span>);<br>        apiDO.setDateCreated(now);<br>        apiDO.setDateUpdated(now);<br>        <span class="hljs-keyword">return</span> apiDO;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>此处仅修改<code>before</code>和<code>testSelectByPrimaryKey</code>为测试使用</p>
+<p>执行发现没有<code>jpa</code>的<code>sql</code>日志输出</p>
+<p>我们到<code>shenyu-admin/src/main/resources/logback.xml</code>添加<code>&lt;logger name=&quot;org.hibernate.SQL&quot; level=&quot;DEBUG&quot;/&gt;</code>这么一个配置即可</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-meta">&lt;?xml version=<span class="hljs-string">&quot;1.0&quot;</span> encoding=<span class="hljs-string">&quot;UTF-8&quot;</span>?&gt;</span><br><span class="hljs-comment">&lt;!--</span><br><span class="hljs-comment">  ~ Licensed to the Apache Software Foundation (ASF) under one or more</span><br><span class="hljs-comment">  ~ contributor license agreements.  See the NOTICE file distributed with</span><br><span class="hljs-comment">  ~ this work for additional information regarding copyright ownership.</span><br><span class="hljs-comment">  ~ The ASF licenses this file to You under the Apache License, Version 2.0</span><br><span class="hljs-comment">  ~ (the &quot;License&quot;); you may not use this file except in compliance with</span><br><span class="hljs-comment">  ~ the License.  You may obtain a copy of the License at</span><br><span class="hljs-comment">  ~</span><br><span class="hljs-comment">  ~     http://www.apache.org/licenses/LICENSE-2.0</span><br><span class="hljs-comment">  ~</span><br><span class="hljs-comment">  ~ Unless required by applicable law or agreed to in writing, software</span><br><span class="hljs-comment">  ~ distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="hljs-comment">  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="hljs-comment">  ~ See the License for the specific language governing permissions and</span><br><span class="hljs-comment">  ~ limitations under the License.</span><br><span class="hljs-comment">  --&gt;</span><br><br><span class="hljs-tag">&lt;<span class="hljs-name">configuration</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">shutdownHook</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.core.hook.DelayingShutdownHook&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;LOG_HOME&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;$&#123;log.home:-./logs&#125;&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;LOG_APP_NAME&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;$&#123;log.app-name:-shenyu-admin&#125;&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;MAX_SINGLE_LOG_FILE_SIZE&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;$&#123;log.max-single-log-file-size:-100MB&#125;&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;MAX_LOG_FILE_HISTORY&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;$&#123;log.max-log-file-history:-7&#125;&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;LOG_FILE_TOTAL_CAPACITY&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;$&#123;log.log-file-total-capacity:-10GB&#125;&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;ASYNC_DISCARDING_THRESHOLD&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;$&#123;log.async.discarding-threshold:-0&#125;&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;ASYNC_LOG_QUEUE_SIZE&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;$&#123;log.async.queue-size:-256&#125;&quot;</span>/&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;LOG_PATTERN&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;%red(%d&#123;yyyy-MM-dd HH:mm:ss&#125;) %green([%thread]) %highlight(%-5level) %boldMagenta(%logger) - %cyan(%msg%n)&quot;</span>/&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">appender</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;STDOUT&quot;</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.core.ConsoleAppender&quot;</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">encoder</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">pattern</span>&gt;</span>$&#123;LOG_PATTERN&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">pattern</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">encoder</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">appender</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">appender</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;ASYNC_STDOUT&quot;</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.classic.AsyncAppender&quot;</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">discardingThreshold</span>&gt;</span>$&#123;ASYNC_DISCARDING_THRESHOLD&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">discardingThreshold</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">queueSize</span>&gt;</span>$&#123;ASYNC_LOG_QUEUE_SIZE&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">queueSize</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">includeCallerData</span>&gt;</span>true<span class="hljs-tag">&lt;/<span class="hljs-name">includeCallerData</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">appender-ref</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">&quot;STDOUT&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">appender</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">appender</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;FILE&quot;</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">file</span>&gt;</span>$&#123;LOG_HOME&#125;/$&#123;LOG_APP_NAME&#125;.log<span class="hljs-tag">&lt;/<span class="hljs-name">file</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">append</span>&gt;</span>true<span class="hljs-tag">&lt;/<span class="hljs-name">append</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">rollingPolicy</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy&quot;</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">fileNamePattern</span>&gt;</span>$&#123;LOG_HOME&#125;/$&#123;LOG_APP_NAME&#125;.%d&#123;yyyy-MM-dd&#125;.%i.log.zip<span class="hljs-tag">&lt;/<span class="hljs-name">fileNamePattern</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">maxFileSize</span>&gt;</span>$&#123;MAX_SINGLE_LOG_FILE_SIZE&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">maxFileSize</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">maxHistory</span>&gt;</span>$&#123;MAX_LOG_FILE_HISTORY&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">maxHistory</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">totalSizeCap</span>&gt;</span>$&#123;LOG_FILE_TOTAL_CAPACITY&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">totalSizeCap</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">rollingPolicy</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">encoder</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">pattern</span>&gt;</span>$&#123;LOG_PATTERN&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">pattern</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">encoder</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">appender</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">appender</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;ASYNC_FILE&quot;</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.classic.AsyncAppender&quot;</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">discardingThreshold</span>&gt;</span>$&#123;ASYNC_DISCARDING_THRESHOLD&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">discardingThreshold</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">queueSize</span>&gt;</span>$&#123;ASYNC_LOG_QUEUE_SIZE&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">queueSize</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">includeCallerData</span>&gt;</span>true<span class="hljs-tag">&lt;/<span class="hljs-name">includeCallerData</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">appender-ref</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">&quot;FILE&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">appender</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">appender</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;ERROR_FILE&quot;</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">filter</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.classic.filter.LevelFilter&quot;</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">level</span>&gt;</span>ERROR<span class="hljs-tag">&lt;/<span class="hljs-name">level</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">onMatch</span>&gt;</span>ACCEPT<span class="hljs-tag">&lt;/<span class="hljs-name">onMatch</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">onMismatch</span>&gt;</span>DENY<span class="hljs-tag">&lt;/<span class="hljs-name">onMismatch</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">filter</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">file</span>&gt;</span>$&#123;LOG_HOME&#125;/$&#123;LOG_APP_NAME&#125;-error.log<span class="hljs-tag">&lt;/<span class="hljs-name">file</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">rollingPolicy</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy&quot;</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">fileNamePattern</span>&gt;</span>$&#123;LOG_HOME&#125;/$&#123;LOG_APP_NAME&#125;.%d&#123;yyyy-MM-dd&#125;-error.%i.log.zip<span class="hljs-tag">&lt;/<span class="hljs-name">fileNamePattern</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">maxFileSize</span>&gt;</span>$&#123;MAX_SINGLE_LOG_FILE_SIZE&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">maxFileSize</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">maxHistory</span>&gt;</span>$&#123;MAX_LOG_FILE_HISTORY&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">maxHistory</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">totalSizeCap</span>&gt;</span>$&#123;LOG_FILE_TOTAL_CAPACITY&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">totalSizeCap</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">rollingPolicy</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">encoder</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">pattern</span>&gt;</span>$&#123;LOG_PATTERN&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">pattern</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">encoder</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">appender</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">appender</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;ASYNC_ERROR_FILE&quot;</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;ch.qos.logback.classic.AsyncAppender&quot;</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">discardingThreshold</span>&gt;</span>$&#123;ASYNC_DISCARDING_THRESHOLD&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">discardingThreshold</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">queueSize</span>&gt;</span>$&#123;ASYNC_LOG_QUEUE_SIZE&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">queueSize</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">includeCallerData</span>&gt;</span>true<span class="hljs-tag">&lt;/<span class="hljs-name">includeCallerData</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">appender-ref</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">&quot;ERROR_FILE&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">appender</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">root</span> <span class="hljs-attr">level</span>=<span class="hljs-string">&quot;INFO&quot;</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">appender-ref</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">&quot;ASYNC_STDOUT&quot;</span>/&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">appender-ref</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">&quot;ASYNC_FILE&quot;</span>/&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">appender-ref</span> <span class="hljs-attr">ref</span>=<span class="hljs-string">&quot;ASYNC_ERROR_FILE&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">root</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">logger</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;org.hibernate.SQL&quot;</span> <span class="hljs-attr">level</span>=<span class="hljs-string">&quot;DEBUG&quot;</span>/&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">configuration</span>&gt;</span><br></code></pre></td></tr></table></figure>
+<p>再次执行，即可同时输出<code>jpa</code>和<code>mbatis</code>日志</p>
+
+    </div>
+</article>
+
+
+                </div>
+                <aside class="col-md-4 gal-left" id="sidebar">
+    <!-- 此为sidebar的搜索框, 非搜索结果页面 -->
+<aside id="sidebar-search">
+    <div class="search" data-aos="fade-up" data-aos-duration="2000">
+        <form class="form-inline clearfix" id="search-form" method="get"
+              action="/search/index.html">
+            <input type="text" name="s" class="form-control" id="searchInput" placeholder="搜索文章~" autocomplete="off">
+            <button class="btn btn-danger btn-gal" type="submit">
+                <i class="fa fa-search"></i>
+            </button>
+        </form>
+    </div>
+</aside>
+    <aside id="sidebar-author">
+    <div class="panel panel-gal" data-aos="flip-right" data-aos-duration="3000">
+        <div class="panel-heading" style="text-align: center">
+            <i class="fa fa-quote-left"></i>
+            阿超
+            <i class="fa fa-quote-right"></i>
+        </div>
+        <div class="author-panel text-center">
+            <div class="author-avatar">
+            <img src="/imgs/head.png"
+                             alt="个人头像" class="author-image">
+            </div>
+            <p class="author-description"><p>​ 我的名字叫阿超 年龄24岁 家在北京市 未婚 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</p>
+</p>
+        </div>
+    </div>
+</aside>
+
+    
+    <aside id="sidebar-recent_comments">
+    <div class="panel panel-gal recent hidden-xs" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-comments"></i>
+            最新评论
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush"></ul>
+    </div>
+</aside>
+    
+    <!-- 要配置好leancloud才能开启此小工具 -->
+    
+    
+    <aside id="sidebar-recent_posts">
+    <div class="panel panel-gal recent hidden-xs" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-refresh"></i>
+            近期文章
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush">
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/30/%E4%BF%AE%E6%94%B9logback-xml%E4%BB%A5%E5%8F%8Amybatis-config-xml%E5%90%8C%E6%97%B6%E6%89%93%E5%8D%B0mybatis%E5%92%8Cjpa%E7%9A%84sql/">修改logback.xml以及mybatis-config.xml同时打印mybatis和jpa的sql</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/29/starrocks/">starrocks</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/28/supersonic/">supersonic</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/27/FreeBox/">FreeBox</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/26/awesome-test-automation/">awesome-test-automation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/25/conductor/">conductor</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/24/1brc/">1brc</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/23/SmartTube/">SmartTube</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/22/adk-java/">adk-java</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/21/bun/">bun</a>
+                </span>
+            </li>
+            
+        </ul>
+    </div>
+</aside>
+    
+    
+    <aside id="sidebar-rand_posts">
+    <div class="panel panel-gal recent" data-aos="fade-up" data-aos-duration="2000">
+        <div class="panel-heading">
+            <i class="fa fa-refresh"></i>
+            随机文章
+            <i class="fa fa-times-circle panel-remove"></i>
+            <i class="fa fa-chevron-circle-up panel-toggle"></i>
+        </div>
+        <ul class="list-group list-group-flush">
+            
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/09/17/COALESCE/">COALESCE</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/05/05/MeowBottomNavigation/">MeowBottomNavigation</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/12/03/agent-lightning/">agent-lightning</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2020/09/11/android%E5%8E%BB%E6%8E%89%E6%A0%87%E9%A2%98%E6%A0%8F/">android去掉标题栏</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2024/01/31/charlesproxy%E6%8A%93%E5%8C%85%E5%B7%A5%E5%85%B7/">charlesproxy抓包工具</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/10/02/erpnext/">erpnext</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/05/08/redis%E9%98%9F%E5%88%97/">redis队列</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2025/06/06/videojs/">videojs</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/08/22/webpack%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86/">webpack资源管理</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/2022/05/22/windows%E4%BB%A5%E7%AE%A1%E7%90%86%E5%91%98%E8%BA%AB%E4%BB%BD%E8%BF%90%E8%A1%8C%E6%9C%8D%E5%8A%A1bat/">windows以管理员身份运行服务bat</a>
+                </span>
+            </li>
+            
+        </ul>
+    </div>
+</aside>
+    
+    
+    <aside id="gal-sets">
+        <div class="panel panel-gal" data-aos="fade-up" data-aos-duration="2000">
+            <ul class="nav nav-pills pills-gal">
+
+                
+                <li>
+                    <a href="/2025/12/30/%E4%BF%AE%E6%94%B9logback-xml%E4%BB%A5%E5%8F%8Amybatis-config-xml%E5%90%8C%E6%97%B6%E6%89%93%E5%8D%B0mybatis%E5%92%8Cjpa%E7%9A%84sql/index.html#sidebar-tags" data-toggle="tab" id="tags-tab">热门标签</a>
+                </li>
+                
+                
+                <li>
+                    <a href="/2025/12/30/%E4%BF%AE%E6%94%B9logback-xml%E4%BB%A5%E5%8F%8Amybatis-config-xml%E5%90%8C%E6%97%B6%E6%89%93%E5%8D%B0mybatis%E5%92%8Cjpa%E7%9A%84sql/index.html#sidebar-friend-links" data-toggle="tab" id="friend-links-tab">友情链接</a>
+                </li>
+                
+                
+                <li>
+                    <a href="/2025/12/30/%E4%BF%AE%E6%94%B9logback-xml%E4%BB%A5%E5%8F%8Amybatis-config-xml%E5%90%8C%E6%97%B6%E6%89%93%E5%8D%B0mybatis%E5%92%8Cjpa%E7%9A%84sql/index.html#sidebar-links" data-toggle="tab" id="links-tab">个人链接</a>
+                </li>
+                
+            </ul>
+            <div class="tab-content">
+                
+                <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
+    
+    <a href="/tags/java/" style="font-size: 19.639171035931923px;" class="tag-cloud-link">java</a>
+    
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 19.105836889089563px;" class="tag-cloud-link">软件及插件</a>
+    
+    <a href="/tags/ai/" style="font-size: 16.840857969024647px;" class="tag-cloud-link">ai</a>
+    
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 10.758232712556048px;" class="tag-cloud-link">小技巧</a>
+    
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.189991345399346px;" class="tag-cloud-link">前端</a>
+    
+    <a href="/tags/android/" style="font-size: 12.199625570157979px;" class="tag-cloud-link">android</a>
+    
+    <a href="/tags/python/" style="font-size: 15.798744537526154px;" class="tag-cloud-link">python</a>
+    
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 14.649873417336556px;" class="tag-cloud-link">数据库</a>
+    
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.11508081272875px;" class="tag-cloud-link">运维</a>
+    
+    <a href="/tags/go/" style="font-size: 19.5601973638427px;" class="tag-cloud-link">go</a>
+    
+    <a href="/tags/ios/" style="font-size: 18.77452054182331px;" class="tag-cloud-link">ios</a>
+    
+    <a href="/tags/c/" style="font-size: 10.822419136772456px;" class="tag-cloud-link">c++</a>
+    
+    <a href="/tags/flutter/" style="font-size: 10.162225250501198px;" class="tag-cloud-link">flutter</a>
+    
+    <a href="/tags/Java/" style="font-size: 17.998289268641894px;" class="tag-cloud-link">Java</a>
+    
+    <a href="/tags/ruby/" style="font-size: 13.89895514417097px;" class="tag-cloud-link">ruby</a>
+    
+    <a href="/tags/c/" style="font-size: 17.175191047701958px;" class="tag-cloud-link">c</a>
+    
+    <a href="/tags/Clojure/" style="font-size: 8.682859932783092px;" class="tag-cloud-link">Clojure</a>
+    
+    <a href="/tags/bug/" style="font-size: 19.0154335339982px;" class="tag-cloud-link">bug</a>
+    
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 10.651395602150608px;" class="tag-cloud-link">其他</a>
+    
+    <a href="/tags/kotlin/" style="font-size: 17.8271732542437px;" class="tag-cloud-link">kotlin</a>
+    
+    <a href="/tags/lua/" style="font-size: 18.2526133557081px;" class="tag-cloud-link">lua</a>
+    
+    <a href="/tags/swift/" style="font-size: 9.599286308592713px;" class="tag-cloud-link">swift</a>
+    
+    <a href="/tags/minecraft/" style="font-size: 16.073582645146537px;" class="tag-cloud-link">minecraft</a>
+    
+    <a href="/tags/rust/" style="font-size: 14.504519966699927px;" class="tag-cloud-link">rust</a>
+    
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.517418045332743px;" class="tag-cloud-link">部署</a>
+    
+    <a href="/tags/flink/" style="font-size: 16.788492411624034px;" class="tag-cloud-link">flink</a>
+    
+    <a href="/tags/llvm/" style="font-size: 12.869842422686338px;" class="tag-cloud-link">llvm</a>
+    
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 9.890581068342133px;" class="tag-cloud-link">机器学习</a>
+    
+    <a href="/tags/php/" style="font-size: 19.678885526387756px;" class="tag-cloud-link">php</a>
+    
+    <a href="/tags/typescript/" style="font-size: 9.747396880036938px;" class="tag-cloud-link">typescript</a>
+    
+    <a href="/tags/redis/" style="font-size: 8.231389302146486px;" class="tag-cloud-link">redis</a>
+    
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 14.65177060091541px;" class="tag-cloud-link">设计模式</a>
+    
+    <a href="/tags/objective-c/" style="font-size: 14.749977150748826px;" class="tag-cloud-link">objective-c</a>
+    
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 15.64568561882611px;" class="tag-cloud-link">算法</a>
+    
+</div>
+                
+                
+                <div class="friend-links tab-pane nav bs-sidenav fade" id="sidebar-friend-links">
+    
+    <li>
+        <a href="https://mofan212.gitee.io/" target="_blank">Mofan</a>
+    </li>
+    
+    <li>
+        <a href="http://www.wwang.net" target="_blank">派派河鉴黄师</a>
+    </li>
+    
+    <li>
+        <a href="https://shrimp_study.gitee.io/" target="_blank">加油</a>
+    </li>
+    
+    <li>
+        <a href="https://howling.gitee.io/" target="_blank">嚎羸</a>
+    </li>
+    
+    <li>
+        <a href="https://techyang99.gitee.io/" target="_blank">Techyang</a>
+    </li>
+    
+    <li>
+        <a href="https://mujeyf.cn" target="_blank">GeekDream</a>
+    </li>
+    
+    <li>
+        <a href="https://amadasy.gitee.io/" target="_blank">Amadasy</a>
+    </li>
+    
+    <li>
+        <a href="http://47.95.208.251:8081/niubi/dist/index.html#/blog" target="_blank">NIUBI</a>
+    </li>
+    
+    <li>
+        <a href="http://www.znbiscool.icu" target="_blank">宇智波问天</a>
+    </li>
+    
+    <li>
+        <a href="https://www.xsyyds.top" target="_blank">醉相生</a>
+    </li>
+    
+    <li>
+        <a href="http://60.205.188.140:8888/" target="_blank">那就孤雏</a>
+    </li>
+    
+    <li>
+        <a href="https://www.jauxgit.top" target="_blank">jaux署记</a>
+    </li>
+    
+    <li>
+        <a href="http://septzhang.link/" target="_blank">SeptZhangの小站</a>
+    </li>
+    
+    <li>
+        <a href="http://myblog.zhaixing.work/" target="_blank">星辰驿站</a>
+    </li>
+    
+    <li>
+        <a href="https://47.93.242.4:88" target="_blank">宇泽希</a>
+    </li>
+    
+    <li>
+        <a href="https://kwydy.gitee.io/" target="_blank">这个爱酱不太聪明</a>
+    </li>
+    
+    <li>
+        <a href="https://rivencabin.gitee.io/" target="_blank">Riven的小屋</a>
+    </li>
+    
+    <li>
+        <a href="https://rocpenghua.gitee.io/" target="_blank">小鹏驿站</a>
+    </li>
+    
+    <li>
+        <a href="https://budongfeng.gitee.io/weekly/" target="_blank">生活富能量</a>
+    </li>
+    
+    <li>
+        <a href="https://zygzyg.cloud/" target="_blank">Error&#39;s Blog</a>
+    </li>
+    
+</div>
+                
+                
+                <div class="links tab-pane nav bs-sidenav fade" id="sidebar-links">
+    
+    <li>
+        <a href="https://gitee.com/vampireachao/" target="_blank">Gitee</a>
+    </li>
+    
+</div>
+                
+            </div>
+        </div>
+    </aside>
+    
+</aside>
+            </div>
+        </div>
+    </div>
+    <footer id="gal-footer">
+    <div class="container">
+        Copyright © 2018 阿超 Powered by <a href="https://hexo.io/"
+                target="_blank">Hexo</a>.&nbsp;Theme by <a href="https://github.com/ZEROKISEKI"
+                target="_blank">AONOSORA</a>
+    </div>
+</footer>
+
+<!-- 回到顶端 -->
+<div id="gal-gotop">
+    <i class="fa fa-angle-up"></i>
+</div>
+<style>
+    #cursor-circle {
+        pointer-events: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid black;
+        background: white;
+        mix-blend-mode: exclusion;
+        position: absolute;
+        z-index: 99999
+    }
+</style>
+<div id="cursor-circle"></div>
+<div id="cursor-pointer"></div>
+<script type="application/javascript">
+    const cursorCircle = document.querySelector("#cursor-circle")
+    window.addEventListener('mousemove', e => {
+        cursorCircle.style.top = document.documentElement.scrollTop + e.clientY - 11 + 'px'
+        cursorCircle.style.left = document.documentElement.scrollLeft + e.clientX - 11 + 'px'
+    })
+</script>
+</body>
+
+<script src="/js/activate-power-mode.js"></script>
+
+<script>
+
+    // 配置highslide
+	hs.graphicsDir = '/js/highslide/graphics/'
+    hs.outlineType = "rounded-white";
+    hs.dimmingOpacity = 0.8;
+    hs.outlineWhileAnimating = true;
+    hs.showCredits = false;
+    hs.captionEval = "this.thumb.alt";
+    hs.numberPosition = "caption";
+    hs.align = "center";
+    hs.transitions = ["expand", "crossfade"];
+    hs.lang.number = '共%2张图, 当前是第%1张';
+    hs.addSlideshow({
+      interval: 5000,
+      repeat: true,
+      useControls: true,
+      fixedControls: "fit",
+      overlayOptions: {
+        opacity: 0.75,
+        position: "bottom center",
+        hideOnMouseOut: true
+      }
+    })
+
+    // 初始化aos
+    AOS.init({
+      duration: 1000,
+      delay: 0,
+      easing: 'ease-out-back'
+    });
+
+</script>
+<script>
+	POWERMODE.colorful = 'true';    // make power mode colorful
+	POWERMODE.shake = 'true';       // turn off shake
+	// TODO 这里根据具体情况修改
+	document.body.addEventListener('input', POWERMODE);
+</script>
+<script>
+    window.slideConfig = {
+      prefix: '/imgs/slide/background',
+      ext: 'jpg',
+      maxCount: '6'
+    }
+</script>
+
+<script src="/js/hs.js"></script>
+<script src="/js/blog.js"></script>
+
+
+
+
+</html>
