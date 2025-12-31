@@ -15,7 +15,7 @@
   
   
   <title>collect补充 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>collect补充</span>
     </div>
@@ -399,7 +399,7 @@
         <blockquote>
 <p>青年之文明，奋斗之文明也，与境遇奋斗，与时代奋斗，与经验奋斗。故青年者，人生，人生之春，人生之华也。——李大钊</p>
 </blockquote>
-<p>书接<a href="https://VampireAchao.github.io/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/">上文</a>，我们讲到并行流场景下三个参数的<code>reduce</code>会有一个坑</p>
+<p>书接<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/">上文</a>，我们讲到并行流场景下三个参数的<code>reduce</code>会有一个坑</p>
 <p>同理，在<code>collect</code>函数中也有这个坑</p>
 <p>我们先使用普通流去做</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 生成1-100</span><br>List&lt;Integer&gt; list = Stream.iterate(<span class="hljs-number">1</span>, i -&gt; ++i).limit(<span class="hljs-number">200</span>).collect(Collectors.toList());<br>System.out.println(list);<br><span class="hljs-comment">// 使用collect函数进行转换为List&lt;Map&lt;Integer,Integer&gt;&gt;，包含值和线程id</span><br>List&lt;Map&lt;String, Object&gt;&gt; result = list.stream().collect(() -&gt; &#123;<br>    System.out.println(<span class="hljs-string">&quot;第一个参数：Supplier，我们返回一个带初始值的List，放进去三个负数&quot;</span>);<br>    Map&lt;String, Object&gt; map1 = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>    <span class="hljs-comment">// 获取线程id</span><br>    <span class="hljs-type">long</span> <span class="hljs-variable">threadId</span> <span class="hljs-operator">=</span> Thread.currentThread().getId();<br>    <span class="hljs-comment">// 放入一个值为负数，只有一个元素的map</span><br>    map1.put(<span class="hljs-string">&quot;value&quot;</span>, -<span class="hljs-number">1</span>);<br>    map1.put(<span class="hljs-string">&quot;threadId&quot;</span>, threadId);<br>    List&lt;Map&lt;String, Object&gt;&gt; currentList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>    <span class="hljs-comment">// 将map添加进去</span><br>    currentList.add(map1);<br>    <span class="hljs-keyword">return</span> currentList;<br>&#125;, (lastList, value) -&gt; &#123;<br>    <span class="hljs-comment">// 具体的聚合操作，将value封装为map，加上线程id，放入list</span><br>    HashMap&lt;String, Object&gt; map = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>    map.put(<span class="hljs-string">&quot;value&quot;</span>, value);<br>    map.put(<span class="hljs-string">&quot;threadId&quot;</span>, Thread.currentThread().getId());<br>    lastList.add(map);<br>&#125;, (lastList, currentList) -&gt; &#123;<br>    <span class="hljs-comment">// 并行流下合计上面多个结果</span><br>    System.out.println(<span class="hljs-string">&quot;lastList：&quot;</span> + lastList);<br>    lastList.addAll(currentList);<br>    System.out.println(<span class="hljs-string">&quot;currentList：&quot;</span> + currentList);<br>&#125;);<br>System.out.println(<span class="hljs-string">&quot;最终结果：&quot;</span> + result);<br>System.out.println(<span class="hljs-string">&quot;最终结果个数：&quot;</span> + result.size());<br></code></pre></td></tr></table></figure>
@@ -411,7 +411,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 生成1-100</span><br>List&lt;Integer&gt; list = Stream.iterate(<span class="hljs-number">1</span>, i -&gt; ++i).limit(<span class="hljs-number">200</span>).collect(Collectors.toList());<br>System.out.println(list);<br><span class="hljs-comment">// 使用collect函数进行转换为List&lt;Map&lt;Integer,Integer&gt;&gt;，包含值和线程id</span><br>List&lt;Map&lt;String, Object&gt;&gt; result = list.stream().parallel().collect(() -&gt; &#123;<br>    System.out.println(<span class="hljs-string">&quot;第一个参数：Supplier，我们返回一个带初始值的List，放进去三个负数&quot;</span>);<br>    Map&lt;String, Object&gt; map1 = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>    <span class="hljs-comment">// 获取线程id</span><br>    <span class="hljs-type">long</span> <span class="hljs-variable">threadId</span> <span class="hljs-operator">=</span> Thread.currentThread().getId();<br>    <span class="hljs-comment">// 放入一个值为负数，只有一个元素的map</span><br>    map1.put(<span class="hljs-string">&quot;value&quot;</span>, -<span class="hljs-number">1</span>);<br>    map1.put(<span class="hljs-string">&quot;threadId&quot;</span>, threadId);<br>    List&lt;Map&lt;String, Object&gt;&gt; currentList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>    <span class="hljs-comment">// 将map添加进去</span><br>    currentList.add(map1);<br>    <span class="hljs-keyword">return</span> currentList;<br>&#125;, (lastList, value) -&gt; &#123;<br>    <span class="hljs-comment">// 具体的聚合操作，将value封装为map，加上线程id，放入list</span><br>    HashMap&lt;String, Object&gt; map = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>    map.put(<span class="hljs-string">&quot;value&quot;</span>, value);<br>    map.put(<span class="hljs-string">&quot;threadId&quot;</span>, Thread.currentThread().getId());<br>    lastList.add(map);<br>&#125;, (lastList, currentList) -&gt; &#123;<br>    <span class="hljs-comment">// 并行流下合计上面多个结果</span><br>    System.out.println(<span class="hljs-string">&quot;lastList：&quot;</span> + lastList);<br>    lastList.addAll(currentList);<br>    System.out.println(<span class="hljs-string">&quot;currentList：&quot;</span> + currentList);<br>&#125;);<br>System.out.println(<span class="hljs-string">&quot;最终结果：&quot;</span> + result);<br>System.out.println(<span class="hljs-string">&quot;最终结果个数：&quot;</span> + result.size());<br></code></pre></td></tr></table></figure>
 <p>注意这里我们使用的<code>Stream.parallel()</code>去转换为并行流</p>
 <p><img src="/imgs/oss/picGo/image-20210614211814639.png" alt="image-20210614211814639" /></p>
-<p>要是看不太懂，可以跟着<a href="https://VampireAchao.github.io/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/">上篇</a>看</p>
+<p>要是看不太懂，可以跟着<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/">上篇</a>看</p>
 
     </div>
 </article>
@@ -477,6 +477,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2025/12/31/GmsCore/">GmsCore</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2025/12/30/%E4%BF%AE%E6%94%B9logback-xml%E4%BB%A5%E5%8F%8Amybatis-config-xml%E5%90%8C%E6%97%B6%E6%89%93%E5%8D%B0mybatis%E5%92%8Cjpa%E7%9A%84sql/">修改logback.xml以及mybatis-config.xml同时打印mybatis和jpa的sql</a>
                 </span>
             </li>
@@ -529,12 +535,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2025/12/21/bun/">bun</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -553,61 +553,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/14/BibiGPT/">BibiGPT</a>
+                    <a href="/2025/08/09/Bluebird/">Bluebird</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/08/21/Bigdecimal/">Bigdecimal</a>
+                    <a href="/2025/07/26/OI-wiki/">OI-wiki</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/06/08/Dinky/">Dinky</a>
+                    <a href="/2021/05/22/a%E6%A0%87%E7%AD%BE%E7%82%B9%E5%87%BB%E5%90%8E%E4%B8%8B%E8%BD%BD%E5%9B%BE%E7%89%87%E8%80%8C%E4%B8%8D%E6%98%AF%E6%89%93%E5%BC%80/">a标签点击后下载图片而不是打开</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/11/20/JSON%E5%B0%8F%E6%8A%80%E5%B7%A7/">JSON小技巧</a>
+                    <a href="/2025/04/03/bilibilimini/">bilibilimini</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/07/09/brew%E5%AE%89%E8%A3%85docker/">brew安装docker</a>
+                    <a href="/2023/07/16/docker-compose%E5%AE%89%E8%A3%85mysql%E5%B9%B6%E6%8C%87%E5%AE%9A%E5%BF%BD%E7%95%A5%E8%A1%A8%E5%90%8D%E5%A4%A7%E5%B0%8F%E5%86%99%E4%BB%A5%E5%8F%8A%E6%8C%82%E8%BD%BD%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/">docker-compose安装mysql并指定忽略表名大小写以及挂载配置文件</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/02/07/mp%E6%9F%A5%E8%AF%A2%E5%87%BA%E6%9D%A5%E6%97%B6%E9%97%B4%E8%87%AA%E5%8A%A8%E5%8E%BB%E6%8E%89%E7%A7%92/">mp查询出来时间自动去掉秒</a>
+                    <a href="/2023/11/30/docker%E8%BF%90%E8%A1%8Cnacos/">docker运行nacos</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/12/17/spring-doc%E6%8A%A5%E9%94%99Unable-to-render-this-definition/">spring-doc报错Unable to render this definition</a>
+                    <a href="/2021/08/17/fastjson%E5%85%A8%E5%B1%80%E5%BA%8F%E5%88%97%E5%8C%96%E5%9D%91/">fastjson全局序列化坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/04/03/vue%E4%B8%AD%E7%89%B9%E6%AE%8A%E7%9A%84prop%E5%92%8C%E4%BA%8B%E4%BB%B6/">vue中特殊的prop和事件</a>
+                    <a href="/2022/12/10/idea-debug%E5%B0%8F%E6%8A%80%E5%B7%A7/">idea debug小技巧</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/28/xnio%E5%9D%91/">xnio坑</a>
+                    <a href="/2020/09/21/java%E5%AE%9E%E7%8E%B0%E6%8E%A7%E5%88%B6%E5%8F%B0%E6%89%93%E5%8D%B0%E8%BF%9B%E5%BA%A6%E6%9D%A1/">java实现控制台打印进度条</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/07/15/%E7%94%A8typora-PicGo%E5%86%99%E5%8D%9A%E5%AE%A2/">用typora+PicGo写博客</a>
+                    <a href="/2022/11/05/emoji%E5%A4%A7%E5%85%A8/">emoji大全</a>
                 </span>
             </li>
             
@@ -640,73 +640,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 11.470729363912678px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 9.618702775725918px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 12.743182329875905px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 10.60483562095626px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 9.134600470163083px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 16.42543170594724px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.465245557624538px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.96051194139105px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 14.340301514820242px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 11.138833064247937px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 8.68494046447567px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 19.562747166694407px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 10.126360382012724px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 10.175037781880093px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 15.30382783747535px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.88429334028078px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.208308601179773px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.044007391121312px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 11.46110676101601px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 15.43559068911367px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 16.566012593740545px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 15.97614701168967px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 10.340270719645815px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 14.243561307312024px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 16.606025968409593px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 19.332425885902808px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 11.232263221420062px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 14.418032624421361px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 14.869269441271669px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 16.43247574644028px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 12.22408659225919px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 19.276655858106295px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 12.907281816842222px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 15.511074859385722px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 10.196310202410459px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 9.254593311416162px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 18.26874153399633px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 16.76870490201408px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 11.291132979058036px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 19.089777424634587px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 12.261384649938462px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 8.824942026926628px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 18.035820186731115px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 9.97331739449685px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 9.53897810807533px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 10.577705935489371px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 16.07821038328141px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 8.270515582294987px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.776032246987445px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 18.24506413405786px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 19.320016460390953px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 10.191180150704346px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 13.796851424614557px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 12.022620628860583px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 17.480539205938072px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10.959682846280561px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 13.183601197784949px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 18.88041092603928px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 10.047662106246461px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 8.050453906014596px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 17.270021205618534px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 14.264131676455316px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 8.625901538204019px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 8.721679515178785px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 13.501570808353046px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 9.808530816766956px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.36914956516405px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 15.283430143619782px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
