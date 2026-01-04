@@ -15,7 +15,7 @@
   
   
   <title>移动云存储上传文件 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>移动云存储上传文件</span>
     </div>
@@ -405,7 +405,7 @@
 <p>期间我们可以去注册并配置，注意需要配置实名认证。。。</p>
 <p><img src="/imgs/oss/picGo/image-20210303214321853.png" alt="image-20210303214321853" /></p>
 <p>下面的步骤可以看<a target="_blank" rel="noopener" href="https://ecloud.10086.cn/op-help-center/doc/article/24493">快速入门</a></p>
-<p>然后根据<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2021/03/02/%E5%BC%95%E5%85%A5%E6%9C%AC%E5%9C%B0jar%E5%8C%85/">这篇博客</a>把<code>jar</code>包引入<code>maven</code>项目</p>
+<p>然后根据<a href="https://VampireAchao.github.io/2021/03/02/%E5%BC%95%E5%85%A5%E6%9C%AC%E5%9C%B0jar%E5%8C%85/">这篇博客</a>把<code>jar</code>包引入<code>maven</code>项目</p>
 <p>最后是代码</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.utils;<br><br><span class="hljs-keyword">import</span> com.amazonaws.ClientConfiguration;<br><span class="hljs-keyword">import</span> com.amazonaws.auth.AWSCredentials;<br><span class="hljs-keyword">import</span> com.amazonaws.auth.BasicAWSCredentials;<br><span class="hljs-keyword">import</span> com.amazonaws.services.s3.AmazonS3Client;<br><span class="hljs-keyword">import</span> com.amazonaws.services.s3.model.CannedAccessControlList;<br><span class="hljs-keyword">import</span> com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;<br><span class="hljs-keyword">import</span> com.amazonaws.services.s3.model.ObjectMetadata;<br><span class="hljs-keyword">import</span> org.springframework.web.multipart.MultipartFile;<br><br><span class="hljs-keyword">import</span> java.io.IOException;<br><span class="hljs-keyword">import</span> java.io.InputStream;<br><span class="hljs-keyword">import</span> java.net.URL;<br><span class="hljs-keyword">import</span> java.time.LocalDateTime;<br><span class="hljs-keyword">import</span> java.time.format.DateTimeFormatter;<br><span class="hljs-keyword">import</span> java.util.Random;<br><span class="hljs-keyword">import</span> java.util.UUID;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@className</span> MoveyunUtils</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@date</span> 2021/3/2 0002 15:26</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@description</span> 移动云工具类</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MoveyunUtils</span> &#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 移动云上传文件</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> fileName</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> filePath</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@methodName</span> upload</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@date</span> 2021/3/2 0002 16:07</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">upload</span><span class="hljs-params">(MultipartFile file, String fileName)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-type">InputStream</span> <span class="hljs-variable">inputStream</span> <span class="hljs-operator">=</span> file.getInputStream();<br>        <span class="hljs-type">String</span> <span class="hljs-variable">filePath</span> <span class="hljs-operator">=</span> LocalDateTime.now().format(DateTimeFormatter.ofPattern(<span class="hljs-string">&quot;yyyy-MM-dd&quot;</span>)) + <span class="hljs-string">&quot;/&quot;</span> + UUID.randomUUID() + <span class="hljs-string">&quot;/&quot;</span> + fileName;<br>        <span class="hljs-type">ClientConfiguration</span> <span class="hljs-variable">opts</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ClientConfiguration</span>();<br>        opts.setSignerOverride(<span class="hljs-string">&quot;S3SignerType&quot;</span>);<br>        <span class="hljs-type">AWSCredentials</span> <span class="hljs-variable">credentials</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BasicAWSCredentials</span>(<span class="hljs-string">&quot;&lt;accessKey&gt;&quot;</span>, <span class="hljs-string">&quot;&lt;secretKey&gt;&quot;</span>);<br>        <span class="hljs-type">AmazonS3Client</span> <span class="hljs-variable">client</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AmazonS3Client</span>(credentials, opts);<br>        client.setEndpoint(<span class="hljs-string">&quot;&lt;hostName&gt;&quot;</span>);<br>        <span class="hljs-comment">//设置为公共读</span><br>        client.setBucketAcl(<span class="hljs-string">&quot;&lt;bucketName&gt;&quot;</span>, CannedAccessControlList.PublicRead);<br>        <span class="hljs-type">ObjectMetadata</span> <span class="hljs-variable">meta</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectMetadata</span>();<br>        meta.setContentLength(file.getSize());<br>        client.putObject(<span class="hljs-string">&quot;&lt;bucketName&gt;&quot;</span>, filePath, inputStream, meta);<br>        client.setObjectAcl(<span class="hljs-string">&quot;&lt;bucketName&gt;&quot;</span>, filePath, CannedAccessControlList.PublicRead);<br>        <span class="hljs-type">GeneratePresignedUrlRequest</span> <span class="hljs-variable">request</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">GeneratePresignedUrlRequest</span>(<span class="hljs-string">&quot;&lt;bucketName&gt;&quot;</span>, filePath);<br>        <span class="hljs-type">URL</span> <span class="hljs-variable">url</span> <span class="hljs-operator">=</span> client.generatePresignedUrl(request);<br>        filePath = url.getHost() + url.getPath();<br>        <span class="hljs-keyword">return</span> filePath;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
 <p>上面的代码可以支持最高<code>5G</code>的文件上传并返回文件路径，这里对对文件名做了些处理</p>
@@ -553,61 +553,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/03/03/apache-tika%E4%BB%8Eppt-pdf-xls%E8%AF%BB%E5%8F%96%E6%96%87%E6%9C%AC/">apache-tika从ppt-pdf-xls读取文本</a>
+                    <a href="/2022/06/30/2-7%E7%89%88%E6%9C%ACspring-factories%E5%BC%83%E7%94%A8/">2.7版本spring.factories弃用</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/04/appendTo/">appendTo</a>
+                    <a href="/2025/10/24/blind-watermark/">blind_watermark</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/11/01/cs249r-book/">cs249r_book</a>
+                    <a href="/2025/07/28/conda%E8%87%AA%E5%8A%A8%E6%BF%80%E6%B4%BBbase%E7%8E%AF%E5%A2%83/">conda自动激活base环境</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/05/27/lombok%E7%9A%84-StandardException/">lombok的@StandardException</a>
+                    <a href="/2024/03/17/full-stack-fastapi-template/">full-stack-fastapi-template</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/03/01/mybatis%E4%B8%80%E5%AF%B9%E5%A4%9A%E6%9F%A5%E8%AF%A2/">mybatis一对多查询</a>
+                    <a href="/2021/05/04/mysql%E5%AF%BC%E5%87%BAsql/">mysql导出sql</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/02/23/react%E5%AE%8C%E6%88%90%E4%BA%95%E5%AD%97%E6%A3%8B%E5%B0%8F%E6%B8%B8%E6%88%8F/">react完成井字棋小游戏</a>
+                    <a href="/2023/10/05/springboot-camel%E5%AF%B9%E6%8E%A5minio%E4%B8%8A%E4%BC%A0%E4%B8%8B%E8%BD%BD/">springboot+camel对接minio上传下载</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/10/07/sa-token%E5%AE%9E%E7%8E%B0%E7%BD%91%E5%85%B3%E8%B0%83%E7%94%A8%E8%AE%A4%E8%AF%81%E6%9C%8D%E5%8A%A1%E7%BB%9F%E4%B8%80%E9%89%B4%E6%9D%83/">sa-token实现网关调用认证服务统一鉴权</a>
+                    <a href="/2022/04/11/ubuntu%E8%AE%BE%E7%BD%AEmysql%E8%BF%9C%E7%A8%8B%E8%AE%BF%E9%97%AE/">ubuntu设置mysql远程访问</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/05/26/vue-ueditor-wrap/">vue-ueditor-wrap</a>
+                    <a href="/2020/09/06/vue%E6%8C%82%E8%BD%BD%E5%85%A8%E5%B1%80%E5%87%BD%E6%95%B0/">vue挂载全局函数</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/10/31/%E8%B6%85%E7%BA%A7%E7%AE%80%E5%8D%95%E7%9A%84%E5%AE%89%E5%8D%93%E5%9B%BE%E7%89%87%E4%B8%8B%E8%BD%BD/">超级简单的安卓图片下载</a>
+                    <a href="/2023/06/01/%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6url%E4%B8%BAMultipartFile/">下载文件url为MultipartFile</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/10/21/%E9%A1%B5%E9%9D%A2%E7%82%B9%E5%87%BB%E9%9A%8F%E6%9C%BA%E5%AD%97%E7%AC%A6/">页面点击随机字符</a>
+                    <a href="/2020/08/08/%E8%BF%81%E7%A7%BBspring%E9%A1%B9%E7%9B%AE%E5%88%B0springboot/">迁移spring项目到springboot</a>
                 </span>
             </li>
             
@@ -640,73 +640,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 15.0832098986314px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 19.177540913658973px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 9.390974276497797px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.023090429890928px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 18.173038473497186px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 11.015606066432776px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.232082607322457px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 11.553900904831512px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 14.244361538990699px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 14.999510698979943px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 19.24469592133974px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 12.61309014027171px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 14.269878769737051px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 11.011078903621808px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 14.367083448700733px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.203527662958269px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 16.675947280668396px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 13.894500101909163px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 18.299751133499583px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 17.421205079624286px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 17.672417176627548px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 9.593197223245852px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 19.169689631107385px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 18.330194294695957px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 9.043122118264217px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 11.824481971799532px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 15.885643453539547px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 15.838394881070787px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 17.72731558603208px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 13.871485061518857px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 14.794035386143797px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 15.984949738532165px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 9.299707320367936px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 14.052780633205284px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 13.266789885623483px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 19.733079171996145px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 17.30042125397635px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 15.080649743175854px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 15.343181848048443px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 17.743386223512946px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 15.797995548211277px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/swift/" style="font-size: 8.017735648296982px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/swift/" style="font-size: 10.544955801469275px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/minecraft/" style="font-size: 10.83302973581102px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/minecraft/" style="font-size: 17.625141188210875px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/rust/" style="font-size: 19.610520070190578px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/rust/" style="font-size: 18.32424614966891px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/lua/" style="font-size: 13.201487987585065px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 11.82068050231204px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 15.602350566972296px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 10.064469287826181px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 10.379569996717109px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 14.741660041848625px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 17.22663783405517px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.530811314357756px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 8.6647028488322px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 10.731344582988374px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 19.056706613533922px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 19.681526965756653px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 15.336815081306916px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 18.17385211482525px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 8.597174859706554px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 16.17455991189309px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 8.442759893627041px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 10.197743916205468px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 8.079097295427218px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 15.379064727109025px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 15.252327783496677px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
