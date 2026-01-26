@@ -15,7 +15,7 @@
   
   
   <title>spring-state-machine使用redis持久化 | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>spring-state-machine使用redis持久化</span>
     </div>
@@ -399,7 +399,7 @@
         <blockquote>
 <p>问号是开启任何一门科学的钥匙。——巴甫洛夫</p>
 </blockquote>
-<p>之前介绍过<a href="https://VampireAchao.github.io/2023/11/05/spring-state-machine%E6%8C%81%E4%B9%85%E5%8C%96/">spring-state-machine持久化</a></p>
+<p>之前介绍过<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2023/11/05/spring-state-machine%E6%8C%81%E4%B9%85%E5%8C%96/">spring-state-machine持久化</a></p>
 <p>今天使用<code>redis</code>实现</p>
 <p>首先是需要一个<code>RedisStateMachineRepository</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> com.alibaba.nacos.common.utils.JacksonUtils;<br><span class="hljs-keyword">import</span> jakarta.annotation.Nonnull;<br><span class="hljs-keyword">import</span> jakarta.annotation.Resource;<br><span class="hljs-keyword">import</span> org.dromara.streamquery.stream.core.stream.Steam;<br><span class="hljs-keyword">import</span> org.springframework.data.redis.core.StringRedisTemplate;<br><span class="hljs-keyword">import</span> org.springframework.statemachine.data.redis.RedisRepositoryStateMachine;<br><span class="hljs-keyword">import</span> org.springframework.statemachine.data.redis.RedisStateMachineRepository;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Repository;<br><br><span class="hljs-keyword">import</span> java.util.Optional;<br><br><span class="hljs-meta">@Repository</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">StateMachineRedisRepository</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">RedisStateMachineRepository</span> &#123;<br><br><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> StringRedisTemplate stringRedisTemplate;<br><br>    <span class="hljs-meta">@Nonnull</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> &lt;S <span class="hljs-keyword">extends</span> <span class="hljs-title class_">RedisRepositoryStateMachine</span>&gt; S <span class="hljs-title function_">save</span><span class="hljs-params">(<span class="hljs-meta">@Nonnull</span> S entity)</span> &#123;<br>        stringRedisTemplate.opsForHash()<br>                .put(SmCacheConst.STATE_MACHINE, entity.getId(), serialize(entity));<br>        <span class="hljs-keyword">return</span> entity;<br>    &#125;<br><br>    <span class="hljs-meta">@Nonnull</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> &lt;S <span class="hljs-keyword">extends</span> <span class="hljs-title class_">RedisRepositoryStateMachine</span>&gt; Iterable&lt;S&gt; <span class="hljs-title function_">saveAll</span><span class="hljs-params">(<span class="hljs-meta">@Nonnull</span> Iterable&lt;S&gt; entities)</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">map</span> <span class="hljs-operator">=</span> Steam.of(entities).toMap(RedisRepositoryStateMachine::getId, <span class="hljs-built_in">this</span>::serialize);<br>        stringRedisTemplate.opsForHash().putAll(SmCacheConst.STATE_MACHINE, map);<br>        <span class="hljs-keyword">return</span> Steam.of(entities).toList();<br>    &#125;<br><br>    <span class="hljs-meta">@Nonnull</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Optional&lt;RedisRepositoryStateMachine&gt; <span class="hljs-title function_">findById</span><span class="hljs-params">(<span class="hljs-meta">@Nonnull</span> String s)</span> &#123;<br>        <span class="hljs-keyword">return</span> Optional.ofNullable(stringRedisTemplate.opsForHash().get(SmCacheConst.STATE_MACHINE, s)).map(<span class="hljs-built_in">this</span>::deserialize);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">existsById</span><span class="hljs-params">(<span class="hljs-meta">@Nonnull</span> String s)</span> &#123;<br>        <span class="hljs-keyword">return</span> stringRedisTemplate.opsForHash().hasKey(SmCacheConst.STATE_MACHINE, s);<br>    &#125;<br><br>    <span class="hljs-meta">@Nonnull</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Iterable&lt;RedisRepositoryStateMachine&gt; <span class="hljs-title function_">findAll</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> Steam.of(stringRedisTemplate.opsForHash().values(SmCacheConst.STATE_MACHINE)).map(<span class="hljs-built_in">this</span>::deserialize).toList();<br>    &#125;<br><br>    <span class="hljs-meta">@Nonnull</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Iterable&lt;RedisRepositoryStateMachine&gt; <span class="hljs-title function_">findAllById</span><span class="hljs-params">(<span class="hljs-meta">@Nonnull</span> Iterable&lt;String&gt; strings)</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">ids</span> <span class="hljs-operator">=</span> Steam.&lt;Object&gt;of(strings).toList();<br>        <span class="hljs-type">var</span> <span class="hljs-variable">list</span> <span class="hljs-operator">=</span> stringRedisTemplate.opsForHash().multiGet(SmCacheConst.STATE_MACHINE, ids);<br>        <span class="hljs-keyword">return</span> Steam.of(list).map(<span class="hljs-built_in">this</span>::deserialize).toList();<br>    &#125;<br><br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">long</span> <span class="hljs-title function_">count</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> stringRedisTemplate.opsForHash().size(SmCacheConst.STATE_MACHINE);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteById</span><span class="hljs-params">(<span class="hljs-meta">@Nonnull</span> String s)</span> &#123;<br>        stringRedisTemplate.opsForHash().delete(SmCacheConst.STATE_MACHINE, s);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">delete</span><span class="hljs-params">(<span class="hljs-meta">@Nonnull</span> RedisRepositoryStateMachine entity)</span> &#123;<br>        stringRedisTemplate.opsForHash().delete(SmCacheConst.STATE_MACHINE, entity.getId());<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteAllById</span><span class="hljs-params">(<span class="hljs-meta">@Nonnull</span> Iterable&lt;? extends String&gt; strings)</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">array</span> <span class="hljs-operator">=</span> Steam.of(strings).toArray();<br>        stringRedisTemplate.opsForHash().delete(SmCacheConst.STATE_MACHINE, array);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteAll</span><span class="hljs-params">(<span class="hljs-meta">@Nonnull</span> Iterable&lt;? extends RedisRepositoryStateMachine&gt; entities)</span> &#123;<br>        <span class="hljs-type">var</span> <span class="hljs-variable">ids</span> <span class="hljs-operator">=</span> Steam.of(entities).map(RedisRepositoryStateMachine::getId).toArray();<br>        stringRedisTemplate.opsForHash().delete(SmCacheConst.STATE_MACHINE, ids);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">deleteAll</span><span class="hljs-params">()</span> &#123;<br>        stringRedisTemplate.opsForHash().delete(SmCacheConst.STATE_MACHINE);<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> String <span class="hljs-title function_">serialize</span><span class="hljs-params">(Object entity)</span> &#123;<br>        <span class="hljs-keyword">return</span> JacksonUtils.toJson(entity);<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> RedisRepositoryStateMachine <span class="hljs-title function_">deserialize</span><span class="hljs-params">(Object obj)</span> &#123;<br>        <span class="hljs-keyword">if</span> (obj <span class="hljs-keyword">instanceof</span> String json) &#123;<br>            <span class="hljs-keyword">return</span> JacksonUtils.toObj(json, RedisRepositoryStateMachine.class);<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
@@ -472,6 +472,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2026/01/26/browser-use/">browser-use</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2026/01/25/PageIndex/">PageIndex</a>
                 </span>
             </li>
@@ -524,12 +530,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2026/01/16/web-check/">web-check</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -548,61 +548,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/10/26/COOL-UI/">COOL-UI</a>
+                    <a href="/2022/06/01/RequiredArgsConstructor/">RequiredArgsConstructor</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/10/04/Chroma-AI/">Chroma AI</a>
+                    <a href="/2021/05/27/maven%E6%89%93%E5%8C%85%E6%97%B6%E5%B0%86xml%E5%8A%A0%E5%85%A5%E6%89%93%E5%8C%85%E6%96%87%E4%BB%B6%E5%86%85/">maven打包时将xml加入打包文件内</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/06/17/Milo/">Milo</a>
+                    <a href="/2023/11/27/spring-state-machine%E6%8B%A6%E6%88%AA%E5%99%A8/">spring-state-machine拦截器</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/11/24/elementUI%E9%9A%90%E8%97%8F%E7%BB%84%E4%BB%B6/">elementUI隐藏组件</a>
+                    <a href="/2024/02/18/wetest%E4%BA%91%E6%B5%8B%E8%AF%95/">wetest云测试</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/02/gitee%E9%80%9A%E8%BF%87WebIDE%E8%A7%A3%E5%86%B3%E5%86%B2%E7%AA%81/">gitee通过WebIDE解决冲突</a>
+                    <a href="/2022/09/20/%E4%B8%AD%E7%BC%80%E8%A1%A8%E7%A4%BA%E6%B3%95/">中缀表示法</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/12/05/gpui-component/">gpui-component</a>
+                    <a href="/2021/06/02/%E5%85%B3%E4%BA%8Ewx-getUserInfo%E8%8E%B7%E5%8F%96%E5%88%B0%E5%8C%BF%E5%90%8D%E6%95%B0%E6%8D%AE%E7%9A%84%E5%9D%91/">关于wx.getUserInfo获取到匿名数据的坑</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/12/14/mac%E8%A7%A3%E5%8E%8Brar/">mac解压rar</a>
+                    <a href="/2025/07/05/%E5%A6%82%E4%BD%95%E5%86%99%E4%B8%80%E4%B8%AA-react-%E7%BB%84%E4%BB%B6/">如何写一个 react 组件</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/08/27/%E5%AE%89%E5%85%A8%E5%AF%86%E7%A0%81%E6%AD%A3%E5%88%99/">安全密码正则</a>
+                    <a href="/2023/01/15/%E7%A7%BB%E5%8A%A8%E7%AB%AF%E6%8B%96%E5%8A%A8%E6%BB%91%E5%9D%97%E9%AA%8C%E8%AF%81/">移动端拖动滑块验证</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/25/%E9%95%BF%E5%AE%89%E5%8D%81%E4%BA%8C%E6%97%B6%E8%BE%B0%E4%B8%8E%E7%8E%B0%E4%BB%A3%E6%97%B6%E9%97%B4%E7%9A%84%E4%BA%92%E8%BD%AC/">长安十二时辰与现代时间的互转</a>
+                    <a href="/2020/08/29/%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%BD%95/">第三方登录</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/02/03/%E9%98%BF%E9%87%8C%E4%BA%91oss-cloud-sdk-springboot3%E5%85%BC%E5%AE%B9%E9%97%AE%E9%A2%98/">阿里云oss-cloud-sdk-springboot3兼容问题</a>
+                    <a href="/2024/02/17/%E7%BD%91%E9%A1%B5%E8%BF%90%E8%A1%8Cjava%E7%A8%8B%E5%BA%8Fcheerpj/">网页运行java程序cheerpj</a>
                 </span>
             </li>
             
@@ -635,73 +635,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 10.975976524781002px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 8.72485302924035px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.687452188187557px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.837628833238824px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 10.826291279580076px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 9.78557582618196px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 17.199522323693316px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 9.198824307059358px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 12.523280995671564px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.962259177350866px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 18.0117799434984px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 14.008849001897474px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 11.089391164544818px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 13.740882188861793px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.056956648598149px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.669144206067804px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10.48198240350623px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.42809198678949px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 17.423205357570012px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 17.062558089553725px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 11.410663663680795px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 9.396202458363671px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 16.35211019911577px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 16.75911209632274px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 18.28952617251185px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 11.81977171305526px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 8.553850247521098px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 15.520077652109785px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 9.15985839585095px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 10.025277879883312px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 14.669397278660128px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 11.472726471537754px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 11.787348901084481px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 13.192809670609222px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 18.59972701599323px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 12.152369239996153px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 12.379449275467326px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 14.545057404490702px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 9.503560003086065px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 15.96329614618163px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 16.753010435625626px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 15.074430998384678px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 17.699812406335187px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 10.315114101854828px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 17.37051492012577px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 12.690601011351465px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 12.311587797159447px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 17.97574544868674px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 16.771207073762717px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 14.371373961716476px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 16.165992223546382px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 8.74192814305966px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 8.191428280862137px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 12.30259489247289px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.120121228158894px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 15.002559312475384px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 19.93207956937857px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 17.633934038740733px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 13.059969797376255px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 19.8808793736432px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 18.592337305815526px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 10.95696458167422px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 15.157811746315597px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.032534138189114px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 13.309210345325738px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 11.20568857216465px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 17.860148286423392px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.017167001151178px;" class="tag-cloud-link">算法</a>
     
 </div>
                 

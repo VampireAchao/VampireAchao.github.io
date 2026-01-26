@@ -15,7 +15,7 @@
   
   
   <title>python读取oss的psd并上传jpg | 阿超</title>
-  <link href="https://VampireAchao.github.io" rel="prefetch" />
+  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.github.io">
+            <a href="https://VampireAchao.gitee.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.github.io">阿超</a>
+        <a href="https://VampireAchao.gitee.io">阿超</a>
         >
         <span>python读取oss的psd并上传jpg</span>
     </div>
@@ -399,9 +399,9 @@
         <blockquote>
 <p>死亡，就像是水消失在水中。——博尔赫斯《另一次死亡》</p>
 </blockquote>
-<p>上次说过了<a href="https://VampireAchao.github.io/2022/03/19/psd-tools/"><code>psd-tools</code></a>可以对<code>psd</code>进行处理</p>
+<p>上次说过了<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2022/03/19/psd-tools/"><code>psd-tools</code></a>可以对<code>psd</code>进行处理</p>
 <p>今天写一个完整的，<code>oss</code>代码在这：</p>
-<p><a href="https://VampireAchao.github.io/2022/04/26/python%E5%AF%B9%E6%8E%A5oss%E4%B8%8A%E4%BC%A0%E5%92%8C%E4%B8%8B%E8%BD%BD/">https://VampireAchao.github.io/2022/04/26/python对接oss上传和下载/</a></p>
+<p><a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2022/04/26/python%E5%AF%B9%E6%8E%A5oss%E4%B8%8A%E4%BC%A0%E5%92%8C%E4%B8%8B%E8%BD%BD/">https://VampireAchao.github.io/2022/04/26/python对接oss上传和下载/</a></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># coding=utf-8</span><br><span class="hljs-keyword">import</span> warnings<br><span class="hljs-keyword">from</span> io <span class="hljs-keyword">import</span> BytesIO<br><br><span class="hljs-keyword">from</span> psd_tools.constants <span class="hljs-keyword">import</span> Resource<br><br>warnings.filterwarnings(<span class="hljs-string">&quot;ignore&quot;</span>, category=Warning)<br><br><br><span class="hljs-comment"># 读取psd以及图层信息</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">read_psd_info</span>(<span class="hljs-params">psd, hidden_layer_ids</span>):<br>    layers = <span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(<span class="hljs-keyword">lambda</span> layer: __convert_layer_info(layer, hidden_layer_ids), psd))<br>    resolution_info = psd.image_resources.get_data(Resource.RESOLUTION_INFO)<br>    <span class="hljs-keyword">return</span> &#123;<br>        <span class="hljs-string">&quot;horizontal&quot;</span>: resolution_info.horizontal,<br>        <span class="hljs-string">&quot;horizontal_unit&quot;</span>: resolution_info.horizontal_unit,<br>        <span class="hljs-string">&quot;vertical&quot;</span>: resolution_info.vertical,<br>        <span class="hljs-string">&quot;vertical_unit&quot;</span>: resolution_info.vertical_unit,<br>        <span class="hljs-string">&quot;height&quot;</span>: psd.height,<br>        <span class="hljs-string">&quot;height_unit&quot;</span>: resolution_info.height_unit,<br>        <span class="hljs-string">&quot;width&quot;</span>: psd.width,<br>        <span class="hljs-string">&quot;width_unit&quot;</span>: resolution_info.width_unit,<br>        <span class="hljs-string">&quot;layers&quot;</span>: layers<br>    &#125;<br><br><br><span class="hljs-comment"># 读取图层子节点，如果有子节点，则递归读取</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">__convert_layer_info</span>(<span class="hljs-params">layer, hidden_layer_ids</span>):<br>    visible = layer.is_visible()<br>    <span class="hljs-keyword">if</span> layer.layer_id <span class="hljs-keyword">in</span> hidden_layer_ids:<br>        visible = <span class="hljs-literal">False</span><br>    layer_info = &#123;<br>        <span class="hljs-string">&quot;id&quot;</span>: layer.layer_id,<br>        <span class="hljs-string">&quot;type&quot;</span>: layer.kind,<br>        <span class="hljs-string">&quot;name&quot;</span>: layer.name,<br>        <span class="hljs-string">&quot;visible&quot;</span>: visible,<br>        <span class="hljs-string">&quot;children&quot;</span>: <span class="hljs-literal">None</span>,<br>        <span class="hljs-string">&quot;box&quot;</span>: layer.bbox<br>    &#125;<br>    <span class="hljs-keyword">if</span> layer.kind == <span class="hljs-string">&quot;group&quot;</span>:<br>        layer_info[<span class="hljs-string">&quot;children&quot;</span>] = <span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(<span class="hljs-keyword">lambda</span> child: __convert_layer_info(child, hidden_layer_ids), layer))<br>    <span class="hljs-keyword">return</span> layer_info<br><br><br><span class="hljs-comment"># 导出Jpeg图片</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">export_jpg_file</span>(<span class="hljs-params">psd, hidden_layer_ids</span>):<br>    warnings.filterwarnings(<span class="hljs-string">&quot;ignore&quot;</span>, category=Warning)<br>    psd_compose = psd.composite(layer_filter=<span class="hljs-keyword">lambda</span> layer: layer.layer_id <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> hidden_layer_ids)<br>    <span class="hljs-keyword">if</span> psd_compose <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<br>        <span class="hljs-keyword">return</span> psd_compose<br>    img_bytes = BytesIO()<br>    psd_compose.convert(<span class="hljs-string">&quot;RGB&quot;</span>).save(img_bytes, <span class="hljs-string">&quot;JPEG&quot;</span>)<br>    <span class="hljs-keyword">return</span> img_bytes.getvalue()<br></code></pre></td></tr></table></figure>
 <p>然后是主启动类：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># coding=utf-8</span><br><span class="hljs-keyword">import</span> argparse<br><span class="hljs-keyword">import</span> json<br><span class="hljs-keyword">from</span> io <span class="hljs-keyword">import</span> BytesIO<br><br><span class="hljs-keyword">from</span> psd_tools <span class="hljs-keyword">import</span> PSDImage<br><br><span class="hljs-keyword">import</span> oss<br><span class="hljs-keyword">import</span> psd<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():<br>    parser = argparse.ArgumentParser(description=<span class="hljs-string">&quot;PSD Tools&quot;</span>)<br>    parser.add_argument(<span class="hljs-string">&quot;--option&quot;</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;What you want to do, with commas split if more!&quot;</span>, required=<span class="hljs-literal">True</span>)<br>    parser.add_argument(<span class="hljs-string">&quot;--source&quot;</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;Source file path，local or internet&quot;</span>, required=<span class="hljs-literal">True</span>)<br>    parser.add_argument(<span class="hljs-string">&quot;--target&quot;</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;Target file path, local or internet&quot;</span>, required=<span class="hljs-literal">False</span>)<br>    parser.add_argument(<span class="hljs-string">&quot;--hidden_layer_ids&quot;</span>, <span class="hljs-built_in">help</span>=<span class="hljs-string">&quot;Hidden layer ids, with commas split if more!&quot;</span>, required=<span class="hljs-literal">False</span>)<br>    args = parser.parse_args()<br>    options = args.option.split(<span class="hljs-string">&quot;,&quot;</span>)<br>    hidden_layer_ids = <span class="hljs-built_in">list</span>(<br>        <span class="hljs-built_in">map</span>(<span class="hljs-keyword">lambda</span> layer_id: <span class="hljs-built_in">int</span>(layer_id), args.hidden_layer_ids.split(<span class="hljs-string">&quot;,&quot;</span>))) <span class="hljs-keyword">if</span> args.hidden_layer_ids <span class="hljs-keyword">else</span> []<br><br>    oss_file = oss.download_file_bytes(args.source)<br>    oss_file_bytes = BytesIO(oss_file.read())<br>    psd_image = PSDImage.<span class="hljs-built_in">open</span>(oss_file_bytes)<br>    psd_info = <span class="hljs-literal">None</span><br>    <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;info&quot;</span> <span class="hljs-keyword">in</span> options:<br>        psd_info = psd.read_psd_info(psd_image, hidden_layer_ids)<br>        psd_info[<span class="hljs-string">&quot;sourceFileSize&quot;</span>] = oss_file.content_length<br>    <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;export&quot;</span> <span class="hljs-keyword">in</span> options:<br>        psd_image = psd.export_jpg_file(psd_image, hidden_layer_ids)<br>        oss.upload_file(psd_image, args.target)<br>    <span class="hljs-built_in">print</span>(json.dumps(psd_info))<br><br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:<br>    main()<br></code></pre></td></tr></table></figure>
@@ -472,6 +472,12 @@
             
             <li class="list-group-item">
                 <span class="post-title">
+                    <a href="/2026/01/26/browser-use/">browser-use</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
                     <a href="/2026/01/25/PageIndex/">PageIndex</a>
                 </span>
             </li>
@@ -524,12 +530,6 @@
                 </span>
             </li>
             
-            <li class="list-group-item">
-                <span class="post-title">
-                    <a href="/2026/01/16/web-check/">web-check</a>
-                </span>
-            </li>
-            
         </ul>
     </div>
 </aside>
@@ -548,61 +548,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/06/Collectors-toMap%E7%A9%BA%E6%8C%87%E9%92%88%E9%97%AE%E9%A2%98/">Collectors.toMap空指针问题</a>
+                    <a href="/2022/09/17/COALESCE/">COALESCE</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/06/03/acme-sh/">acme-sh</a>
+                    <a href="/2023/03/04/ChatGPT%E5%9C%A8JetBrains-IDE%E4%B8%8A%E7%9A%84%E6%8F%92%E4%BB%B6/">ChatGPT在JetBrains-IDE上的插件</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/02/26/css%E9%80%89%E6%8B%A9%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%BD%91%E7%AB%99/">css选择器学习网站</a>
+                    <a href="/2024/05/02/android%E4%B8%ADUseCompoundDrawables%E8%AD%A6%E5%91%8A/">android中UseCompoundDrawables警告</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/11/25/feign%E4%BD%BF%E7%94%A8url%E5%8F%82%E6%95%B0%E4%BC%A0%E5%8F%82-SpringQueryMap%E4%BD%BF%E7%94%A8/">feign使用url参数传参@SpringQueryMap使用</a>
+                    <a href="/2024/10/19/docmost/">docmost</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/02/25/mapstruct-plus/">mapstruct-plus</a>
+                    <a href="/2021/05/09/finalShell/">finalShell</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/09/17/mybatis-plus%E5%AD%97%E6%AE%B5%E7%B1%BB%E5%9E%8B%E5%A4%84%E7%90%86%E5%99%A8/">mybatis-plus字段类型处理器</a>
+                    <a href="/2023/11/12/hutool%E4%BF%AE%E5%A4%8DCollectorUtil-reduceListMap%E4%B8%8ECollectors-groupby%E4%B8%80%E8%B5%B7%E4%BD%BF%E7%94%A8%E6%97%B6%E5%87%BA%E7%8E%B0%E4%B8%8E%E9%A2%84%E6%9C%9F%E4%B8%8D%E7%AC%A6%E7%9A%84%E7%BB%93%E6%9E%9C/">hutool修复CollectorUtil.reduceListMap与Collectors.groupby一起使用时出现与预期不符的结果</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/27/system-prompts-leaks/">system_prompts_leaks</a>
+                    <a href="/2023/05/17/monica/">monica</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/03/06/zju-learning-assistant/">zju-learning-assistant</a>
+                    <a href="/2020/06/08/mybatis%E7%9A%84xml%E4%B8%AD%E4%BD%BF%E7%94%A8%E5%A4%A7%E4%BA%8E%E5%B0%8F%E4%BA%8E%E5%8F%B7/">mybatis的xml中使用大于小于号</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/06/09/%E5%BE%AE%E4%BF%A1Markdown%E7%BC%96%E8%BE%91%E5%99%A8/">微信Markdown编辑器</a>
+                    <a href="/2021/01/08/xml%E6%B3%A8%E9%87%8A%E5%86%99%E6%B3%95/">xml注释写法</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/08/25/%E8%81%8A%E8%81%8Alambda/">聊聊lambda</a>
+                    <a href="/2024/07/16/%E7%BD%91%E9%A1%B5svg%E6%89%8B%E5%8A%A8%E5%AF%BC%E5%87%BA%E6%96%B9%E6%B3%95/">网页svg手动导出方法</a>
                 </span>
             </li>
             
@@ -635,73 +635,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 14.51041176514435px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 11.625301473124384px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 13.687373050718776px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 17.18166013239931px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 10.145297803550498px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 9.40447126656953px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.368661576694338px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 16.75316151610954px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 8.6110583432006px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 16.619675729520416px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 12.551308072026165px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 9.70371078516941px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 12.034840907960099px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 8.766388676442315px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 17.19630472678522px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 18.983918955515456px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 11.38807466473341px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 18.94352160853472px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 18.453541745201406px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 13.303503196705334px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 16.697479986441707px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 14.260961222072137px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 19.281530742422152px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 8.180746507446823px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 12.733021992477703px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 19.29451818051087px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 19.649566781652048px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 13.509850300689802px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 8.973719884071405px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 17.304663555862852px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 12.955916199712664px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 12.298805580974507px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 17.95274876720304px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 15.480250371820286px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 10.684757497205359px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 8.059347302072958px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 19.250665350383162px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 13.050009120673671px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 10.334527450793445px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 14.458002403832275px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 9.391770164450286px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 13.323085657942684px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 17.380156839531114px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 9.20833856734422px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 9.439659299915292px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 15.907685404527733px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 18.34084850283896px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 15.8941532584732px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 18.402642427489802px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 8.804730038762314px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 15.953930844645123px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 14.49677400955643px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 18.293704061876117px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 18.692118404432158px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 19.017389676995386px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.722003278710154px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 19.572401201942704px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 19.924613468839066px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 17.471376195010393px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 11.874144482379037px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 14.490722246083383px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 11.304976341790063px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 9.762765500050937px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 14.193292946927986px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 19.69785071004602px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 10.432365813241102px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 8.44589448115391px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 13.267646474450661px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
