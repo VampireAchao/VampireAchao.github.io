@@ -15,7 +15,7 @@
   
   
   <title>CompletableFuture事务处理 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>CompletableFuture事务处理</span>
     </div>
@@ -399,8 +399,8 @@
         <blockquote>
 <p>男人的盟誓是女人的陷阱——莎士比亚</p>
 </blockquote>
-<p>使用<code>CompletableFuture</code>进行异步任务编排时，可能会有事务的支持需求，我们这里可以使用之前我写的<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/2021/07/09/%E6%89%8B%E5%8A%A8%E5%9B%9E%E6%BB%9A%E3%80%81%E6%8F%90%E4%BA%A4%E4%BA%8B%E5%8A%A1/">手动回滚、提交事务</a>进行处理</p>
-<p>代码案例如下，所用框架<a target="_blank" rel="noopener" href="https://VampireAchao.github.io/stream-query-docs/#/">stream-query</a>：</p>
+<p>使用<code>CompletableFuture</code>进行异步任务编排时，可能会有事务的支持需求，我们这里可以使用之前我写的<a href="https://VampireAchao.github.io/2021/07/09/%E6%89%8B%E5%8A%A8%E5%9B%9E%E6%BB%9A%E3%80%81%E6%8F%90%E4%BA%A4%E4%BA%8B%E5%8A%A1/">手动回滚、提交事务</a>进行处理</p>
+<p>代码案例如下，所用框架<a href="https://VampireAchao.github.io/stream-query-docs/#/">stream-query</a>：</p>
 <p>首先是不加事务的</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> io.github.vampireachao.stream.plugin.mybatisplus;<br><br><span class="hljs-keyword">import</span> io.github.vampireachao.stream.plugin.mybatisplus.pojo.po.UserInfo;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Assertions;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Test;<br><span class="hljs-keyword">import</span> org.springframework.beans.factory.annotation.Autowired;<br><span class="hljs-keyword">import</span> org.springframework.boot.test.context.SpringBootTest;<br><span class="hljs-keyword">import</span> org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;<br><br><span class="hljs-keyword">import</span> java.util.Objects;<br><span class="hljs-keyword">import</span> java.util.concurrent.CompletableFuture;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * AsyncTest</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> VampireAchao</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@since</span> 2022/12/6</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@SpringBootTest</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">AsyncTest</span> &#123;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-meta">@Transactional</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">test</span><span class="hljs-params">(<span class="hljs-meta">@Autowired</span> ThreadPoolTaskExecutor executor)</span> &#123;<br>        <span class="hljs-type">UserInfo</span> <span class="hljs-variable">userInfo</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UserInfo</span>();<br>        userInfo.setName(<span class="hljs-string">&quot;ruben&quot;</span>);<br>        Database.save(userInfo);<br>        CompletableFuture.runAsync(() -&gt; &#123;<br>                Assertions.assertNotNull(userInfo.getId(), <span class="hljs-string">&quot;id is null&quot;</span>);<br>                Assertions.assertNotNull(Database.getById(userInfo.getId(), userInfo.getClass()), <span class="hljs-string">&quot;user is null&quot;</span>);<br>        &#125;, executor).join();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>此处会抛出<code>assertNotNull</code>，提示<code>user is null</code></p>
@@ -549,61 +549,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/03/09/Array-prototype-fill/">Array.prototype.fill()</a>
+                    <a href="/2024/08/14/TinyVue%E7%BB%84%E4%BB%B6%E5%BA%93/">TinyVue组件库</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/17/Streamlit/">Streamlit</a>
+                    <a href="/2022/01/05/java%E7%94%9F%E6%88%90%E5%B8%A6logo%E4%BA%8C%E7%BB%B4%E7%A0%81/">java生成带logo二维码</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/06/27/before%E5%92%8Cafter%E9%80%89%E6%8B%A9%E5%99%A8/">before和after选择器</a>
+                    <a href="/2020/07/29/jenkins%E8%87%AA%E7%94%B1%E9%A3%8E%E6%A0%BC%E9%A1%B9%E7%9B%AE%E6%9E%84%E5%BB%BA/">jenkins自由风格项目构建</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/13/log4j%E6%BC%8F%E6%B4%9E%E9%98%B2%E6%B2%BB%E5%8F%82%E6%95%B0/">log4j漏洞防治参数</a>
+                    <a href="/2025/11/22/playcanvas-engine/">playcanvas-engine</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/10/16/meshery/">meshery</a>
+                    <a href="/2025/09/07/qinglong/">qinglong</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/08/16/springboot%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E5%99%A8/">springboot全局异常处理器</a>
+                    <a href="/2022/09/15/react%E4%B8%AD%E9%85%8D%E7%BD%AE%E5%9B%BE%E7%89%87%E5%AE%B9%E9%94%99/">react中配置图片容错</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/03/30/termux-app/">termux-app</a>
+                    <a href="/2021/08/14/uniapp%E6%B8%85%E9%99%A4%E7%BC%93%E5%AD%98/">uniapp清除缓存</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/11/03/vue%E9%A1%B9%E7%9B%AE%E5%90%AF%E5%8A%A8%E5%90%8E%E8%87%AA%E5%8A%A8%E6%89%93%E5%BC%80/">vue项目启动后自动打开</a>
+                    <a href="/2022/02/07/windows%E7%AA%97%E5%8F%A3%E5%BD%92%E4%BD%8D/">windows窗口归位</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/01/17/%E5%B0%8F%E7%A8%8B%E5%BA%8Fv-for%E4%B8%ADslot%E8%AD%A6%E5%91%8A/">小程序v-for中slot警告</a>
+                    <a href="/2022/03/26/%E6%9E%9A%E4%B8%BE%E5%B7%A5%E5%85%B7%E7%B1%BB/">枚举工具类</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2020/08/09/%E4%BA%91%E9%89%B4%E9%BB%84%EF%BC%8C%E4%BD%A0%E6%87%82/">云鉴黄，你懂</a>
+                    <a href="/2020/08/18/%E6%9E%9A%E4%B8%BE%E7%9A%84%E4%BD%BF%E7%94%A8/">枚举的使用及校验</a>
                 </span>
             </li>
             
@@ -636,73 +636,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 12.569358207732538px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 10.841451070836865px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 12.310811673733491px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 14.253650417804167px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 11.874287710528769px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 8.941540736030273px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.407050501533842px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 15.939570740557777px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 13.904208220559347px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 10.569700067784765px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 17.860317030919116px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 16.916763016208016px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 16.03213313011357px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 13.356264084618001px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 8.178123683478946px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 19.362939227843746px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 17.383144442344168px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 15.488247429117234px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 13.092357139652908px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 19.579646051970485px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 16.61051474837074px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 14.554726440738833px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 17.160480636171226px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 17.573802029021163px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 18.069341134556314px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 15.499517694580573px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 16.805728933238534px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 15.255953004842965px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 19.327437322656596px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 11.712117608798795px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 14.46226244268508px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 16.261178585395253px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 11.175981943824162px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 18.972877143538014px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 16.560563307677068px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 16.85442815055967px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 8.48889016573671px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 13.035008774739833px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 12.042123200171718px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 9.270016383031583px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 10.350484034682221px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 17.07967905216839px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 19.727298190029117px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 18.05079371931903px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 17.41109467004962px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 13.335346315307994px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 16.690319364290424px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 17.29172474987915px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 13.157999692430435px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 15.813140488812671px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 14.348185509461029px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 18.982955754852433px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 12.978084821280763px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 8.767498534551954px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10.597814348741334px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 16.44350858515806px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 14.741472467028844px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 16.705409216408103px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 9.849453388570735px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 10.80725318820619px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 10.572459628433815px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 18.4995584953359px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 11.968476682355256px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 18.89375979716973px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 17.51142166906577px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 17.532151680942945px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 16.503041985334214px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 14.076686337333772px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
