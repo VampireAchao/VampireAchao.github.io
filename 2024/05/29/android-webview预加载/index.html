@@ -15,7 +15,7 @@
   
   
   <title>android webview预加载 | 阿超</title>
-  <link href="https://VampireAchao.gitee.io" rel="prefetch" />
+  <link href="https://VampireAchao.github.io" rel="prefetch" />
 
   
 <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -175,7 +175,7 @@
                     aria-expanded="false">
                 <span class="fa fa-lg fa-reorder"></span>
             </button>
-            <a href="https://VampireAchao.gitee.io">
+            <a href="https://VampireAchao.github.io">
                 
                     <style>
                         #gal-header .navbar-brand {
@@ -347,7 +347,7 @@
 <article class="article well article-body" id="article">
     <div class="breadcrumb">
         <i class="fa fa-home"></i>
-        <a href="https://VampireAchao.gitee.io">阿超</a>
+        <a href="https://VampireAchao.github.io">阿超</a>
         >
         <span>android webview预加载</span>
     </div>
@@ -399,7 +399,7 @@
         <blockquote>
 <p>对人关怀一次，比说千百句恭维话更能打动其心。——海涛法师</p>
 </blockquote>
-<p>之前也说过了<a target="_blank" rel="noopener" href="https://vampireachao.github.io/2024/05/26/android%E4%BD%BF%E7%94%A8%E9%97%B2%E7%BD%AE%E7%BA%BF%E7%A8%8B%E6%89%A7%E8%A1%8C/">android使用闲置线程执行</a></p>
+<p>之前也说过了<a href="https://vampireachao.github.io/2024/05/26/android%E4%BD%BF%E7%94%A8%E9%97%B2%E7%BD%AE%E7%BA%BF%E7%A8%8B%E6%89%A7%E8%A1%8C/">android使用闲置线程执行</a></p>
 <p>今天上实战：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.ruben.simple_webview;<br><br><span class="hljs-keyword">import</span> android.content.Context;<br><span class="hljs-keyword">import</span> android.os.Bundle;<br><span class="hljs-keyword">import</span> android.os.Looper;<br><span class="hljs-keyword">import</span> android.os.MessageQueue;<br><span class="hljs-keyword">import</span> android.view.ViewGroup;<br><span class="hljs-keyword">import</span> android.webkit.JavascriptInterface;<br><span class="hljs-keyword">import</span> android.webkit.WebSettings;<br><span class="hljs-keyword">import</span> android.webkit.WebView;<br><span class="hljs-keyword">import</span> android.widget.Button;<br><span class="hljs-keyword">import</span> android.widget.RelativeLayout;<br><span class="hljs-keyword">import</span> android.widget.Toast;<br><br><span class="hljs-keyword">import</span> androidx.appcompat.app.AppCompatActivity;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MainActivity</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">AppCompatActivity</span> &#123;<br><br>    <span class="hljs-keyword">private</span> RelativeLayout mainLayout;<br>    <span class="hljs-keyword">private</span> WebView myWebView;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">onCreate</span><span class="hljs-params">(Bundle savedInstanceState)</span> &#123;<br>        <span class="hljs-built_in">super</span>.onCreate(savedInstanceState);<br>        setContentView(R.layout.activity_main);<br><br>        mainLayout = (RelativeLayout) findViewById(R.id.main_layout);<br>        <span class="hljs-type">Button</span> <span class="hljs-variable">addWebViewButton</span> <span class="hljs-operator">=</span> (Button) findViewById(R.id.addWebViewButton);<br><br>        <span class="hljs-comment">// 在主线程空闲时预加载 WebView</span><br>        prepareWebView();<br><br>        addWebViewButton.setOnClickListener(v -&gt; &#123;<br>            <span class="hljs-keyword">if</span> (myWebView.getParent() == <span class="hljs-literal">null</span>) &#123;<br>                <span class="hljs-comment">// 设置WebView布局参数</span><br>                RelativeLayout.<span class="hljs-type">LayoutParams</span> <span class="hljs-variable">params</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RelativeLayout</span>.LayoutParams(<br>                        ViewGroup.LayoutParams.MATCH_PARENT,<br>                        ViewGroup.LayoutParams.MATCH_PARENT);<br>                myWebView.setLayoutParams(params);<br>                mainLayout.addView(myWebView);<br>            &#125;<br>        &#125;);<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">prepareWebView</span><span class="hljs-params">()</span> &#123;<br>        myWebView = <span class="hljs-keyword">new</span> <span class="hljs-title class_">WebView</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">android</span>.view.ContextThemeWrapper(<span class="hljs-built_in">this</span>, <span class="hljs-literal">null</span>));<br>        <span class="hljs-type">WebSettings</span> <span class="hljs-variable">webSettings</span> <span class="hljs-operator">=</span> myWebView.getSettings();<br>        webSettings.setJavaScriptEnabled(<span class="hljs-literal">true</span>);<br><br>        <span class="hljs-comment">// 使用 IdleHandler 来初始化和加载 WebView</span><br>        MessageQueue.<span class="hljs-type">IdleHandler</span> <span class="hljs-variable">idleHandler</span> <span class="hljs-operator">=</span> () -&gt; &#123;<br>            myWebView.loadUrl(<span class="hljs-string">&quot;https://gitee.com/VampireAchao&quot;</span>);<br>            myWebView.addJavascriptInterface(<span class="hljs-keyword">new</span> <span class="hljs-title class_">WebAppInterface</span>(<span class="hljs-built_in">this</span>), <span class="hljs-string">&quot;Android&quot;</span>);<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>; <span class="hljs-comment">// 返回 false 表示不再调用此 IdleHandler</span><br>        &#125;;<br>        Looper.myQueue().addIdleHandler(idleHandler);<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">WebAppInterface</span> &#123;<br>        Context mContext;<br><br>        WebAppInterface(Context c) &#123;<br>            mContext = c;<br>        &#125;<br><br>        <span class="hljs-meta">@JavascriptInterface</span><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">showToast</span><span class="hljs-params">(String toast)</span> &#123;<br>            Toast.makeText(mContext, toast, Toast.LENGTH_SHORT).show();<br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
 <p>对应的<code>activity_main.xml</code></p>
@@ -545,61 +545,61 @@
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/08/09/Bluebird/">Bluebird</a>
+                    <a href="/2024/08/18/Apache-ShenYu%E6%94%AF%E6%8C%81namespace%E5%8A%9F%E8%83%BD%EF%BC%88%E4%BA%8C%EF%BC%89/">Apache-ShenYu支持namespace功能（二）</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2026/01/06/WeKnora/">WeKnora</a>
+                    <a href="/2023/03/14/BibiGPT/">BibiGPT</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/03/22/electron%E8%8F%9C%E5%8D%95%E4%B8%8D%E6%98%BE%E7%A4%BA%E9%97%AE%E9%A2%98/">electron菜单不显示问题</a>
+                    <a href="/2021/02/06/RoboPOJOGenerator/">RoboPOJOGenerator</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2025/10/05/hyperswitch/">hyperswitch</a>
+                    <a href="/2021/03/06/javaFaker/">javaFaker</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2023/04/26/mysql%E9%9A%8F%E6%9C%BA%E6%9F%A5%E8%AF%A2%EF%BC%88%E4%BA%8C%EF%BC%89/">mysql随机查询（二）</a>
+                    <a href="/2023/08/10/lexica/">lexica</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2022/04/06/react-hook-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">react hook 生命周期</a>
+                    <a href="/2023/12/01/pinterest/">pinterest</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2024/04/09/suno-ai/">suno-ai</a>
+                    <a href="/2025/01/14/shenyu%E7%9A%84rule%E8%A1%A8%E5%8D%95handler%E5%A1%AB%E5%86%99%E9%97%AE%E9%A2%98/">shenyu的rule表单handler填写问题</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/12/24/youmightnotneedjquery/">youmightnotneedjquery</a>
+                    <a href="/2022/12/23/vue%E9%87%8D%E7%BD%AEdata/">vue重置data</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/07/09/%E6%89%8B%E5%8A%A8%E5%9B%9E%E6%BB%9A%E3%80%81%E6%8F%90%E4%BA%A4%E4%BA%8B%E5%8A%A1/">手动回滚、提交事务</a>
+                    <a href="/2021/07/13/%E5%9C%A8%E7%BA%BFyaml%E5%92%8Cproperties%E4%BA%92%E8%BD%AC/">在线yaml和properties互转</a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/2021/10/30/%E8%8A%B1%E9%87%8C%E8%83%A1%E5%93%A8%E7%9A%84peeks/">花里胡哨的peeks</a>
+                    <a href="/2021/08/16/%E5%AE%9E%E7%94%A8API%E8%AE%BE%E8%AE%A1%E6%A1%88%E4%BE%8B/">实用API设计案例</a>
                 </span>
             </li>
             
@@ -632,73 +632,73 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/tags/java/" style="font-size: 14.16538737777055px;" class="tag-cloud-link">java</a>
+    <a href="/tags/java/" style="font-size: 10.305588151137252px;" class="tag-cloud-link">java</a>
     
-    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.930548255952278px;" class="tag-cloud-link">软件及插件</a>
+    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/" style="font-size: 8.790626503537732px;" class="tag-cloud-link">软件及插件</a>
     
-    <a href="/tags/ai/" style="font-size: 15.529171262449566px;" class="tag-cloud-link">ai</a>
+    <a href="/tags/ai/" style="font-size: 9.2953842560716px;" class="tag-cloud-link">ai</a>
     
-    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 8.517375545384624px;" class="tag-cloud-link">小技巧</a>
+    <a href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/" style="font-size: 12.83620942566224px;" class="tag-cloud-link">小技巧</a>
     
-    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 14.326954645007575px;" class="tag-cloud-link">前端</a>
+    <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 9.19494685869616px;" class="tag-cloud-link">前端</a>
     
-    <a href="/tags/android/" style="font-size: 14.811040277998137px;" class="tag-cloud-link">android</a>
+    <a href="/tags/android/" style="font-size: 8.20749494198763px;" class="tag-cloud-link">android</a>
     
-    <a href="/tags/python/" style="font-size: 19.079065300147345px;" class="tag-cloud-link">python</a>
+    <a href="/tags/python/" style="font-size: 13.34704794923696px;" class="tag-cloud-link">python</a>
     
-    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.95229887187697px;" class="tag-cloud-link">数据库</a>
+    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 9.511189942759497px;" class="tag-cloud-link">数据库</a>
     
-    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 16.35518413524286px;" class="tag-cloud-link">运维</a>
+    <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 12.982464628653908px;" class="tag-cloud-link">运维</a>
     
-    <a href="/tags/go/" style="font-size: 16.100315987838297px;" class="tag-cloud-link">go</a>
+    <a href="/tags/go/" style="font-size: 9.953273854378029px;" class="tag-cloud-link">go</a>
     
-    <a href="/tags/ios/" style="font-size: 18.822267011178564px;" class="tag-cloud-link">ios</a>
+    <a href="/tags/ios/" style="font-size: 18.594154308859974px;" class="tag-cloud-link">ios</a>
     
-    <a href="/tags/c/" style="font-size: 19.47940789977632px;" class="tag-cloud-link">c++</a>
+    <a href="/tags/c/" style="font-size: 10.840672443757867px;" class="tag-cloud-link">c++</a>
     
-    <a href="/tags/flutter/" style="font-size: 18.992032962762572px;" class="tag-cloud-link">flutter</a>
+    <a href="/tags/flutter/" style="font-size: 16.8048501907118px;" class="tag-cloud-link">flutter</a>
     
-    <a href="/tags/Java/" style="font-size: 12.802605351069506px;" class="tag-cloud-link">Java</a>
+    <a href="/tags/Java/" style="font-size: 8.062297129825742px;" class="tag-cloud-link">Java</a>
     
-    <a href="/tags/ruby/" style="font-size: 8.176826326957666px;" class="tag-cloud-link">ruby</a>
+    <a href="/tags/ruby/" style="font-size: 10.253693402761511px;" class="tag-cloud-link">ruby</a>
     
-    <a href="/tags/c/" style="font-size: 19.239470778775523px;" class="tag-cloud-link">c</a>
+    <a href="/tags/c/" style="font-size: 15.656065326628262px;" class="tag-cloud-link">c</a>
     
-    <a href="/tags/Clojure/" style="font-size: 10.922972424034432px;" class="tag-cloud-link">Clojure</a>
+    <a href="/tags/Clojure/" style="font-size: 12.107438710754327px;" class="tag-cloud-link">Clojure</a>
     
-    <a href="/tags/bug/" style="font-size: 9.758320265205974px;" class="tag-cloud-link">bug</a>
+    <a href="/tags/bug/" style="font-size: 9.579275846120488px;" class="tag-cloud-link">bug</a>
     
-    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 16.431783185661256px;" class="tag-cloud-link">其他</a>
+    <a href="/tags/%E5%85%B6%E4%BB%96/" style="font-size: 13.373208548995294px;" class="tag-cloud-link">其他</a>
     
-    <a href="/tags/kotlin/" style="font-size: 10.41482159812059px;" class="tag-cloud-link">kotlin</a>
+    <a href="/tags/kotlin/" style="font-size: 15.631579796986598px;" class="tag-cloud-link">kotlin</a>
     
-    <a href="/tags/lua/" style="font-size: 13.066596875614604px;" class="tag-cloud-link">lua</a>
+    <a href="/tags/lua/" style="font-size: 12.84856517057846px;" class="tag-cloud-link">lua</a>
     
-    <a href="/tags/swift/" style="font-size: 16.04027550712908px;" class="tag-cloud-link">swift</a>
+    <a href="/tags/swift/" style="font-size: 17.74907022542274px;" class="tag-cloud-link">swift</a>
     
-    <a href="/tags/minecraft/" style="font-size: 10.521399421731546px;" class="tag-cloud-link">minecraft</a>
+    <a href="/tags/minecraft/" style="font-size: 19.50611929906555px;" class="tag-cloud-link">minecraft</a>
     
-    <a href="/tags/rust/" style="font-size: 14.740929224584733px;" class="tag-cloud-link">rust</a>
+    <a href="/tags/rust/" style="font-size: 15.95212398745232px;" class="tag-cloud-link">rust</a>
     
-    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 19.802047620126107px;" class="tag-cloud-link">部署</a>
+    <a href="/tags/%E9%83%A8%E7%BD%B2/" style="font-size: 18.819032278556733px;" class="tag-cloud-link">部署</a>
     
-    <a href="/tags/flink/" style="font-size: 12.772227863448908px;" class="tag-cloud-link">flink</a>
+    <a href="/tags/flink/" style="font-size: 10.454980108163895px;" class="tag-cloud-link">flink</a>
     
-    <a href="/tags/llvm/" style="font-size: 9.59622869652788px;" class="tag-cloud-link">llvm</a>
+    <a href="/tags/llvm/" style="font-size: 18.641111650938054px;" class="tag-cloud-link">llvm</a>
     
-    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 18.82373566088267px;" class="tag-cloud-link">机器学习</a>
+    <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 13.818214419818132px;" class="tag-cloud-link">机器学习</a>
     
-    <a href="/tags/php/" style="font-size: 10.284642631265136px;" class="tag-cloud-link">php</a>
+    <a href="/tags/php/" style="font-size: 12.937208598329047px;" class="tag-cloud-link">php</a>
     
-    <a href="/tags/typescript/" style="font-size: 16.558317248387024px;" class="tag-cloud-link">typescript</a>
+    <a href="/tags/typescript/" style="font-size: 14.352497444231954px;" class="tag-cloud-link">typescript</a>
     
-    <a href="/tags/redis/" style="font-size: 16.29624302026438px;" class="tag-cloud-link">redis</a>
+    <a href="/tags/redis/" style="font-size: 18.132029840388945px;" class="tag-cloud-link">redis</a>
     
-    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 13.518984011309781px;" class="tag-cloud-link">设计模式</a>
+    <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.848575907141907px;" class="tag-cloud-link">设计模式</a>
     
-    <a href="/tags/objective-c/" style="font-size: 14.983083704801961px;" class="tag-cloud-link">objective-c</a>
+    <a href="/tags/objective-c/" style="font-size: 10.716661742611183px;" class="tag-cloud-link">objective-c</a>
     
-    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 10.134082507882738px;" class="tag-cloud-link">算法</a>
+    <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 11.76463518085131px;" class="tag-cloud-link">算法</a>
     
 </div>
                 
