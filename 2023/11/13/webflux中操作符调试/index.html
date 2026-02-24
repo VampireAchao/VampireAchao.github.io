@@ -1,0 +1,194 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>webflux中操作符调试 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="生命不息，奋斗不止。——卡莱尔  分享一个小技巧，在webflux开发中，我们可以在主启动类上加这么一行代码： 1Hooks.onOperatorDebug();  这行代码的用处是注册一个回调函数，可以打印操作符信息，举个例子： 12345678910111213141516import reactor.core.publisher.Flux;import reactor.core.publi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="webflux中操作符调试">
+<meta property="og:url" content="https://vampireachao.gitee.io/2023/11/13/webflux%E4%B8%AD%E6%93%8D%E4%BD%9C%E7%AC%A6%E8%B0%83%E8%AF%95/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="生命不息，奋斗不止。——卡莱尔  分享一个小技巧，在webflux开发中，我们可以在主启动类上加这么一行代码： 1Hooks.onOperatorDebug();  这行代码的用处是注册一个回调函数，可以打印操作符信息，举个例子： 12345678910111213141516import reactor.core.publisher.Flux;import reactor.core.publi">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2023-11-13T00:47:52.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.451Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "webflux中操作符调试",
+  "url": "https://vampireachao.gitee.io/2023/11/13/webflux%E4%B8%AD%E6%93%8D%E4%BD%9C%E7%AC%A6%E8%B0%83%E8%AF%95/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2023-11-13T00:47:52.000Z",
+  "dateModified": "2026-02-24T09:48:42.451Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2023/11/13/webflux%E4%B8%AD%E6%93%8D%E4%BD%9C%E7%AC%A6%E8%B0%83%E8%AF%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'webflux中操作符调试',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">webflux中操作符调试</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">webflux中操作符调试</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-11-13T00:47:52.000Z" title="发表于 2023-11-13 08:47:52">2023-11-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.451Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>生命不息，奋斗不止。——卡莱尔</p>
+</blockquote>
+<p>分享一个小技巧，在<code>webflux</code>开发中，我们可以在主启动类上加这么一行代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hooks.onOperatorDebug();</span><br></pre></td></tr></table></figure>
+
+<p>这行代码的用处是注册一个回调函数，可以打印操作符信息，举个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> reactor.core.publisher.Flux;</span><br><span class="line"><span class="keyword">import</span> reactor.core.publisher.Hooks;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DebugExample</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        Hooks.onOperatorDebug(); <span class="comment">// 启用操作符调试</span></span><br><span class="line"></span><br><span class="line">        Flux&lt;Integer&gt; flux = Flux.just(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line">                .map(i -&gt; i / <span class="number">0</span>); <span class="comment">// 这里会触发除以零的异常</span></span><br><span class="line"></span><br><span class="line">        flux.subscribe(</span><br><span class="line">                value -&gt; System.out.println(<span class="string">&quot;Received: &quot;</span> + value),</span><br><span class="line">                error -&gt; System.err.println(<span class="string">&quot;Error: &quot;</span> + error)</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们没有注册，则堆栈打印信息：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Received: 1</span><br><span class="line">Received: 2</span><br><span class="line">Received: 3</span><br><span class="line">Exception in thread &quot;main&quot; java.lang.ArithmeticException: / by zero</span><br><span class="line">	at DebugExample.lambda$main$0(DebugExample.java:12)</span><br><span class="line">	at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:120)</span><br><span class="line">	at reactor.core.publisher.FluxJust$WeakScalarSubscription.request(FluxJust.java:91)</span><br><span class="line">	at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:155)</span><br><span class="line">	at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:1266)</span><br><span class="line">	at reactor.core.publisher.FluxMap.onSubscribe(FluxMap.java:59)</span><br><span class="line">	at reactor.core.publisher.FluxJust.subscribe(FluxJust.java:68)</span><br><span class="line">	at reactor.core.publisher.FluxMap.subscribe(FluxMap.java:44)</span><br><span class="line">	at reactor.core.publisher.Flux.subscribe(Flux.java:9117)</span><br><span class="line">	at reactor.core.publisher.Flux.subscribe(Flux.java:9091)</span><br><span class="line">	at DebugExample.main(DebugExample.java:14)</span><br></pre></td></tr></table></figure>
+
+<p>注册以后：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">Received: 1</span><br><span class="line">Received: 2</span><br><span class="line">Received: 3</span><br><span class="line">Error: java.lang.ArithmeticException: / by zero</span><br><span class="line">	at reactor.core.publisher.Operators.onErrorDropped(Operators.java:197)</span><br><span class="line">	Suppressed: reactor.core.publisher.FluxOnAssembly$OnAssemblyException: </span><br><span class="line">		| onSubscribe([Synchronous Fuseable] FluxMapFuseable.MapFuseableSubscriber)</span><br><span class="line">		|   Flux.map(Map.java:95)</span><br><span class="line">		|   Flux.map(Map.java:92)</span><br><span class="line">		|   DebugExample.main(DebugExample.java:15)</span><br><span class="line">		| onAssembly(FluxMapFuseable)</span><br><span class="line">		|   Flux.map(Map.java:95)</span><br><span class="line">		|   Flux.map(Map.java:92)</span><br><span class="line">		|   DebugExample.main(DebugExample.java:15)</span><br><span class="line">		| request(unbounded)</span><br><span class="line">		at reactor.core.publisher.FluxOnAssembly.onAssembly(FluxOnAssembly.java:482)</span><br><span class="line">		at reactor.core.publisher.FluxMapFuseable.subscribe(FluxMapFuseable.java:64)</span><br><span class="line">		at reactor.core.publisher.Flux.subscribe(Flux.java:9065)</span><br><span class="line">		at reactor.core.publisher.Flux.subscribe(Flux.java:9039)</span><br><span class="line">		at DebugExample.main(DebugExample.java:14)</span><br><span class="line">		Suppressed: java.lang.ArithmeticException: / by zero</span><br><span class="line">			at reactor.core.publisher.Operators.onErrorDropped(Operators.java:197)</span><br><span class="line">		Suppressed: java.lang.ArithmeticException: / by zero</span><br><span class="line">			at reactor.core.publisher.Operators.onErrorDropped(Operators.java:197)</span><br><span class="line">		Suppressed: java.lang.ArithmeticException: / by zero</span><br><span class="line">			at reactor.core.publisher.Operators.onErrorDropped(Operators.java:197)</span><br><span class="line">		Suppressed: java.lang.ArithmeticException: / by zero</span><br><span class="line">			at reactor.core.publisher.Operators.onErrorDropped(Operators.java:197)</span><br><span class="line">		Suppressed: java.lang.ArithmeticException: / by zero</span><br><span class="line">			at reactor.core.publisher.Operators.onErrorDropped(Operators.java:197)</span><br><span class="line">		Suppressed: java.lang.ArithmeticException: / by zero</span><br><span class="line">			at reactor.core.publisher.Operators.onErrorDropped(Operators.java:197)</span><br><span class="line">		Suppressed: java.lang.ArithmeticException: / by zero</span><br><span class="line">			at reactor.core.publisher.Operators.onErrorDropped(Operators.java:197)</span><br><span class="line">		Suppressed: java.lang.ArithmeticException: / by zero</span><br><span class="line">			at reactor.core.publisher.Operators.onErrorDropped(Operators.java:197)</span><br><span class="line">		at reactor.core.publisher.FluxOnAssembly.onAssembly(FluxOnAssembly.java:482)</span><br><span class="line">		at reactor.core.publisher.FluxMapFuseable.subscribe(FluxMapFuseable.java:64)</span><br><span class="line">		at reactor.core.publisher.Flux.subscribe(Flux.java:9065)</span><br><span class="line">		at reactor.core.publisher.Flux.subscribe(Flux.java:9039)</span><br><span class="line">		at DebugExample.main(DebugExample.java:14)</span><br></pre></td></tr></table></figure>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/11/14/webclient%E6%A8%A1%E6%9D%BF%E5%8F%98%E9%87%8F/" title="webclient模板变量"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">webclient模板变量</div></div><div class="info-2"><div class="info-item-1"> 过于重视行为规则、拘泥形式，往往在事业上错失良机。——培根  今天分享在使用webclient进行开发时的的一个小技巧 例如这个方法： 1org.springframework.web.reactive.function.client.DefaultWebClient.DefaultRequestBodyUriSpec#uri(java.lang.String, java.lang.Object...)  此处如果直接使用： 1webClient.get().uri(&quot;/dev/v1/kicking-rule?appid=&#123;&#125;&quot;, appId)  或者 1webClient.get().uri(&quot;/dev/v1/kicking-rule?appid=%s&quot;, appId)  哪怕 1webClient.get().uri(&quot;/dev/v1/kicking-rule?appid=%s&quot;, appId)  都是不行的。。。 正确的方式应该是： 1webClient.get().uri(&quot;/de...</div></div></div></a><a class="pagination-related" href="/2023/11/12/hutool%E4%BF%AE%E5%A4%8DCollectorUtil-reduceListMap%E4%B8%8ECollectors-groupby%E4%B8%80%E8%B5%B7%E4%BD%BF%E7%94%A8%E6%97%B6%E5%87%BA%E7%8E%B0%E4%B8%8E%E9%A2%84%E6%9C%9F%E4%B8%8D%E7%AC%A6%E7%9A%84%E7%BB%93%E6%9E%9C/" title="hutool修复CollectorUtil.reduceListMap与Collectors.groupby一起使用时出现与预期不符的结果"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">hutool修复CollectorUtil.reduceListMap与Collectors.groupby一起使用时出现与预期不符的结果</div></div><div class="info-2"><div class="info-item-1"> 待小人宜宽，防小人宜严。——金瑛  问题的issue： https://github.com/dromara/hutool/issues/3380 此处复现： 12345678910111213141516171819      List&lt;Map&lt;String, String&gt;&gt; data = ListUtil.toList(	MapUtil.builder(&quot;name&quot;, &quot;sam&quot;).put(&quot;count&quot;, &quot;80&quot;).map(),	MapUtil.builder(&quot;name&quot;, &quot;sam&quot;).put(&quot;count&quot;, &quot;81&quot;).map(),	MapUtil.builder(&quot;name&quot;, &quot;sam&quot;).put(&quot;count&quot;, &quot;82&quot;).map(),	MapUtil.builder(&quot;name&q...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/06/05/HuTool%E6%97%A5%E6%9C%9F%E8%A7%A3%E6%9E%90%E9%97%AE%E9%A2%98/" title="HuTool日期解析问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-05</div><div class="info-item-2">HuTool日期解析问题</div></div><div class="info-2"><div class="info-item-1"> 多说话的人不是长于做事的人。——佚名  收到一个issue DateUtil.parse()无法解析日期： · Issue #3608 · dromara&#x2F;hutool · GitHub  版本情况JDK版本：    openjdk_8 and jdk17hutool版本： 5.2.7（请确保最新尝试是否还有问题） 问题描述（包括截图）“1940-06-01 00:00:00” ~  “1940-06-01 00:59:00”，这个时间范围是无法使用DateUtil.parse(dateTime, DatePattern.NORM_DATETIME_PATTERN)解析的  复现代码  123456@Testpublic void t17() &#123;    String dateTime = &quot;1940-06-01 00:00:00&quot;;    DateTime parse = DateUtil.parse(dateTime, DatePattern.NORM_DATETIME_PATTERN);    Console.log(parse);&...</div></div></div></a><a class="pagination-related" href="/2025/12/27/FreeBox/" title="FreeBox"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-27</div><div class="info-item-2">FreeBox</div></div><div class="info-2"><div class="info-item-1"> 吾生也有涯，而知也无涯。——庄子  FreeBox：把 TVBox 的味儿，搬到桌面端超级随意版介绍来啦（撒花✿）。FreeBox 是一个用 JavaFX 写的桌面影视播放软件，作者给它的定位是“TVBox 电脑版&#x2F;姊妹软件，致力于 TVBox 功能和生态的跨平台扩展”。它既延续了 TVBox 的使用习惯，又把“资源审计”等 PC 侧才方便做的事情加了进来；同时，强烈强调“空壳播放器”属性：不内置任何媒体资源，用户自己配置第三方来源，自己负责合法合规。  仓库主页：kknifer7&#x2F;FreeBox   README 永久链接（信息来源）：README.md@cbc6058   默认分支：main   许可协议：GPL-3.0（另附详细补充条款，见 README“许可协议”章节）   技术栈：Java + JavaFX（JDK 17+，JavaFX 21.0.9）   关键词：catvod、tvbox、javafx  LOGO（来自作者说明的素材来源）：  这玩意儿有啥特点？作者用四个词总结得很到位：小巧、易用、更新方便、跨平台。  小巧：安装包大约 50M。...</div></div></div></a><a class="pagination-related" href="/2025/04/12/MinecraftForge/" title="MinecraftForge"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-12</div><div class="info-item-2">MinecraftForge</div></div><div class="info-2"><div class="info-item-1"> 毋为已消逝之年华叹息，须正视匆匆溜走的时光。 ——欧洲谚语  什么是 MinecraftForge？MinecraftForge 是一个为 Minecraft 提供的开源模组开发框架，它是 Minecraft 社区中最受欢迎的模组开发工具之一。通过 Forge，开发者可以轻松创建和加载模组（Mods），并扩展 Minecraft 的功能。Forge 的生态系统支持数千个模组，是 Minecraft 游戏创新的核心平台。  核心特点 模组兼容性：  Forge 提供了一个标准化的接口，让不同的模组可以无缝工作，减少冲突。 支持多个模组同时运行，方便玩家自由搭配。   开发工具：  提供全面的 API，方便开发者调用 Minecraft 的核心功能。 ForgeGradle：一个集成了 MinecraftForge 项目的 Gradle 插件，用于简化模组开发构建流程。   跨版本支持：  Forge 会随着 Minecraft 的更新而更新，支持多个 Minecraft 版本（如 1.12、1.16、1.18 等）。   强大的社区：  Forge 拥有一个庞大的开发者和玩家社区...</div></div></div></a><a class="pagination-related" href="/2022/06/07/%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/" title="类型描述符"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-06-07</div><div class="info-item-2">类型描述符</div></div><div class="info-2"><div class="info-item-1"> 我知道你愚蠢轻佻、头脑空虚，然而我爱你；我知道你的企图你的理想，你的势力，你的庸俗，然而我爱你；我知道你是个二流货色，然而我爱你。——毛姆  见： https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.2.1 在java中，由于历史原因，出现在类文件结构中的二进制名称语法与我们常用的类名不同，通常使用(正斜杠)/替换了原本的包名间隔(句号). 例如Thread的类名叫java.lang.Thread，但是在class文件格式的描述符中使用的内部格式，对Thread类名称utf8的引用却是：java/lang/Thread 不信我们随便打开一个class文件  可以看到类似的描述符 那如何获取类的描述符呢？它的规则又是如何呢？ 首先，基本类型描述符，都是以ASCII字符表示，例如L 正斜杠类名;表示对象类型，[表示数组类型 我们可以在sun.invoke.util.Wra...</div></div></div></a><a class="pagination-related" href="/2023/05/07/apache-incubator-streampark%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C%EF%BC%88%E4%BA%8C%EF%BC%89/" title="apache-incubator-streampark源码编译本地运行（二）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-07</div><div class="info-item-2">apache-incubator-streampark源码编译本地运行（二）</div></div><div class="info-2"><div class="info-item-1"> 多做一些好事情，不图报酬，还可以使我们短短的生命很体面和有价值，这本身就可以算是一种报酬。——马克·吐温  书接上文apache-incubator-streampark源码编译本地运行 时隔今日，streampark又发生了一些变化 执行（因为我本机仍然没有配置mvnw，所以干脆用命令）： 1mvn -Pscala-2.12,shaded,dist -DskipTests clean package   剩下的步骤就不再赘述，在开头的链接，上次已经提过了 但是期间如果提示spotless:check的报错，可以使用 1mvn spotless:apply  让代码格式化一下即可 重新执行 1mvn -Pscala-2.12,shaded,dist -DskipTests clean package  重新刷新下依赖  如果报错ApplicationType is already defined as Java enum ApplicationType  这个貌似是因为不小心设置了下scala环境就搞坏了，我换了台电脑就好了  但是原来的电脑里还是坏的，我删除了本地项目目录，重...</div></div></div></a><a class="pagination-related" href="/2023/01/11/byte-buddy%E5%AE%9E%E7%8E%B0mybatis-plus%E5%8A%A8%E6%80%81mapper/" title="byte-buddy实现mybatis-plus动态mapper"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-11</div><div class="info-item-2">byte-buddy实现mybatis-plus动态mapper</div></div><div class="info-2"><div class="info-item-1"> 掌握了教育，就掌握了国家——法国谚语  构造动态mapper部分代码如下： 123456789101112131415public static void buildMapper(Configuration configuration, Class&lt;?&gt; entityClass) &#123;    if (!(configuration instanceof MybatisConfiguration)) &#123;        throw new IllegalArgumentException(&quot;configuration must be MybatisConfiguration&quot;);    &#125;    ENTITY_MAPPER_CLASS_CACHE.computeIfAbsent(entityClass, k -&gt; &#123;        Class&lt;?&gt; dynamicMapper = new ByteBuddy()                .makeInterface(TypeDescript...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

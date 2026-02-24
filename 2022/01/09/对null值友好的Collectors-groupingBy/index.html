@@ -1,0 +1,195 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>对null值友好的Collectors.groupingBy | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一个人行走的范围，就是他的世界。——北岛  我们在使用Collectors.groupingBy时会遇到这种情况： 1Map&lt;String, List&lt;User&gt;&gt; map &#x3D; Arrays.asList(new User(), null).stream().collect(Collectors.groupingBy(User::getName));   为了避免这种情况">
+<meta property="og:type" content="article">
+<meta property="og:title" content="对null值友好的Collectors.groupingBy">
+<meta property="og:url" content="https://vampireachao.gitee.io/2022/01/09/%E5%AF%B9null%E5%80%BC%E5%8F%8B%E5%A5%BD%E7%9A%84Collectors-groupingBy/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="一个人行走的范围，就是他的世界。——北岛  我们在使用Collectors.groupingBy时会遇到这种情况： 1Map&lt;String, List&lt;User&gt;&gt; map &#x3D; Arrays.asList(new User(), null).stream().collect(Collectors.groupingBy(User::getName));   为了避免这种情况">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2022-01-09T13:08:15.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.565Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对null值友好的Collectors.groupingBy",
+  "url": "https://vampireachao.gitee.io/2022/01/09/%E5%AF%B9null%E5%80%BC%E5%8F%8B%E5%A5%BD%E7%9A%84Collectors-groupingBy/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2022-01-09T13:08:15.000Z",
+  "dateModified": "2026-02-24T09:48:42.565Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2022/01/09/%E5%AF%B9null%E5%80%BC%E5%8F%8B%E5%A5%BD%E7%9A%84Collectors-groupingBy/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '对null值友好的Collectors.groupingBy',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">对null值友好的Collectors.groupingBy</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">对null值友好的Collectors.groupingBy</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-09T13:08:15.000Z" title="发表于 2022-01-09 21:08:15">2022-01-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.565Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>一个人行走的范围，就是他的世界。——北岛</p>
+</blockquote>
+<p>我们在使用<code>Collectors.groupingBy</code>时会遇到这种情况：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String, List&lt;User&gt;&gt; map = Arrays.asList(<span class="keyword">new</span> <span class="title class_">User</span>(), <span class="literal">null</span>).stream().collect(Collectors.groupingBy(User::getName));</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/oss/picGo/image-20220109213438674.png" alt="image-20220109213438674"></p>
+<p>为了避免这种情况，于是我自己实现了一个：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SafeVarargs</span></span><br><span class="line"><span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T, K, D, A, M <span class="keyword">extends</span> <span class="title class_">Map</span>&lt;K, D&gt;&gt; M <span class="title function_">listGroupBy</span><span class="params">(List&lt;T&gt; list, Function&lt;T, K&gt; sFunction, Collector&lt;? <span class="built_in">super</span> T, A, D&gt; downstream, <span class="type">boolean</span> isParallel, Consumer&lt;T&gt;... peeks)</span> &#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">hasFinished</span> <span class="operator">=</span> downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH);</span><br><span class="line">    <span class="keyword">return</span> peekStream(list, isParallel, peeks).collect(<span class="keyword">new</span> <span class="title class_">Collector</span>&lt;T, HashMap&lt;K, A&gt;, M&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> Supplier&lt;HashMap&lt;K, A&gt;&gt; <span class="title function_">supplier</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> HashMap::<span class="keyword">new</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> BiConsumer&lt;HashMap&lt;K, A&gt;, T&gt; <span class="title function_">accumulator</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> (m, t) -&gt; &#123;</span><br><span class="line">                <span class="type">K</span> <span class="variable">key</span> <span class="operator">=</span> Optional.ofNullable(t).map(sFunction).orElse(<span class="literal">null</span>);</span><br><span class="line">                <span class="type">A</span> <span class="variable">container</span> <span class="operator">=</span> m.computeIfAbsent(key, k -&gt; downstream.supplier().get());</span><br><span class="line">                downstream.accumulator().accept(container, t);</span><br><span class="line">            &#125;;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> BinaryOperator&lt;HashMap&lt;K, A&gt;&gt; <span class="title function_">combiner</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> (m1, m2) -&gt; &#123;</span><br><span class="line">                <span class="keyword">for</span> (Map.Entry&lt;K, A&gt; e : m2.entrySet()) &#123;</span><br><span class="line">                    m1.merge(e.getKey(), e.getValue(), downstream.combiner());</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> m1;</span><br><span class="line">            &#125;;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> Function&lt;HashMap&lt;K, A&gt;, M&gt; <span class="title function_">finisher</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> hasFinished ? i -&gt; (M) i : intermediate -&gt; &#123;</span><br><span class="line">                <span class="comment">// a-&gt; a[0]</span></span><br><span class="line">                intermediate.replaceAll((k, v) -&gt; (A) downstream.finisher().apply(v));</span><br><span class="line">                <span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line">                <span class="type">M</span> <span class="variable">castResult</span> <span class="operator">=</span> (M) intermediate;</span><br><span class="line">                <span class="keyword">return</span> castResult;</span><br><span class="line">            &#125;;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> Set&lt;Characteristics&gt; <span class="title function_">characteristics</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> hasFinished ? Collections.unmodifiableSet(EnumSet.of(Collector.Characteristics.IDENTITY_FINISH)) : Collections.emptySet();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String, List&lt;User&gt;&gt; map = listGroupBy(Arrays.asList(<span class="keyword">new</span> <span class="title class_">User</span>(), <span class="literal">null</span>), User::getName, Collectors.toList(), <span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这样避免了抛出异常，返回了对<code>null</code>值友好的结果(<code>map</code>里包含一个<code>key</code>为<code>null</code>的结果)</p>
+<p>我稍作修改放到<code>MP</code>的<code>SimpleQuery</code>和<code>hutool</code>中的<code>CollStreamUtil</code>以及<code>CollectorUtil</code>中去了</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/01/10/oss%E8%A7%86%E9%A2%91%E6%88%AA%E5%B0%81%E9%9D%A2/" title="oss视频截封面"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">oss视频截封面</div></div><div class="info-2"><div class="info-item-1"> 所谓世人，不就是你吗？——太宰治《人间失格》  今天上传视频后发现没有上传封面… 后来发现阿里云oss支持直接截取封面 文档地址： https://help.aliyun.com/document_detail/64555.html  也就是说，如果之前的视频URL为： 1/img/oss/picGo/rabbit.mp4  那么我们加上参数 1/img/oss/picGo/rabbit.mp4?x-oss-process=video/snapshot,t_10000,f_jpg  就会变成一张图片   参数说明操作分类：video 操作名称：snapshot    参数 描述 取值范围    t 指定截图时间。 [0,视频时长]单位：ms   w 指定截图宽度，如果指定为0，则自动计算。 [0,视频宽度]单位：像素（px）   h 指定截图高度，如果指定为0，则自动计算；如果w和h都为0，则输出为原视频宽高。 [0,视频高度]单位：像素（px）   m 指定截图模式，不指定则为默认模式，根据时间精确截图。如果指定为fast，则截取该时间点之前的最近的一个关键帧。 枚举值：fa...</div></div></div></a><a class="pagination-related" href="/2022/01/08/img%E5%9B%BE%E7%89%87%E4%B8%A2%E5%A4%B1%E5%90%8E%E9%BB%98%E8%AE%A4%E5%9B%BE/" title="img图片丢失后默认图"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">img图片丢失后默认图</div></div><div class="info-2"><div class="info-item-1"> 万物并育而不相害，道并行而不相悖。一一《礼记》  我们在使用img标签时经常会遇到图片丢失等情况，我们可以给图片设置一个默认图 写法如下： 1&lt;img src onerror=&quot;this.src=&#x27;/img/oss/2020-06-01/head.jpg&#x27;&quot; /&gt;  这时候我们并没有给src属性赋值，导致触发onerror事件，执行了其中的js  当然如果我们是正常的图片，是无影响的  </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/01/02/locomotion/" title="locomotion"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-02</div><div class="info-item-2">locomotion</div></div><div class="info-2"><div class="info-item-1"> 成功&#x3D;艰苦劳动+正确的方法+少说空话。——爱因斯坦  🚂 Locomotion：把《我的世界》玩家动作“卷到飞起”的实时动画系统（曾用名：Trainguy’s Animation Overhaul） Locomotion 是一个为《我的世界》Java 版打造的强力 Mod，目标非常直接：给“实体”和“方块”带来复杂、由玩法驱动的动画，用一个实时动画系统把角色的一举一动都变得更自然、更有张力。它的灵感来源于 Unreal Engine 的 Animation Blueprint——没错，就是那套在游戏里非常好用的“状态机 + 混合空间 + 蒙太奇轨道”的组合拳。  注意：项目仍在“重开发”阶段！你可以自行编译体验，但会看到缺失的动画、占位内容、以及一些用于调试的可视化元素。把它当作“提前试吃”，别把它当作“稳定发售版”。   这货到底想做什么？（一句话版本） 实时、玩法驱动的动画系统。 给玩家的一举一动加上“懂你的”细节：走、跑、跳、攻击、转身、切换装备……都能按“状态”进行自然过渡。 不只是角色，还包括“方块 &#x2F; 方块实体”动画（后续计划中）。  一句话：...</div></div></div></a><a class="pagination-related" href="/2023/04/04/%E7%BB%99%E9%A1%B9%E7%9B%AE%E6%B7%BB%E5%8A%A0chechstyle/" title="给项目添加chechstyle"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-04-04</div><div class="info-item-2">给项目添加chechstyle</div></div><div class="info-2"><div class="info-item-1"> 普通而抽象的思想是人类铸成大错的根源。——卢俊  收到个pr：https://gitee.com/dromara/stream-query/pulls/301 给项目添加了checkstyle，非常的nice 主要是配置了maven插件 123456789101112131415161718192021222324&lt;!-- 公共checkstyle标准配置，可以在子模块中覆盖，修改自定义选项 --&gt;&lt;plugin&gt;    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;    &lt;artifactId&gt;maven-checkstyle-plugin&lt;/artifactId&gt;    &lt;version&gt;3.1.0&lt;/version&gt;    &lt;configuration&gt;        &lt;configLocation&gt;checkstyle/checkstyle.xml&lt;/configLocation&gt;        &...</div></div></div></a><a class="pagination-related" href="/2020/08/09/%E4%BA%91%E9%89%B4%E9%BB%84%EF%BC%8C%E4%BD%A0%E6%87%82/" title="云鉴黄，你懂"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-09</div><div class="info-item-2">云鉴黄，你懂</div></div><div class="info-2"><div class="info-item-1"> 鉴黄是我的事业，我会一直做到死为止！——唐马儒  大家都知道，我们的网站内容安全是很重要的 比如今天张三发布一个李四的照片，然后贴上&#x3D;&#x3D;一夜八百量大从优&#x3D;&#x3D; 如果我们的内容未经审核就发布到网站上，那么网站的安全就得不到保障，这对祖国未来的花朵影响是很大的 但如果我们每一条都人工审核的话，会占用大量人力资源，造就更多的就业岗位 造成更多的人力成本 为了解决这个问题，阿里云带着我们的产品来啦！它就是《阿里云内容安全》，简称IAcs 那么如何使用呢？首先，打开符文页，阿不，打开阿里云官网。。。   访问阿里云官网，注册阿里云账号。如果已有阿里云账号，请跳过此步骤。 访问内容安全产品试用页面，单击立即开通，正式开通服务。 访问AccessKey管理页面，管理您的AccessKey ID和AccessKey Secret。   复制依赖 123456789101112131415161718192021222324252627282930&lt;dependency&gt;    &lt;groupId&gt;com.aliyun&lt;/grou...</div></div></div></a><a class="pagination-related" href="/2023/12/11/spring-state-machine%E4%BD%BF%E7%94%A8redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="spring-state-machine使用redis持久化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-11</div><div class="info-item-2">spring-state-machine使用redis持久化</div></div><div class="info-2"><div class="info-item-1"> 问号是开启任何一门科学的钥匙。——巴甫洛夫  之前介绍过spring-state-machine持久化 今天使用redis实现 首先是需要一个RedisStateMachineRepository 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103import com.alibaba.nacos.common.utils.JacksonUtils;import jakarta.annotation.Nonnull;import jakarta.annotation.Resource;import org.dromara.streamquery.stream.core.stream.Steam;import org.springfra...</div></div></div></a><a class="pagination-related" href="/2022/11/30/BeanTree/" title="BeanTree"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-11-30</div><div class="info-item-2">BeanTree</div></div><div class="info-2"><div class="info-item-1"> 好说歪理绝非善变，能说会道过失必多——佚名  分享一个前两天写的lambda操作树的BeanTree https://gitee.com/dromara/hutool/pulls/884 代码地址： https://gitee.com/dromara/hutool/blob/v6-dev/hutool-core/src/main/java/cn/hutool/core/tree/BeanTree.java 使用方式如下： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127128129pack...</div></div></div></a><a class="pagination-related" href="/2023/05/14/apache-incubator-streampark%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C%EF%BC%88%E4%B8%89%EF%BC%89/" title="apache-incubator-streampark源码编译本地运行（三）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-14</div><div class="info-item-2">apache-incubator-streampark源码编译本地运行（三）</div></div><div class="info-2"><div class="info-item-1"> 宁可光明磊落地死，不能卑鄙无耻地活。——佚名  如果我们需要直接将streampark源码编译成产物部署，则可以使用 1mvn -Pscala-2.12,shaded,dist,webapp -DskipTests -X clean install  但是这里的install-node-and-pnpm插件出了毛病  即便网络环境ok，下载下来的node如果在windows系统也是32位的，根本无法执行下一步操作 刚好我本机有node v17以及自己安装了pnpm  那我这里就跳过下载node和pnpm的脚本  这里报node找不到，我们直接复制过去即可   要是没有的，可以去官网下载：https://nodejs.org 然后copy到项目目录 1G:\opensource\incubator-streampark\streampark-console\streampark-console-webapp\node   执行 1G:\opensource\incubator-streampark\streampark-console\streampark-console-web...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

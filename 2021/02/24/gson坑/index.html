@@ -1,0 +1,211 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>gson坑 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一直只做自己会做的，就什么也做不成。最重要的是，你自己有没有兴趣——《碧蓝之海》  前两天使用Gson中遇到一个坑 同事使用 1Gson gson &#x3D; new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();  创建gson对象 所以到我这，出现了字段不序列化，或者反序列化不了的问题 例如下面这个类 1234567891">
+<meta property="og:type" content="article">
+<meta property="og:title" content="gson坑">
+<meta property="og:url" content="https://vampireachao.gitee.io/2021/02/24/gson%E5%9D%91/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="一直只做自己会做的，就什么也做不成。最重要的是，你自己有没有兴趣——《碧蓝之海》  前两天使用Gson中遇到一个坑 同事使用 1Gson gson &#x3D; new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();  创建gson对象 所以到我这，出现了字段不序列化，或者反序列化不了的问题 例如下面这个类 1234567891">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2021-02-24T12:52:31.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.081Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "gson坑",
+  "url": "https://vampireachao.gitee.io/2021/02/24/gson%E5%9D%91/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2021-02-24T12:52:31.000Z",
+  "dateModified": "2026-02-24T09:48:42.081Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2021/02/24/gson%E5%9D%91/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'gson坑',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">gson坑</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">gson坑</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-02-24T12:52:31.000Z" title="发表于 2021-02-24 20:52:31">2021-02-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.081Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>一直只做自己会做的，就什么也做不成。最重要的是，你自己有没有兴趣——《碧蓝之海》</p>
+</blockquote>
+<p>前两天使用<code>Gson</code>中遇到一个坑</p>
+<p>同事使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Gson</span> <span class="variable">gson</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">GsonBuilder</span>().excludeFieldsWithoutExposeAnnotation().create();</span><br></pre></td></tr></table></figure>
+
+<p>创建<code>gson</code>对象</p>
+<p>所以到我这，出现了字段不序列化，或者反序列化不了的问题</p>
+<p>例如下面这个类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">User</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">509877226276918727L</span>;</span><br><span class="line">    <span class="meta">@Expose</span></span><br><span class="line">    <span class="keyword">private</span> String firstName;</span><br><span class="line">    <span class="meta">@Expose(serialize = false)</span></span><br><span class="line">    <span class="keyword">private</span> String lastName;</span><br><span class="line">    <span class="meta">@Expose(serialize = false, deserialize = false)</span></span><br><span class="line">    <span class="keyword">private</span> String emailAddress;</span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用以下代码进行序列化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Gson</span> <span class="variable">gson</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">GsonBuilder</span>().excludeFieldsWithoutExposeAnnotation().create();</span><br><span class="line"><span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">User</span>();</span><br><span class="line">user.setFirstName(<span class="string">&quot;Supa&quot;</span>);</span><br><span class="line">user.setLastName(<span class="string">&quot;Hino&quot;</span>);</span><br><span class="line">user.setEmailAddress(<span class="string">&quot;achao1441470436@gmail.com&quot;</span>);</span><br><span class="line">user.setPassword(<span class="string">&quot;39a8456c26584ba987d4a9f1f8f75fc1&quot;</span>);</span><br><span class="line"><span class="type">String</span> <span class="variable">userJson</span> <span class="operator">=</span> gson.toJson(user);</span><br><span class="line">System.out.println(userJson);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果为</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;firstName&quot;:&quot;Supa&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到只有<code>firstName</code>被序列化了</p>
+<p>这是因为我们只有<code>firstName</code>上加了<code>@Expose</code>并且<code>serialize</code>值为<code>true</code></p>
+<p>如果没有这个注解或者<code>serialize</code>为<code>false</code>时，它就不会被序列化</p>
+<p>但注意还有个属性<code>deserialize</code>，当它为<code>false</code>时，反序列化<code>json</code>到对象时，会过滤该属性</p>
+<p>例如我使用这段<code>json</code>去反序列化</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;firstName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Supa&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;lastName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Hino&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;emailAddress&quot;</span><span class="punctuation">:</span> <span class="string">&quot;achao1441470436@gmail.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;password&quot;</span><span class="punctuation">:</span> <span class="string">&quot;39a8456c26584ba987d4a9f1f8f75fc1&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">myJson</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;firstName\&quot;:\&quot;Supa\&quot;,\&quot;lastName\&quot;:\&quot;Hino\&quot;,\&quot;emailAddress\&quot;:\&quot;achao1441470436@gmail.com\&quot;,\&quot;password\&quot;:\&quot;39a8456c26584ba987d4a9f1f8f75fc1\&quot;&#125;&quot;</span>;</span><br><span class="line"><span class="type">User</span> <span class="variable">myUser</span> <span class="operator">=</span> gson.fromJson(myJson, User.class);</span><br><span class="line">System.out.println(myUser);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">User(firstName=Supa, lastName=Hino, emailAddress=null, password=null)</span><br></pre></td></tr></table></figure>
+
+<p>所以在使用<code>Gson</code>的时候，一定要注意<code>Gson</code>对象是如何创建的</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2021/02/25/mysql%E4%B8%AD%E6%9D%A1%E4%BB%B6%E5%87%BD%E6%95%B0/" title="mysql中条件函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">mysql中条件函数</div></div><div class="info-2"><div class="info-item-1"> 世上有味之事，包括诗、酒、哲学、爱情，往往无用。吟无用之诗，醉无用之酒，读无用之书，钟无用之情，终于成一无用之人，却因此活得有滋有味。——周国平《风中的纸屑》   在我们日常开发中，有时可能会在SQL中写一些条件，例如这里一个例子 这里有这样一张表,数据如下：  如果我们需要把未认证(状态为NOT_AUTH)的用户放到前面排序显示，在不影响分页的情况下，我们可以这么写 1SELECT *,IF(status=&#x27;NOT_AUTH&#x27;,&#x27;NOT_AUTH&#x27;,null) AS sort FROM `user` ORDER BY sort DESC  这里使用到了MYSQL的IF函数 1IF([条件],[为true时值],[为false时值])  例如我们需要整体排序，认证中的在最前，然后是未认证的，最后是已认证的 我们则可以使用MYSQL中的CASE、WHEN、THEN、ELSE、END一套去做 12345SELECT *,( CASE WHEN STATUS = &#x27;AUTHING&#x27; THEN 0 WHEN STATUS = ...</div></div></div></a><a class="pagination-related" href="/2021/02/23/git%E6%94%BE%E5%BC%83%E5%8F%98%E6%9B%B4/" title="git放弃变更"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">git放弃变更</div></div><div class="info-2"><div class="info-item-1"> 度之住事,验之来事,参之平素，可则决之。一一《鬼谷子》  我们有时想放弃本地的变更，直接从远端仓库pull代码到本地覆盖 可以使用 1git checkout -f  去放弃所有变更 当然，-f可以使用文件(夹)路径替换，这样的话只放弃指定的文件(夹)中的变更 但如果你新增了文件，想要放弃新增则可以使用 1git clean -df  如果需要指定文件(夹)，则可以在其中加入文件(夹)名，例如 1git clean xxx.txt -df  然后就可以pull覆盖本地啦 </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2023/11/13/webflux%E4%B8%AD%E6%93%8D%E4%BD%9C%E7%AC%A6%E8%B0%83%E8%AF%95/" title="webflux中操作符调试"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-13</div><div class="info-item-2">webflux中操作符调试</div></div><div class="info-2"><div class="info-item-1"> 生命不息，奋斗不止。——卡莱尔  分享一个小技巧，在webflux开发中，我们可以在主启动类上加这么一行代码： 1Hooks.onOperatorDebug();  这行代码的用处是注册一个回调函数，可以打印操作符信息，举个例子： 12345678910111213141516import reactor.core.publisher.Flux;import reactor.core.publisher.Hooks;public class DebugExample &#123;    public static void main(String[] args) &#123;        Hooks.onOperatorDebug(); // 启用操作符调试        Flux&lt;Integer&gt; flux = Flux.just(1, 2, 3, 4)                .map(i -&gt; i / 0); // 这里会触发除以零的异常        flux.subscribe(                value -&gt; Syst...</div></div></div></a><a class="pagination-related" href="/2025/03/04/MP%E6%89%B9%E6%8F%92%E4%BC%98%E5%8C%96/" title="MP批插优化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-04</div><div class="info-item-2">MP批插优化</div></div><div class="info-2"><div class="info-item-1"> 我虽不富甲天下，却拥有无数个艳阳天和夏日。——梭罗  看到这篇文章 https://mp.weixin.qq.com/s/NkP6kND6wQZqTd_gIuaYAw MyBatisPlus 高并发场景下的ID生成优化：分布式序列号服务实践突破分布式ID的性能瓶颈某电商平台在促销活动期间面临订单创建峰值压力，使用MyBatisPlus默认的雪花算法生成ID时，出现以下问题：  时间戳精度不足导致ID碰撞率升高（单机QPS超5000时） 服务器时钟回拨引发的批量插入失败 长ID对存储空间的额外消耗（18位 vs 传统13位）  压力测试显示，在高并发场景下单节点生成ID的吞吐量上限为1.2万&#x2F;秒，成为系统瓶颈。通过改造ID生成机制，我们实现了单机5万&#x2F;秒的ID生成速度，同时将存储空间压缩40%。 混合式ID生成架构设计技术方案对比   方案类型 吞吐量 碰撞概率 时钟依赖 实现复杂度    原生雪花算法 1.2万&#x2F;s 0.01% 强依赖 低   UUIDv4 无限 理论无碰撞 无依赖 低   数据库序列 800&#x2F;s 无 无 中   混合分段...</div></div></div></a><a class="pagination-related" href="/2023/04/02/h2-console/" title="h2-console"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-04-02</div><div class="info-item-2">h2-console</div></div><div class="info-2"><div class="info-item-1"> 名枪好躲，暗箭难防。——无名氏  分享一个h2-console的使用方式： 首先配置： 1234spring:  h2:    console:      enabled: true  然后可以看到日志：  我们访问localhost:8080/h2-console，复制jdbc:h2:mem:2e01066c-fbfb-40a5-8ba9-3ff049d753f8到connection url  进到控制台，并成功连接 这里可以看到我们的库表信息以及进行查询  非常的好用 </div></div></div></a><a class="pagination-related" href="/2024/10/11/Apache-ShenYu%E8%AE%A9h2%E6%95%B0%E6%8D%AE%E5%BA%93%E6%8C%81%E4%B9%85%E5%8C%96%E5%88%B0%E6%96%87%E4%BB%B6%E4%B8%AD/" title="Apache-ShenYu让h2数据库持久化到文件中"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-11</div><div class="info-item-2">Apache-ShenYu让h2数据库持久化到文件中</div></div><div class="info-2"><div class="info-item-1"> 你要记住，在敢于担当培养一个人的任务之前，自己就必须要造成一个人，自己就必须是一个值得推崇的模范。——卢俊  今天发现使用 调试h2数据库 中的方式连接h2数据库却不行，由于目录里没有创建，所以我们得先创建： 123456spring:  datasource:    url: jdbc:h2:file:~/Downloads/shenyu-study/shenyu;DB_CLOSE_DELAY=-1;MODE=MySQL;SCHEMA=PUBLIC;    username: sa    password: sa    driver-class-name: org.h2.Driver  然后再启动后 123456789101112131415161718192021222324252627282930313233343536373839404142434445/* * Licensed to the Apache Software Foundation (ASF) under one or more * contributor license agreements.  See...</div></div></div></a><a class="pagination-related" href="/2023/01/28/spring-batch%E6%89%B9%E9%87%8F%E5%A4%84%E7%90%86/" title="spring-batch批量处理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-28</div><div class="info-item-2">spring-batch批量处理</div></div><div class="info-2"><div class="info-item-1"> 没有一个人能真正理解另一个人的烦恼或喜悦——舒伯特  按照文档：https://spring.io/guides/gs/batch-processing/ 新建一个项目  勾选Spring Batch以及HyperSQL Database  点击create 在resources下面新建我们的数据文件 sample-data.csv 12345Jill,DoeJoe,DoeJustin,DoeJane,DoeJohn,Doe  schema-all.sql 1234567DROP TABLE people IF EXISTS;CREATE TABLE people  (    person_id BIGINT IDENTITY NOT NULL PRIMARY KEY,    first_name VARCHAR(20),    last_name VARCHAR(20));  然后新建一个Person业务类 12345678910111213141516171819202122232425262728293031323334353637package com.example....</div></div></div></a><a class="pagination-related" href="/2021/07/20/%E6%8E%A5%E5%8F%A3%E8%83%BD%E7%8E%A9%E7%9A%84%E5%B0%8F%E8%8A%B1%E6%8B%9B/" title="接口能玩的小花招"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-20</div><div class="info-item-2">接口能玩的小花招</div></div><div class="info-2"><div class="info-item-1"> 一个人的礼貌是一面照出他的肖像的镜子。——歌德  首先写一个函数式接口 12345678910@FunctionalInterfacepublic interface Person &#123;    /**     * 睡     *     * @author &lt;achao1441470436@gmail.com&gt;     * @since 2021/7/20 0020 23:20     */    void sleep();&#125;  我们能通过调用其中的sleep方法执行函数(方法) 123      Person person = () -&gt; System.out.println(&quot;睡&quot;);      person.sleep();// 执行结果：睡  而执行的函数则是我们接口本身，这个函数式接口就代表了一个函数 函数式接口 其实就可以理解为 函数、方法本身 但我们今天主要聊的不是这个 我们在函数中定义的变量默认就是常量 1234567891011121314@FunctionalInterfacepublic interf...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

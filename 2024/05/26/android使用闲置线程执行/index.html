@@ -1,0 +1,208 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>android使用闲置线程执行 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="读书不可以兼看未读者，却当兼看已读者。——朱熹  使用 Looper.myQueue().addIdleHandler 实现空闲处理在Android开发中，我们经常需要在应用的主线程（UI线程）中执行一些耗时操作，这可能会导致界面卡顿或无响应。为了优化用户体验，我们可以使用一些技巧来确保主线程的流畅运行。本文将介绍如何使用 android.os.Looper#myQueue.addIdleHan">
+<meta property="og:type" content="article">
+<meta property="og:title" content="android使用闲置线程执行">
+<meta property="og:url" content="https://vampireachao.gitee.io/2024/05/26/android%E4%BD%BF%E7%94%A8%E9%97%B2%E7%BD%AE%E7%BA%BF%E7%A8%8B%E6%89%A7%E8%A1%8C/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="读书不可以兼看未读者，却当兼看已读者。——朱熹  使用 Looper.myQueue().addIdleHandler 实现空闲处理在Android开发中，我们经常需要在应用的主线程（UI线程）中执行一些耗时操作，这可能会导致界面卡顿或无响应。为了优化用户体验，我们可以使用一些技巧来确保主线程的流畅运行。本文将介绍如何使用 android.os.Looper#myQueue.addIdleHan">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2024-05-26T11:20:18.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:41.946Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="android">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "android使用闲置线程执行",
+  "url": "https://vampireachao.gitee.io/2024/05/26/android%E4%BD%BF%E7%94%A8%E9%97%B2%E7%BD%AE%E7%BA%BF%E7%A8%8B%E6%89%A7%E8%A1%8C/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2024-05-26T11:20:18.000Z",
+  "dateModified": "2026-02-24T09:48:41.946Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2024/05/26/android%E4%BD%BF%E7%94%A8%E9%97%B2%E7%BD%AE%E7%BA%BF%E7%A8%8B%E6%89%A7%E8%A1%8C/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'android使用闲置线程执行',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">android使用闲置线程执行</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">android使用闲置线程执行</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-05-26T11:20:18.000Z" title="发表于 2024-05-26 19:20:18">2024-05-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:41.946Z" title="更新于 2026-02-24 17:48:41">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>读书不可以兼看未读者，却当兼看已读者。——朱熹</p>
+</blockquote>
+<h3 id="使用-Looper-myQueue-addIdleHandler-实现空闲处理"><a href="#使用-Looper-myQueue-addIdleHandler-实现空闲处理" class="headerlink" title="使用 Looper.myQueue().addIdleHandler 实现空闲处理"></a>使用 Looper.myQueue().addIdleHandler 实现空闲处理</h3><p>在Android开发中，我们经常需要在应用的主线程（UI线程）中执行一些耗时操作，这可能会导致界面卡顿或无响应。为了优化用户体验，我们可以使用一些技巧来确保主线程的流畅运行。本文将介绍如何使用 <code>android.os.Looper#myQueue.addIdleHandler</code> 来在主线程空闲时执行任务。</p>
+<h4 id="什么是-Looper-和-MessageQueue？"><a href="#什么是-Looper-和-MessageQueue？" class="headerlink" title="什么是 Looper 和 MessageQueue？"></a>什么是 Looper 和 MessageQueue？</h4><p>在Android中，每个线程可以有一个 <code>Looper</code> 和一个 <code>MessageQueue</code>。<code>Looper</code> 是一个类，用于管理线程的消息循环，而 <code>MessageQueue</code> 则是一个消息队列，存储需要处理的消息和任务。主线程默认有一个 <code>Looper</code> 和一个 <code>MessageQueue</code>，它们共同协作来处理消息和事件。</p>
+<h4 id="什么是-IdleHandler？"><a href="#什么是-IdleHandler？" class="headerlink" title="什么是 IdleHandler？"></a>什么是 IdleHandler？</h4><p><code>IdleHandler</code> 是一个接口，包含一个 <code>queueIdle</code> 方法。通过实现这个接口，我们可以在 <code>MessageQueue</code> 空闲时执行特定的任务。通常，<code>IdleHandler</code> 会在没有其他消息处理时被调用，因此适合执行一些非紧急的、耗时较短的操作。</p>
+<h4 id="使用-addIdleHandler"><a href="#使用-addIdleHandler" class="headerlink" title="使用 addIdleHandler"></a>使用 addIdleHandler</h4><p>以下是一个示例，演示如何使用 <code>Looper.myQueue().addIdleHandler</code> 来在主线程空闲时执行任务：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> android.os.Handler;</span><br><span class="line"><span class="keyword">import</span> android.os.Looper;</span><br><span class="line"><span class="keyword">import</span> android.os.MessageQueue;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MainActivity</span> <span class="keyword">extends</span> <span class="title class_">AppCompatActivity</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">(Bundle savedInstanceState)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取主线程的 MessageQueue</span></span><br><span class="line">        Looper.myQueue().addIdleHandler(<span class="keyword">new</span> <span class="title class_">MessageQueue</span>.IdleHandler() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">queueIdle</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="comment">// 在这里执行你的任务</span></span><br><span class="line">                performIdleTask();</span><br><span class="line">                <span class="comment">// 返回 false 表示处理完成后不再调用</span></span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">performIdleTask</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// 执行一些非紧急的、耗时较短的操作</span></span><br><span class="line">        Log.d(<span class="string">&quot;IdleHandler&quot;</span>, <span class="string">&quot;Executing idle task...&quot;</span>);</span><br><span class="line">        <span class="comment">// 示例操作</span></span><br><span class="line">        loadDataInBackground();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">loadDataInBackground</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// 模拟后台加载数据</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="comment">// 模拟耗时操作</span></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">2000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                runOnUiThread(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">                        Log.d(<span class="string">&quot;IdleHandler&quot;</span>, <span class="string">&quot;Data loaded.&quot;</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="代码解读"><a href="#代码解读" class="headerlink" title="代码解读"></a>代码解读</h4><ol>
+<li><strong>获取主线程的 MessageQueue</strong>：通过 <code>Looper.myQueue()</code> 获取当前线程的 <code>MessageQueue</code>。</li>
+<li><strong>添加 IdleHandler</strong>：调用 <code>addIdleHandler</code> 方法，将一个实现了 <code>IdleHandler</code> 接口的对象添加到消息队列中。</li>
+<li><strong>实现 queueIdle 方法</strong>：在 <code>queueIdle</code> 方法中执行任务。在示例中，我们调用了 <code>performIdleTask</code> 方法来执行具体的任务。</li>
+<li><strong>返回值</strong>：<code>queueIdle</code> 方法返回 <code>false</code>，表示任务处理完成后不再调用。如果返回 <code>true</code>，则表示每次队列空闲时都会调用该处理器。</li>
+</ol>
+<h4 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h4><ul>
+<li><code>IdleHandler</code> 适用于执行一些不影响UI流畅性的非紧急任务。如果任务过于耗时，可能仍然会影响到用户体验。</li>
+<li>适时移除 <code>IdleHandler</code>，以避免不必要的性能开销。</li>
+</ul>
+<p>通过合理使用 <code>Looper.myQueue().addIdleHandler</code>，我们可以有效地在主线程空闲时执行一些后台任务，从而提升应用的性能和用户体验。</p>
+<p>希望这篇文章对你理解和使用 <code>addIdleHandler</code> 有所帮助。如果有任何问题或建议，欢迎在评论区留言！</p>
+<hr>
+<h3 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://developer.android.com/reference/android/os/Looper">官方文档：Looper</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.android.com/reference/android/os/MessageQueue">官方文档：MessageQueue</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.android.com/reference/android/os/Handler">官方文档：Handler</a></li>
+</ul>
+<p>希望你喜欢这篇文章，更多内容请访问我的 <a target="_blank" rel="noopener" href="https://vampireachao.github.io/">博客</a>。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/android/">android</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/05/27/lombok%E7%9A%84-StandardException/" title="lombok的@StandardException"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">lombok的@StandardException</div></div><div class="info-2"><div class="info-item-1"> 但愿每次回忆，对生活都不感到内疚。——郭小川  官方文档： @StandardException 很简单的一个注解，主要是解决自定义异常需要重写一堆构造器 123456import lombok.experimental.StandardException;@StandardExceptionpublic class ExampleException extends Exception &#123;&#125;  就会生成： 12345678910111213141516171819public class ExampleException extends Exception &#123;    public ExampleException() &#123;        this(null, null);    &#125;    public ExampleException(String message) &#123;        this(message, null);    &#125;    public ExampleException(Throwable c...</div></div></div></a><a class="pagination-related" href="/2024/05/25/AI%E6%8D%A2%E8%A3%85%E8%99%9A%E6%8B%9F%E8%AF%95%E7%A9%BF%E6%A8%A1%E5%9E%8B/" title="AI换装虚拟试穿模型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">AI换装虚拟试穿模型</div></div><div class="info-2"><div class="info-item-1"> 凡心所向，素履所往，生如逆旅，一苇以航。——尘曲  https://github.com/yisol/IDM-VTON 分享一个AI换装虚拟试穿的模型 12345git clone https://github.com/yisol/IDM-VTON.gitcd IDM-VTONconda env create -f environment.yamlconda activate idm  VITON-HD 数据集可以从这里下载 GitHub - shadow2496&#x2F;VITON-HD: Official PyTorch implementation of &quot;VITON-HD: High-Resolution Virtual Try-On via Misalignment-Aware Normalization&quot; (CVPR 2021) 下完了把 vitonhd_test_tagged.json 放到 test 目录中 12345678910train|-- ...test|-- image|-- image-densepose|-- agnostic...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/02/23/pc%E4%B8%8A%E4%BD%BF%E7%94%A8%E5%91%BD%E4%BB%A4%E7%BB%99android%E5%AE%89%E8%A3%85apk/" title="pc上使用命令给android安装apk"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-23</div><div class="info-item-2">pc上使用命令给android安装apk</div></div><div class="info-2"><div class="info-item-1"> 不守人之功，不鄙人之能。——晏子  adb install 命令用于通过 Android Debug Bridge (ADB) 将应用程序（通常是 APK 文件）安装到连接的 Android 设备或模拟器上。这是 Android 应用开发和测试过程中常用的命令，允许开发者直接从开发环境将应用安装到设备上。 使用方法基本语法： 1adb install [options] &lt;path_to_apk&gt;  其中 &lt;path_to_apk&gt; 是 APK 文件在计算机上的路径。 参数（Options）adb install 命令支持多个选项，可以修改安装行为：  -l: 将应用安装到保护目录下。 -r: 重新安装现有应用，保留其数据。 -t: 允许安装测试 APK。 -s: 将应用安装到 SD 卡。 -d: 允许降级覆盖安装。 -g: 授予所有运行时权限。 --abi &lt;ABI&gt;: 强制使用指定的 ABI 进行安装。这在你的 APK 支持多种 ABI，但设备支持的 ABI 不是 APK 的默认 ABI 时很有用。 --instant: 将应用作为 In...</div></div></div></a><a class="pagination-related" href="/2020/09/24/android%E7%AE%80%E5%8D%95%E5%BC%B9%E6%A1%86/" title="android简单弹框"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-24</div><div class="info-item-2">android简单弹框</div></div><div class="info-2"><div class="info-item-1"> 勇于求知的人，决不至于空闲于事。——孟德斯鸠  非常简单 先看效果  12345678910111213141516171819// 构件一个AlertDialognew AlertDialog.Builder(MainActivity.this)        // 设置标题        .setTitle(&quot;提示&quot;)        // 设置主要消息        .setMessage(&quot;确认？&quot;)        // 设置确认按钮        .setPositiveButton(&quot;确定&quot;, (dialog, which) -&gt; &#123;            // 点击确认按钮后执行            Log.i(&quot;点击了确认&quot;, &quot;太棒了！&quot;);        &#125;)        //设置取消按钮        .setNegativeButton(&quot;取消&quot;, (dialog, which) -&gt; &#123;  ...</div></div></div></a><a class="pagination-related" href="/2025/04/28/UnPeek-LiveData/" title="UnPeek-LiveData"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-28</div><div class="info-item-2">UnPeek-LiveData</div></div><div class="info-2"><div class="info-item-1"> 天才不能使人不必工作，不能代替劳动。要发展天才，必须长时间地学习和高度紧张地工作。人越有能力，他面临的任务也就越复杂，越重要。 —— 阿·斯米尔诺夫  GitHub - KunMinX&#x2F;UnPeek-LiveData: LiveData 数据倒灌：别问，问就是不可预期 - Perfect alternative to SingleLiveEvent, supporting multiple observers. UnPeek-LiveData：解决 LiveData 数据倒灌问题的完美替代方案在 Android Jetpack 架构中，LiveData 是一个非常强大的组件，用于观察数据变化并与生命周期感知组件协作。然而，开发者经常会遇到一个问题——LiveData 数据倒灌。这种现象会导致旧数据被重新触发，进而引发不可预期的行为。UnPeek-LiveData 是一个专为解决这一问题而设计的轻量级库，它是 SingleLiveEvent 的完美替代品，并支持多个观察者。  什么是 UnPeek-LiveData？UnPeek-LiveData 是一个基于 Jetpa...</div></div></div></a><a class="pagination-related" href="/2022/12/08/realm-io/" title="realm.io"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-08</div><div class="info-item-2">realm.io</div></div><div class="info-2"><div class="info-item-1"> 千万不要与同一个敌人交战过频，否则，他会把你的战术都学会的。——爱默生  分享一个数据库：https://realm.io/ java版本的github：https://github.com/realm/realm-java 这是一个旨在取代Core Data和SQLite的高性能移动数据库  </div></div></div></a><a class="pagination-related" href="/2025/04/25/android-target-tooltip/" title="android-target-tooltip"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-25</div><div class="info-item-2">android-target-tooltip</div></div><div class="info-2"><div class="info-item-1"> 不要让昨天占用今天的时间。 ——美洲谚语  https://github.com/sephiroth74/android-target-tooltip Android Target Tooltip：灵活强大的目标提示工具在移动应用开发中，Tooltips（提示工具） 是一种非常实用的 UI 元素，用于在用户界面中提供额外的信息或指导。Android Target Tooltip 是一个开源的 Android 库，它允许开发者轻松创建类似 Toast 的工具提示，但功能更加强大，因为它可以针对界面中的目标元素进行定制化显示。  什么是 Android Target Tooltip？Android Target Tooltip 是由开源作者 sephiroth74 创建的一个 Android 库，旨在为开发者提供灵活的工具提示解决方案。与传统的 Toast 提示不同，它可以指定目标 UI 元素（如按钮、图标）作为提示的定位点，并支持多种自定义样式和特性。 核心特点： 目标提示：可以将提示框与界面中的特定 UI 元素绑定。 高度自定义：支持自定义背景、动画、位置和其他视觉属性。 多语...</div></div></div></a><a class="pagination-related" href="/2024/02/10/%E5%AE%89%E5%8D%93usb%E6%8E%A7%E5%88%B6scrcpy/" title="安卓usb控制scrcpy"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-10</div><div class="info-item-2">安卓usb控制scrcpy</div></div><div class="info-2"><div class="info-item-1"> 食不过绝，欲不过多，冬不及温，夏不及凉。——葛洪  分享一下开源项目scrcpy GitHub - Genymobile&#x2F;scrcpy: Display and control your Android device 它可以用电脑显示和控制您的 Android 设备 通过 USB 或 TCP&#x2F;IP 连接的 Android 设备（视频和音频），并允许使用计算机的键盘和鼠标控制设备。它不需要任何root访问权限。适用于 Linux、Windows 和 macOS 我们安装一下  Linux Linux目录 Windows 窗户 macOS 苹果操作系统  我这里是mac，所以 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889909192939495969798991001011...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-Looper-myQueue-addIdleHandler-%E5%AE%9E%E7%8E%B0%E7%A9%BA%E9%97%B2%E5%A4%84%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">使用 Looper.myQueue().addIdleHandler 实现空闲处理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Looper-%E5%92%8C-MessageQueue%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">什么是 Looper 和 MessageQueue？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-IdleHandler%EF%BC%9F"><span class="toc-number">1.2.</span> <span class="toc-text">什么是 IdleHandler？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-addIdleHandler"><span class="toc-number">1.3.</span> <span class="toc-text">使用 addIdleHandler</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB"><span class="toc-number">1.4.</span> <span class="toc-text">代码解读</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">1.5.</span> <span class="toc-text">注意事项</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB"><span class="toc-number">2.</span> <span class="toc-text">扩展阅读</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>apache-streamparkpr和代码规范指南 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="世界上本来就有许多格格不入的事物为了共存而不得不相互接受。——博尔赫斯《沙之书》  最近在为streampark起草代码规范指南，对应的pr如下 https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;incubator-streampark-website&#x2F;pull&#x2F;226 对应的内容： 12345678910111213141516&lt;!--    Licensed to the Apach">
+<meta property="og:type" content="article">
+<meta property="og:title" content="apache-streamparkpr和代码规范指南">
+<meta property="og:url" content="https://vampireachao.gitee.io/2023/09/01/apache-streamparkpr%E5%92%8C%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="世界上本来就有许多格格不入的事物为了共存而不得不相互接受。——博尔赫斯《沙之书》  最近在为streampark起草代码规范指南，对应的pr如下 https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;incubator-streampark-website&#x2F;pull&#x2F;226 对应的内容： 12345678910111213141516&lt;!--    Licensed to the Apach">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2023-09-01T04:56:36.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:41.951Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "apache-streamparkpr和代码规范指南",
+  "url": "https://vampireachao.gitee.io/2023/09/01/apache-streamparkpr%E5%92%8C%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83%E6%8C%87%E5%8D%97/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2023-09-01T04:56:36.000Z",
+  "dateModified": "2026-02-24T09:48:41.951Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2023/09/01/apache-streamparkpr%E5%92%8C%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83%E6%8C%87%E5%8D%97/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'apache-streamparkpr和代码规范指南',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">apache-streamparkpr和代码规范指南</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">apache-streamparkpr和代码规范指南</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-09-01T04:56:36.000Z" title="发表于 2023-09-01 12:56:36">2023-09-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:41.951Z" title="更新于 2026-02-24 17:48:41">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>世界上本来就有许多格格不入的事物为了共存而不得不相互接受。——博尔赫斯《沙之书》</p>
+</blockquote>
+<p>最近在为<code>streampark</code>起草代码规范指南，对应的<code>pr</code>如下</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/apache/incubator-streampark-website/pull/226">https://github.com/apache/incubator-streampark-website/pull/226</a></p>
+<p>对应的内容：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--</span></span><br><span class="line"><span class="comment">    Licensed to the Apache Software Foundation (ASF) under one or more</span></span><br><span class="line"><span class="comment">    contributor license agreements.  See the NOTICE file distributed with</span></span><br><span class="line"><span class="comment">    this work for additional information regarding copyright ownership.</span></span><br><span class="line"><span class="comment">    The ASF licenses this file to You under the Apache License, Version 2.0</span></span><br><span class="line"><span class="comment">    (the &quot;License&quot;); you may not use this file except in compliance with</span></span><br><span class="line"><span class="comment">    the License.  You may obtain a copy of the License at</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">       https://www.apache.org/licenses/LICENSE-2.0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    Unless required by applicable law or agreed to in writing, software</span></span><br><span class="line"><span class="comment">    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span></span><br><span class="line"><span class="comment">    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></span><br><span class="line"><span class="comment">    See the License for the specific language governing permissions and</span></span><br><span class="line"><span class="comment">    limitations under the License.</span></span><br><span class="line"><span class="comment">--&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="1-Pull-Requests-Changes-Rule"><a href="#1-Pull-Requests-Changes-Rule" class="headerlink" title="1 Pull Requests &amp; Changes Rule"></a>1 Pull Requests &amp; Changes Rule</h2><ol>
+<li><p><code>ISSUE</code>&#x2F;<code>PR</code>(pull request) driving and naming</p>
+<ul>
+<li><p>Ensure that <code>PR</code> corresponds to <code>ISSUE</code>.</p>
+<blockquote>
+<p><strong>Note</strong>: <code>Hotfix</code> issue does not need to follow this rule, such as fixing spelling errors in <code>JavaDoc</code> or <code>document</code> files.</p>
+</blockquote>
+</li>
+<li><p>Title naming format<br>When naming <code>PR</code>, you can refer to the <code>[ISSUE-XXXX][Feature/Improve/Refactor/Bug/Cleanup] Title</code> of the pull request,<br>where <code>ISSUE-XXXX</code> should be replaced with the actual <code>ISSUE</code> number.</p>
+<ul>
+<li>The second part describes the type of <code>PR</code>, such as new features, improvement, refactor, etc.</li>
+<li>If all changes to <code>PR</code> are within a certain module or component, they can be indicated in the commit message.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Description</p>
+<ul>
+<li>Please fill in the <code>PR</code> template to describe the contribution. So that the reviewer can understand the problem and solution from the description, rather than just from the code.</li>
+<li>Ensure that the description is sufficient to illustrate the problem addressed by the <code>PR</code>.</li>
+<li>Small changes do not require too much description.</li>
+<li>In an ideal scenario, the problem is described in <code>ISSUE</code>, and most of the description is copied from there.</li>
+</ul>
+</li>
+<li><p>Try to break down changes into pure types of changes</p>
+<ul>
+<li>It’s recommended that <code>PR</code> should be arranged changes such as <code>Cleanup</code>, <code>Refactor</code>, <code>Improve</code>, and <code>Feature</code> into separated <code>PRs</code>&#x2F;<code>Commits</code>.</li>
+<li>In this way, the reviewers can independently view cleaning and refactoring, and ensure that these changes do not change behavior.</li>
+<li>Then, the reviewer can independently review the core changes and ensure that they are a clean and robust change.</li>
+<li>In extreme cases, if a rollback commit is required, it can provide the optimal granularity for version rollback selection.</li>
+<li>In addition, significant contributions should be split into a set of independent changes that can be reviewed independently.</li>
+</ul>
+</li>
+<li><p>Commit message<br>The commit of messages should follow a pattern similar to the <code>PR</code>: <code>[ISSUE-XXXX][Feature/Improve/Refactor/Cleanup] Title of the pull request</code>.</p>
+<ul>
+<li><code>[ISSUE-xxxx1][Improve(ment)] Improve ...</code></li>
+<li><code>[ISSUE-xxxx2][Refactor] Refactor ...</code></li>
+<li><code>[ISSUE-xxxx3][Feature] Support ...</code></li>
+<li><code>[ISSUE-xxxx4][Bug] Fix  ...</code></li>
+<li><code>[ISSUE-xxxx5][Feature][subtask] Support ...</code></li>
+<li><code>[Hotfix][module_name] Fix xxx comments ...</code></li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p><strong>Note</strong>: Try to use git history instead of annotated code (not mandatory)</p>
+</blockquote>
+<h2 id="2-Code-Checkstyle"><a href="#2-Code-Checkstyle" class="headerlink" title="2 Code Checkstyle"></a>2 Code Checkstyle</h2><ul>
+<li><p>Backend code formatting Maven plugin: <code>spotless</code><br>Just run <code>mvn spotless:apply</code> in the project repo root directory after installing the plugin.</p>
+</li>
+<li><p>Backend code specification Maven plugin: <code>checkstyle</code><br>Just run <code>mvn checkstyle:checkstyle</code> after installing the plugin.</p>
+</li>
+<li><p>Frontend code formatting plugin <code>eslint</code></p>
+<ul>
+<li>The original command is <code>npx eslint --cache --max-warnings 0 &quot;{src,mock}/**/*.{vue,ts,tsx}&quot; --fix</code></li>
+<li>Encapsulated as <code>npm run lint:eslint</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-Programming-Specification"><a href="#3-Programming-Specification" class="headerlink" title="3 Programming Specification"></a>3 Programming Specification</h2><h3 id="3-1-Naming-Style"><a href="#3-1-Naming-Style" class="headerlink" title="3.1 Naming Style"></a>3.1 Naming Style</h3><ol>
+<li><p>Prioritize selecting nouns for variable naming, it’s easier to distinguish between <code>variables</code> or <code>methods</code>.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Cache&lt;String&gt; publicKeyCache;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Pinyin abbreviations are prohibited for variables (excluding nouns such as place names), such as chengdu.</p>
+</li>
+<li><p>It is recommended to end variable names with a <code>type</code>.<br>For variables of type <code>Collection/List</code>, take <code>xxxx</code> (plural representing multiple elements) or end with <code>xxxList</code> (specific type).<br>For variables of type <code>map</code>, describe the <code>key</code> and <code>value</code> clearly:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;Long, User&gt; idUserMap;</span><br><span class="line">Map&lt;Long, String&gt; userIdNameMap;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>That can intuitively know the type and meaning of the variable through its name.<br>Method names should start with a verb first as follows:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">computeVcores</span><span class="params">(Object parameter1)</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>The methods name of basic <code>CRUD</code> of the database layer (non-service layer) should be uniformly standardized according to name <code>com.baomidou.mybatisplus.core.mapper.BaseMapper</code>:</p>
+<p>If perform a database select operation, the name of the method should be started with <code>select</code>.</p>
+<p>For example, <code>selectById</code>, <code>selectByXxx</code>, <code>selectPageByXxx</code></p>
+<ul>
+<li>If perform a database <mark> update </mark> statement operation, the name of the method should be started with <code>update</code></li>
+<li>If perform a database <mark> insert </mark> statement operation, the name of the method should be started with <code>insert</code></li>
+<li>If perform a database <mark> delete </mark> statement operation, the name of the method should be started with <code>delete</code></li>
+</ul>
+</li>
+<li><p>The methods name of basic <code>CRUD</code> of the service layer should be named as <code>com.baomidou.mybatisplus.extension.service.IService</code>:</p>
+<ul>
+<li>If perform a database <mark> select </mark> operation to query multiple records, the name of the method should be started with a <code>list</code>, such as <code>listByIds</code>, <code>listByXxx</code></li>
+<li>If perform a database <mark> select </mark> operation to query a single record, the name of the method should be started with get, such as <code>getByName</code> and <code>getOne</code></li>
+<li>If perform a database <mark> update </mark> operation, the name of the method should be started with <code>update</code></li>
+<li>If perform a database <mark> insert </mark> operation, the name of the method should be started with <code>save</code></li>
+<li>If perform a database <mark> delete </mark> operation, the name of the method should be started with <code>remove</code></li>
+</ul>
+</li>
+</ol>
+<h3 id="3-2-Constant-Variables-Definition"><a href="#3-2-Constant-Variables-Definition" class="headerlink" title="3.2 Constant Variables Definition"></a>3.2 Constant Variables Definition</h3><ol>
+<li><p>Set the <code>serialVersionUID</code> of all classes to <code>1L</code>, following <code>Flink</code>‘s <code>serialVersionUID</code>.</p>
+<ul>
+<li><p>Negative demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> -<span class="number">8713837118340960775L</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Positive demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>Redundant strings should be extracted as constants</p>
+<ul>
+<li><p>Negative demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> RestResponse <span class="title function_">success</span><span class="params">(Object data)</span> &#123;</span><br><span class="line">    <span class="type">RestResponse</span> <span class="variable">resp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RestResponse</span>();</span><br><span class="line">    resp.put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;success&quot;</span>);</span><br><span class="line">    resp.put(<span class="string">&quot;code&quot;</span>, ResponseCode.CODE_SUCCESS);</span><br><span class="line">    resp.put(<span class="string">&quot;data&quot;</span>, data);</span><br><span class="line">    <span class="keyword">return</span> resp;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> RestResponse <span class="title function_">error</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">RestResponse</span> <span class="variable">resp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RestResponse</span>();</span><br><span class="line">    resp.put(<span class="string">&quot;status&quot;</span>, <span class="string">&quot;error&quot;</span>);</span><br><span class="line">    resp.put(<span class="string">&quot;code&quot;</span>, ResponseCode.CODE_FAIL);</span><br><span class="line">    resp.put(<span class="string">&quot;data&quot;</span>, <span class="literal">null</span>);</span><br><span class="line">    <span class="keyword">return</span> resp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Positive demo:</p>
+<blockquote>
+<p>Strings are extracted as constant references.</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">STATUS_SUCCESS</span> <span class="operator">=</span> <span class="string">&quot;success&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">STATUS_FAIL</span> <span class="operator">=</span> <span class="string">&quot;error&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">STATUS</span> <span class="operator">=</span> <span class="string">&quot;status&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">CODE</span> <span class="operator">=</span> <span class="string">&quot;code&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DATA</span> <span class="operator">=</span> <span class="string">&quot;data&quot;</span>;</span><br><span class="line">     </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> RestResponse <span class="title function_">success</span><span class="params">(Object data)</span> &#123;</span><br><span class="line">    <span class="type">RestResponse</span> <span class="variable">resp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RestResponse</span>();</span><br><span class="line">    resp.put(STATUS, STATUS_SUCCESS);</span><br><span class="line">    resp.put(CODE, ResponseCode.CODE_SUCCESS);</span><br><span class="line">    resp.put(DATA, data);</span><br><span class="line">    <span class="keyword">return</span> resp;</span><br><span class="line">&#125;</span><br><span class="line">     </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> RestResponse <span class="title function_">error</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">RestResponse</span> <span class="variable">resp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RestResponse</span>();</span><br><span class="line">    resp.put(STATUS, STATUS_FAIL);</span><br><span class="line">    resp.put(CODE, ResponseCode.CODE_FAIL);</span><br><span class="line">    resp.put(DATA, <span class="literal">null</span>);</span><br><span class="line">    <span class="keyword">return</span> resp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>Variables that have not been reassigned must also be declared as <mark> final </mark> types.</p>
+</li>
+</ol>
+<h3 id="3-3-Methods-Rule"><a href="#3-3-Methods-Rule" class="headerlink" title="3.3 Methods Rule"></a>3.3 Methods Rule</h3><ol>
+<li><p>Sort the methods in the class in the order of <code>public</code>, <code>protected</code>, and <code>private</code></p>
+</li>
+<li><p>When there are restrictions on the method, the parameters and returned values of the method need to be annotated with <code>@Nonnull</code> or <code>@Nullable</code> annotations and constraints.</p>
+<p>For example, if the parameter cannot be null, it is best to add a <code>@Nonnull</code> annotation. If the returned value can be null, the <code>@Nullable</code> annotation should be added first.</p>
+<p><mark> Note: that the package name is <code>javax.validation.requirements </code> </mark></p>
+</li>
+<li><p>If there are too many lines of code in the method, please have a try on using multiple sub methods at appropriate points to segment the method body.</p>
+<p>Generally speaking, it needs to adhere to the following principles:</p>
+<ul>
+<li>Convenient testing</li>
+<li>Good semantics</li>
+<li>Easy to read</li>
+</ul>
+<p>In addition, it is also necessary to consider whether the splitting is reasonable in terms of components, logic, abstraction, and other aspects in the scenario.</p>
+<blockquote>
+<p>However, there is currently no clear definition of demo. During the evolution process, we will provide additional examples for developers to have a clearer reference and understanding.</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="3-4-Collection-Rule"><a href="#3-4-Collection-Rule" class="headerlink" title="3.4 Collection Rule"></a>3.4 Collection Rule</h3><ol>
+<li><p>For <code>collection</code> returned values, unless there are special <code>concurrent</code> (such as thread safety), always return the <code>interface</code>, such as:</p>
+<ul>
+<li>returns <mark> List </mark> if use <code>ArrayList</code></li>
+<li>returns <mark> Map </mark> if use <code>HashMap</code></li>
+<li>returns <mark> Set </mark> if use <code>HashSet</code></li>
+</ul>
+</li>
+<li><p>If there are multiple threads, the following declaration or returned types can be used:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> CurrentHashMap map;</span><br><span class="line"><span class="keyword">public</span> CurrentHashMap <span class="title function_">funName</span><span class="params">()</span>;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="3-5-Concurrent-Processing"><a href="#3-5-Concurrent-Processing" class="headerlink" title="3.5 Concurrent Processing"></a>3.5 Concurrent Processing</h3><ol>
+<li><p>The <code>thread pool</code> needs to be managed, using a unified entry point to obtain the <code>thread pool</code>.</p>
+<p><mark> Note: During the evolution process, we will provide additional examples for developers to have a clearer reference and understanding. </mark></p>
+</li>
+<li><p><code>Thread pool</code> needs to be resource constrained to prevent resource leakage caused by improper handling</p>
+</li>
+</ol>
+<h3 id="3-6-Control-Condition-Statements"><a href="#3-6-Control-Condition-Statements" class="headerlink" title="3.6 Control&#x2F;Condition Statements"></a>3.6 Control&#x2F;Condition Statements</h3><ol>
+<li><p>Avoid unreasonable <code>condition/control</code> branches order leads to:</p>
+<ul>
+<li>Multiple code line <code>depths</code> of <code>n+1</code></li>
+<li>Redundant lines</li>
+</ul>
+</li>
+</ol>
+<p>Generally speaking, if a method’s code line depth exceeds <code>2+ Tabs</code> due to continuous nested <code>if... else..</code>, it should be considered to try</p>
+<ul>
+<li><code>merging branches</code>,</li>
+<li><code>inverting branch conditions</code></li>
+<li><code>extracting private methods</code></li>
+</ul>
+<p>to reduce code line depth and improve readability like follows:</p>
+<ul>
+<li><p>Union or merge the logic into the next level calling</p>
+<ul>
+<li><p>Negative demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (isInsert) &#123;</span><br><span class="line">  save(platform);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">   updateById(platform);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>Positive demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">saveOrUpdate(platform);</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>Merge the conditions</p>
+<ul>
+<li><p>Negative demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (expression1) &#123;</span><br><span class="line">  <span class="keyword">if</span>(expression2) &#123;</span><br><span class="line">      ......</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>Positive demo:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (expression1 &amp;&amp; expression2) &#123;</span><br><span class="line">......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Reverse the condition</p>
+<ul>
+<li><p>Negative demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span> &#123;</span><br><span class="line"> <span class="comment">// Ignored more deeper block lines</span></span><br><span class="line"> <span class="comment">// .....</span></span><br><span class="line"> <span class="keyword">if</span> (condition1) &#123;</span><br><span class="line">    ...</span><br><span class="line"> &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    ...</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Positive demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span> &#123;</span><br><span class="line"> <span class="comment">// Ignored more deeper block lines</span></span><br><span class="line"> <span class="comment">// .....</span></span><br><span class="line"> <span class="keyword">if</span> (!condition1) &#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>Using a single variable or method to reduce the complex conditional expression</p>
+<ul>
+<li><p>Negative demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (dbType.indexOf(<span class="string">&quot;sqlserver&quot;</span>) &gt;= <span class="number">0</span> || dbType.indexOf(<span class="string">&quot;sql server&quot;</span>) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line"> ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Positive demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (containsSqlServer(dbType)) &#123;</span><br><span class="line">  ....</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//.....</span></span><br><span class="line"><span class="comment">// definition of the containsSqlServer</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>Using <code>sonarlint</code> and <code>better highlights</code> to check code depth looks like good in the future.</p>
+</blockquote>
+<h3 id="3-7-Code-Comments-Rule"><a href="#3-7-Code-Comments-Rule" class="headerlink" title="3.7 Code Comments Rule"></a>3.7 Code Comments Rule</h3><ol>
+<li><p>Method lacks comments:</p>
+<ul>
+<li><code>When</code>: When can the method be called</li>
+<li><code>How</code>: How to use this method and how to pass parameters, etc.</li>
+<li><code>What</code>: What functions does this method achieve</li>
+<li><code>Note</code>: What should developers pay attention to when calling this method</li>
+</ul>
+</li>
+<li><p>Missing necessary class header description comments.</p>
+<p>Add <code>What</code>, <code>Note</code>, etc. like mentioned in the <code>1</code>.</p>
+</li>
+<li><p>The method declaration in the interface must be annotated.</p>
+<ul>
+<li><p>If the semantics of the implementation and the annotation content at the interface declaration are inconsistent, the specific implementation method also needs to be rewritten with annotations.</p>
+</li>
+<li><p>If the semantics of the method implementation are consistent with the annotation content at the interface declaration, it is not recommended to write annotations to avoid duplicate annotations.</p>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="3-8-Java-Lambdas"><a href="#3-8-Java-Lambdas" class="headerlink" title="3.8 Java Lambdas"></a>3.8 Java Lambdas</h3><ol>
+<li><p>Prefer <code>non-capturing</code> lambdas (lambdas that do not contain references to the outer scope).<br>Capturing lambdas need to create a new object instance for every call. <code>Non-capturing</code> lambdas can use the same instance for each invocation.</p>
+<ul>
+<li><p>Negative demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">map.computeIfAbsent(key, x -&gt; key.toLowerCase())</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Positive demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">map.computeIfAbsent(key, k -&gt; k.toLowerCase());</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>Consider method references instead of inline lambdas</p>
+<ul>
+<li><p>Negative demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">map.computeIfAbsent(key, k-&gt; Loader.load(k));</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Positive demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">map.computeIfAbsent(key, Loader::load);</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<h3 id="3-9-Java-Streams"><a href="#3-9-Java-Streams" class="headerlink" title="3.9 Java Streams"></a>3.9 Java Streams</h3><ul>
+<li><p>Avoid Java Streams in any performance critical code.</p>
+</li>
+<li><p>The main motivation to use Java Streams would be to improve code readability. As such, they can be a good match in parts of the code that are not data-intensive, but deal with coordination.</p>
+</li>
+<li><p>Even in the latter case, try to limit the scope to a method, or a few private methods within an internal class.</p>
+</li>
+</ul>
+<h3 id="3-10-Pre-Conditions-Checking"><a href="#3-10-Pre-Conditions-Checking" class="headerlink" title="3.10 Pre-Conditions Checking"></a>3.10 Pre-Conditions Checking</h3><ol>
+<li>Use a unified <code>Utils.requireXXX</code> to complete the validation of the prerequisite, and if possible, replace the <code>AlertXXException.throwIfXXX</code> by new pre-conditions checking.</li>
+</ol>
+<h2 id="4-Exception-Processing"><a href="#4-Exception-Processing" class="headerlink" title="4 Exception Processing"></a>4 Exception Processing</h2><p>This <code>streampark-console-service</code> module is the core module for processing user requests.<br>It’s very necessary to strive to provide the best user experience.<br>So, we introduced the <a target="_blank" rel="noopener" href="https://github.com/apache/incubator-streampark/blob/dev/streampark-console/streampark-console-service/src/main/java/org/apache/streampark/console/base/exception/AbstractApiException.java">AbstractApiException</a><br>and its subclasses to get more friendly interaction effect. Non-<code>AbstractApiException</code> is treated as internal server errors correspondingly, which needn’t notify the interaction details to users.<br>Based on the above premise, we need to pay attention to the handling of <code>AbstractApiException</code>.<br>For example, we should throw an exception by one of followed subclasses of <code>AbstractApiException</code> when processing logic with the user operation errors or missing data errors:</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/apache/incubator-streampark/blob/dev/streampark-console/streampark-console-service/src/main/java/org/apache/streampark/console/base/exception/ApiDetailException.java">ApiDetailException</a></p>
+<blockquote>
+<p>An exception message that needs to be notified to front-end, is a detailed exception message, such as the stackTrace info, often accompanied by a large number of exception logs,<br>e.g: <code>Failed to start job</code>, need to display the exception(stackTrace info) to front-end.</p>
+</blockquote>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/apache/incubator-streampark/blob/dev/streampark-console/streampark-console-service/src/main/java/org/apache/streampark/console/base/exception/ApiAlertException.java">ApiAlertException</a></p>
+<blockquote>
+<p>An exception message that needs to be notified to front-end, usually a simple, clear message, e.g:</p>
+<ol>
+<li>Username already exists</li>
+<li>No permission, please contact the administrator</li>
+<li>…</li>
+</ol>
+</blockquote>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/apache/incubator-streampark/blob/dev/streampark-console/streampark-console-service/src/main/java/org/apache/streampark/console/base/exception/AlertException.java">AlertException</a></p>
+<blockquote>
+<p>An exception message that needs to be notified to front-end when processing alert logic.</p>
+</blockquote>
+</li>
+<li><p>Or others exceptions used to get fine users interaction.</p>
+</li>
+</ul>
+<p>In addition to handling the classification of exceptions, we’d better make the precise and concise exception message and try to ensure the follows in the exception:</p>
+<ul>
+<li>Display the current status of the abnormal case.</li>
+<li>Display the solutions to the abnormal case.</li>
+<li>Or others informations fit the pretty interaction.</li>
+</ul>
+<p>Please click <a target="_blank" rel="noopener" href="https://github.com/apache/incubator-streampark/issues/2325">Issue-2325</a> for more details about the items if needed.</p>
+<h2 id="5-Log"><a href="#5-Log" class="headerlink" title="5 Log"></a>5 Log</h2><ol>
+<li><p>Use <code>placeholders</code> for log output:</p>
+<ul>
+<li><p>Negative demo</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log.info(<span class="string">&quot;Deploy cluster request &quot;</span> + deployRequest);</span><br></pre></td></tr></table></figure></li>
+<li><p>Positive demo</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log.info(<span class="string">&quot;load plugin:&#123;&#125; to &#123;&#125;&quot;</span>, file.getName(), appPlugins);</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>Pay attention to the selection of <code>log level</code> when printing logs</p>
+<p>When printing the log content, if the actual parameters of the log placeholder are passed, it is necessary to avoid premature evaluation to avoid unnecessary evaluation caused by the log level.</p>
+<ul>
+<li><p>Negative demo:</p>
+<p>Assuming the current log level is <code>INFO</code>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ignored declaration lines.</span></span><br><span class="line">List&lt;User&gt; userList = getUsersByBatch(<span class="number">1000</span>);</span><br><span class="line">LOG.debug(<span class="string">&quot;All users: &#123;&#125;&quot;</span>, getAllUserIds(userList));</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Positive demo:</p>
+<p>In this case, we should determine the log level in advance before making actual log calls as follows:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ignored declaration lines.</span></span><br><span class="line">List&lt;User&gt; userList = getUsersByBatch(<span class="number">1000</span>);</span><br><span class="line"><span class="keyword">if</span> (LOG.isDebugEnabled()) &#123;</span><br><span class="line">  LOG.debug(<span class="string">&quot;All ids of users: &#123;&#125;&quot;</span>, getAllIDsOfUsers(userList));    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<h2 id="6-Testing"><a href="#6-Testing" class="headerlink" title="6 Testing"></a>6 Testing</h2><ol>
+<li><p>For some of the <code>code/variables</code> used for <code>testing</code>, you can use <code>@VisableForTesting</code> annotation to indicate that</p>
+</li>
+<li><p>It’s recommended to use <code>JUnit5</code> to develop test case preparation</p>
+</li>
+<li><p>Using <code>AssertJ</code> to develop assertions statements.</p>
+</li>
+<li><p>About the implementation of tests.</p>
+<ul>
+<li><p>If the test case only tests an <code>independent</code> class or method that does not require external components such as hadoop,<br>remote flink session cluster, etc., it can be written directly using <code>JUnit5</code> &amp; <code>Mockito</code>.</p>
+</li>
+<li><p>If the test case needs a <code>real database</code>, environment or backend environment,<br>but doesn’t need to interact with external components, it’s recommended to inherit directly from <code>SpringUnitTestBase</code>.</p>
+</li>
+<li><p>If the test case requires <code>a real database, environment</code> or <code>backend environment</code>,<br>but needs to <code>interact with external components</code> (<code>Remote Flink session cluster</code>, <code>Hadoop cluster</code>),<br>it’s recommended to write the test case by directly inheriting <code>SpringIntegrationTestBase</code>.</p>
+</li>
+</ul>
+</li>
+<li><p>It’s only recommended to use integration tests on critical test links to avoid making the <code>CI</code> overhead time too long and the resource load too heavy.</p>
+</li>
+</ol>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://site.mockito.org/">https://site.mockito.org/</a></li>
+<li><a target="_blank" rel="noopener" href="https://flink.apache.org/zh/how-to-contribute/code-style-and-quality-preamble/">https://flink.apache.org/zh/how-to-contribute/code-style-and-quality-preamble/</a></li>
+<li><a target="_blank" rel="noopener" href="https://alibaba.github.io/p3c/">https://alibaba.github.io/p3c/</a></li>
+<li><a target="_blank" rel="noopener" href="https://rules.sonarsource.com/java/">https://rules.sonarsource.com/java/</a></li>
+<li><a target="_blank" rel="noopener" href="https://joel-costigliola.github.io/assertj/index.html">https://joel-costigliola.github.io/assertj/index.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://junit.org/junit5/">https://junit.org/junit5/</a></li>
+</ul>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/09/02/TreeMap%E8%B8%A9%E5%9D%91/" title="TreeMap踩坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">TreeMap踩坑</div></div><div class="info-2"><div class="info-item-1"> 不降志，不屈身，不追赶时髦，也不回避危险。──胡适  今天使用TreeMap踩坑了 代码如下： 12345678    @Testvoid test() &#123;    Map&lt;Integer, Object&gt; map = new TreeMap&lt;&gt;(Comparator.comparing(i -&gt; i % 2 == 0));    map.put(2, 0);    map.put(1, 0);    map.put(3, 0);    System.out.println(map);&#125;  输出结果却是 1&#123;1=0, 2=0&#125;  这是因为Comparator里计算结果重复导致的，即便我们的key并不相同，也会被覆盖。。。 于是我们可以指定计算结果相同时策略： 123456789@Testvoid test() &#123;    Map&lt;Integer, Object&gt; map = new TreeMap&lt;&gt;(Comparator.&lt;Integer, Boolean&gt;comp...</div></div></div></a><a class="pagination-related" href="/2023/08/31/binlog4j/" title="binlog4j"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">binlog4j</div></div><div class="info-2"><div class="info-item-1"> 敢同恶鬼争高下，不向霸王让寸分。――毛泽东《七律庆祝第二次核试验成功》  分享一个基 于 Java 轻 量 级 的 Mysql (Mariadb) Binlog 客 户 端 binlog4j: 基 于 Java 轻 量 级 的 Mysql (Mariadb) Binlog 客 户 端  集群模式, 通过集群部署的方式，保证服务高可用。  宕机续读, 避免宕机期间造成数据丢失。  数据转换, 基于泛型封装 binlog Event 的序列化数据。  兼容 传统项目 与 Spring Boot &#x2F; Cloud 项目。  兼容 Spring Boot 2.x 与 Spring Boot 3.x 版本。   下载安装12345&lt;dependency&gt;   &lt;groupId&gt;com.gitee.Jmysy&lt;/groupId&gt;   &lt;artifactId&gt;binlog4j-core&lt;/artifactId&gt;   &lt;version&gt;latest.version&lt;/version&gt;&lt;/depen...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/03/19/liteflow%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B/" title="liteflow快速开始"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-19</div><div class="info-item-2">liteflow快速开始</div></div><div class="info-2"><div class="info-item-1"> 人类永远会选择他们理解的，摒弃不理解的。这个世界唯一剩下的动物，就是他们已经驯服的那些，匍匐在他们的脚边，或者那些非常警觉，一察觉到他们靠近就逃离的动物，没有介于二者之间的。——《西部世界》  今天上手用了下liteflow，感觉非常不错 首先引入 12345&lt;dependency&gt;    &lt;groupId&gt;com.yomahub&lt;/groupId&gt;    &lt;artifactId&gt;liteflow-spring-boot-starter&lt;/artifactId&gt;    &lt;version&gt;2.11.4.2&lt;/version&gt;&lt;/dependency&gt;  编写A组件 1234567891011121314151617181920212223import com.yomahub.liteflow.annotation.LiteflowComponent;import com.yomahub.liteflow.core.NodeComponent;import com.yomahub.lit...</div></div></div></a><a class="pagination-related" href="/2024/09/05/%E9%AB%98%E6%95%88%E5%8E%8B%E7%BC%A9%E5%BA%93%EF%BC%9ASnappy-Java/" title="高效压缩库：Snappy Java"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-05</div><div class="info-item-2">高效压缩库：Snappy Java</div></div><div class="info-2"><div class="info-item-1"> 我来到这个世界，为了看看太阳和蓝色的地平线。——《城门开》   项目介绍  Snappy Java 是一个用于压缩和解压缩数据的高效Java库，它基于谷歌的 Snappy 压缩算法。Snappy 算法的设计目标是提供非常快速的压缩和解压缩操作，同时牺牲一定的压缩率以换取速度。在很多应用场景下，速度优先于压缩率，因此 Snappy 被广泛应用于数据处理、大数据分析和日志系统等场景。 Snappy Java 是 Snappy 算法的 Java 实现，它能够无缝集成到 Java 项目中，为开发者提供快速的压缩和解压缩操作，同时保留了跨平台的兼容性和高效的性能。 Snappy 的主要特点：  高压缩速度：相比于其他压缩算法，Snappy 的压缩速度非常快，适用于低延迟的应用。 适度压缩率：虽然压缩率不如一些其他压缩算法，但在大多数场景下，Snappy 的压缩率足以应对需求。 轻量级：Snappy 算法设计简洁，适合嵌入到各种应用中，尤其适合大规模的数据处理场景。   官方文档、GitHub地址   官方网站：Snappy Java Documentation GitHub仓库：xeri...</div></div></div></a><a class="pagination-related" href="/2026/01/29/dbvisitor/" title="dbvisitor"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">dbvisitor</div></div><div class="info-2"><div class="info-item-1"> 集腋成裘，聚沙成塔。几秒钟虽然不长，却构成永恒长河中的伟大时代。——弗莱彻  dbVisitor：用一套 Java API，打通 MySQL、MongoDB、Elasticsearch…dbVisitor 的愿景很直接：“One API Access Any DataBase”。它是一个基于 JDBC 标准构建的统一数据访问基座，通过“API 分层 + 双层适配器架构”，把传统 RDBMS 与 NoSQL 的编程壁垒拆开重组，不用发明新语法，不遮盖差异，而是“标准化管理差异”，让你在 Java 里用同一套 API 同时玩转 MySQL、PostgreSQL、MongoDB、Elasticsearch，甚至还能把它当成 JDBC Driver，让 MyBatis&#x2F;Hibernate 这类框架去操作 NoSQL。  官网与文档 Website: https://www.dbvisitor.net Guides: https://www.dbvisitor.net/docs/guides/overview Blog: https://www.dbvisitor.net/bl...</div></div></div></a><a class="pagination-related" href="/2022/09/12/hutool%E5%8A%A8%E6%80%81%E7%BC%96%E8%AF%91-lombok/" title="hutool动态编译+lombok"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-12</div><div class="info-item-2">hutool动态编译+lombok</div></div><div class="info-2"><div class="info-item-1"> 显示出对别人的欢乐不屑一顾的样子，那是侮辱了别人——玛格丽特·尤瑟纳尔  这里采取了一种讨巧的方式避开了需求，实现了效果 思路是使用lombok官方自带的delombok进行处理： 见：https://gitee.com/dromara/hutool/issues/I56DED delombok官方文档：https://projectlombok.org/features/delombok 代码如下： 12345678910111213141516171819202122232425262728293031package com.ruben;import cn.hutool.core.compiler.CompilerUtil;import cn.hutool.core.io.FileUtil;import cn.hutool.core.util.ReflectUtil;import cn.hutool.core.util.RuntimeUtil;import cn.hutool.core.util.StrUtil;import org.junit.jupiter.api.As...</div></div></div></a><a class="pagination-related" href="/2020/08/07/spring%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95AOP/" title="spring实现简单AOP"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-07</div><div class="info-item-2">spring实现简单AOP</div></div><div class="info-2"><div class="info-item-1"> Sometimes we may think about how to do something before the method runs  有时我们会想，如何在一些方法执行前或者执行后做一些操作 比如日志的记录、权限的鉴定等等 昨天，我们搭建了个简单的spring项目并写了几个接口 其中一个是这样的  这里返回给前端的map中的data，我是手动加的前缀“服务器对你说” 我们现在来用AOP实现 先修改我们接口中的代码，去掉前缀  然后配置AOP 12345678910111213141516171819202122232425262728293031323334353637&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quo...</div></div></div></a><a class="pagination-related" href="/2022/05/26/mybatis-plus%E6%B5%8B%E8%AF%95/" title="mybatis-plus测试"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-26</div><div class="info-item-2">mybatis-plus测试</div></div><div class="info-2"><div class="info-item-1"> 生命，那是自然付给人类去雕琢的宝石。——诺贝尔  mybatis-plus快速测试，文档：https://baomidou.com/pages/b7dae0/ 首先添加依赖 12345678910111213141516171819&lt;!-- 测试依赖 --&gt;&lt;dependency&gt;    &lt;groupId&gt;com.baomidou&lt;/groupId&gt;    &lt;artifactId&gt;mybatis-plus-boot-starter-test&lt;/artifactId&gt;    &lt;version&gt;3.5.1&lt;/version&gt;    &lt;scope&gt;test&lt;/scope&gt;&lt;/dependency&gt;&lt;dependency&gt;    &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;    &lt;artifactId&gt;lombok&lt;/artifactId&gt;    &lt;versio...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Pull-Requests-Changes-Rule"><span class="toc-number">1.</span> <span class="toc-text">1 Pull Requests &amp; Changes Rule</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Code-Checkstyle"><span class="toc-number">2.</span> <span class="toc-text">2 Code Checkstyle</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Programming-Specification"><span class="toc-number">3.</span> <span class="toc-text">3 Programming Specification</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Naming-Style"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Naming Style</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Constant-Variables-Definition"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Constant Variables Definition</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Methods-Rule"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Methods Rule</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-Collection-Rule"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 Collection Rule</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-Concurrent-Processing"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 Concurrent Processing</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-Control-Condition-Statements"><span class="toc-number">3.6.</span> <span class="toc-text">3.6 Control&#x2F;Condition Statements</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-Code-Comments-Rule"><span class="toc-number">3.7.</span> <span class="toc-text">3.7 Code Comments Rule</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8-Java-Lambdas"><span class="toc-number">3.8.</span> <span class="toc-text">3.8 Java Lambdas</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-9-Java-Streams"><span class="toc-number">3.9.</span> <span class="toc-text">3.9 Java Streams</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-10-Pre-Conditions-Checking"><span class="toc-number">3.10.</span> <span class="toc-text">3.10 Pre-Conditions Checking</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Exception-Processing"><span class="toc-number">4.</span> <span class="toc-text">4 Exception Processing</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-Log"><span class="toc-number">5.</span> <span class="toc-text">5 Log</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-Testing"><span class="toc-number">6.</span> <span class="toc-text">6 Testing</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#References"><span class="toc-number">7.</span> <span class="toc-text">References</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

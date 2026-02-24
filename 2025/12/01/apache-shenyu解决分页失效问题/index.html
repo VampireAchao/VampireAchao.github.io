@@ -1,0 +1,260 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>apache-shenyu解决分页失效问题 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="心有多大，舞台就有多大。——巴尔扎克  近期有社区用户反馈，后台管理系统出现了严重分页 BUG：Selector 和 Rule 列表分页失效，始终只显示第一页，总数消失（issue #6239）。作为 API 网关领域的核心组件，分页异常直接影响日常运维和平台体验。那么问题到底出在了哪里？又该如何优雅修复？本文带你一步步梳理、避坑、实践！  一、问题现象回顾 主要表现： Selector &amp;#x">
+<meta property="og:type" content="article">
+<meta property="og:title" content="apache-shenyu解决分页失效问题">
+<meta property="og:url" content="https://vampireachao.gitee.io/2025/12/01/apache-shenyu%E8%A7%A3%E5%86%B3%E5%88%86%E9%A1%B5%E5%A4%B1%E6%95%88%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="心有多大，舞台就有多大。——巴尔扎克  近期有社区用户反馈，后台管理系统出现了严重分页 BUG：Selector 和 Rule 列表分页失效，始终只显示第一页，总数消失（issue #6239）。作为 API 网关领域的核心组件，分页异常直接影响日常运维和平台体验。那么问题到底出在了哪里？又该如何优雅修复？本文带你一步步梳理、避坑、实践！  一、问题现象回顾 主要表现： Selector &amp;#x">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2025-12-01T10:17:40.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:41.950Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "apache-shenyu解决分页失效问题",
+  "url": "https://vampireachao.gitee.io/2025/12/01/apache-shenyu%E8%A7%A3%E5%86%B3%E5%88%86%E9%A1%B5%E5%A4%B1%E6%95%88%E9%97%AE%E9%A2%98/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2025-12-01T10:17:40.000Z",
+  "dateModified": "2026-02-24T09:48:41.950Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2025/12/01/apache-shenyu%E8%A7%A3%E5%86%B3%E5%88%86%E9%A1%B5%E5%A4%B1%E6%95%88%E9%97%AE%E9%A2%98/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'apache-shenyu解决分页失效问题',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">apache-shenyu解决分页失效问题</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">apache-shenyu解决分页失效问题</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-12-01T10:17:40.000Z" title="发表于 2025-12-01 18:17:40">2025-12-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:41.950Z" title="更新于 2026-02-24 17:48:41">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>心有多大，舞台就有多大。——巴尔扎克</p>
+</blockquote>
+<p>近期有社区用户反馈，后台管理系统出现了严重分页 BUG：<strong>Selector 和 Rule 列表分页失效，始终只显示第一页，总数消失</strong>（<a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/issues/6239">issue #6239</a>）。作为 API 网关领域的核心组件，分页异常直接影响日常运维和平台体验。那么问题到底出在了哪里？又该如何优雅修复？本文带你一步步梳理、避坑、实践！</p>
+<hr>
+<h2 id="一、问题现象回顾"><a href="#一、问题现象回顾" class="headerlink" title="一、问题现象回顾"></a>一、问题现象回顾</h2><ul>
+<li><strong>主要表现：</strong><ul>
+<li>Selector &#x2F; Rule 的分页查询只能看到第一页，页码和总数全部失灵</li>
+<li>查询结果总是只有第一页内容</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>相关 issue：<a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/issues/6239">https://github.com/apache/shenyu/issues/6239</a><br>修复 PR：<a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/pull/6243">https://github.com/apache/shenyu/pull/6243</a></p>
+</blockquote>
+<hr>
+<h2 id="二、根本原因追溯-——-PageHelper-的使用陷阱"><a href="#二、根本原因追溯-——-PageHelper-的使用陷阱" class="headerlink" title="二、根本原因追溯 —— PageHelper 的使用陷阱"></a>二、根本原因追溯 —— PageHelper 的使用陷阱</h2><p>问题根因在于<strong>分页核心逻辑的隐藏陷阱</strong>：</p>
+<h3 id="经典”陷阱”代码："><a href="#经典”陷阱”代码：" class="headerlink" title="经典”陷阱”代码："></a>经典”陷阱”代码：</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> PageInfo&lt;SelectorVO&gt; <span class="title function_">searchByPage</span><span class="params">(PageCondition&lt;SelectorQueryCondition&gt; pageCondition)</span> &#123;</span><br><span class="line">    doConditionPreProcessing(pageCondition.getCondition());</span><br><span class="line">    PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());</span><br><span class="line">    <span class="type">SelectorQueryCondition</span> <span class="variable">condition</span> <span class="operator">=</span> pageCondition.getCondition();</span><br><span class="line">    condition.init();</span><br><span class="line">    <span class="comment">// 这里searchByCondition的返回值不确定！！！</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">PageInfo</span>&lt;&gt;(searchByCondition(pageCondition.getCondition()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="为什么是陷阱？"><a href="#为什么是陷阱？" class="headerlink" title="为什么是陷阱？"></a>为什么是陷阱？</h4><ul>
+<li><p><code>searchByCondition</code>返回值类型是<code>List&lt;T&gt;</code>，但<strong>可能是普通的<code>ArrayList</code>，也可能是<code>com.github.pagehelper.Page</code></strong>（PageHelper会返回Page对象，但如果下游有包裹、转换则可能不是）。</p>
+</li>
+<li><p>PageInfo 构造函数在源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">PageInfo</span><span class="params">(List&lt;? extends T&gt; list, <span class="type">int</span> navigatePages)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (list <span class="keyword">instanceof</span> Page) &#123;</span><br><span class="line">        <span class="comment">// 只有Page对象才能正常获取分页元数据</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 普通List没有分页信息</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>一旦 <code>searchByCondition</code> 返回的不再是 <code>Page</code>，PageInfo 就只能包裹普通 List，<strong>无法拿到总数、页码等分页信息</strong>！</p>
+</li>
+</ul>
+<h4 id="案例回溯"><a href="#案例回溯" class="headerlink" title="案例回溯"></a>案例回溯</h4><ul>
+<li>某些查询能保证 Mapper 直接返回 Page 对象（MyBatis + PageHelper联用，自动包装）。</li>
+<li>但由于调用链复用，<code>searchByCondition</code>可能返回值类型提前变成普通 List，分页能力被“吃掉”。</li>
+</ul>
+<h4 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h4><p><strong>new PageInfo&lt;&gt;(searchByCondition(…)) 属于易踩坑误导写法</strong>，只有拿到 Page 对象时才能安全用，复杂链路&#x2F;多场景容易失效！</p>
+<hr>
+<h2 id="三、修复思路与改进实践"><a href="#三、修复思路与改进实践" class="headerlink" title="三、修复思路与改进实践"></a>三、修复思路与改进实践</h2><h3 id="1-提取-PageHelper-真分页能力"><a href="#1-提取-PageHelper-真分页能力" class="headerlink" title="1. 提取 PageHelper 真分页能力"></a>1. 提取 PageHelper 真分页能力</h3><ul>
+<li>必须保证分页 Bean 能准确拿到 Page 对象</li>
+<li>不能希望所有地方都用 PageHelper</li>
+<li>只动 Selector 和 Rule 模块（涉及分页失效，且最易受影响）</li>
+</ul>
+<h3 id="2-优化代码实现"><a href="#2-优化代码实现" class="headerlink" title="2. 优化代码实现"></a>2. 优化代码实现</h3><h4 id="Selector-分页代码优化："><a href="#Selector-分页代码优化：" class="headerlink" title="Selector 分页代码优化："></a>Selector 分页代码优化：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> PageInfo&lt;SelectorVO&gt; <span class="title function_">searchByPage</span><span class="params">(PageCondition&lt;SelectorQueryCondition&gt; pageCondition)</span> &#123;</span><br><span class="line">    doConditionPreProcessing(pageCondition.getCondition());</span><br><span class="line">    <span class="comment">// 1. 正确开启分页</span></span><br><span class="line">    PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());</span><br><span class="line">    <span class="type">SelectorQueryCondition</span> <span class="variable">condition</span> <span class="operator">=</span> pageCondition.getCondition();</span><br><span class="line">    condition.init();</span><br><span class="line">    <span class="comment">// 2. 强制 Mapper 返回 Page</span></span><br><span class="line">    <span class="keyword">final</span> Page&lt;SelectorDO&gt; page = (Page&lt;SelectorDO&gt;) selectorMapper.selectByCondition(condition);</span><br><span class="line">    <span class="comment">// 3. 使用 Page 的 toPageInfo，才能正确获取所有分页元数据</span></span><br><span class="line">    PageInfo&lt;SelectorVO&gt; pageInfo = page.toPageInfo(SelectorVO::buildSelectorVO);</span><br><span class="line">    <span class="comment">// 4. 补充展示信息</span></span><br><span class="line">    <span class="keyword">for</span> (SelectorVO selector : pageInfo.getList()) &#123;</span><br><span class="line">        selector.setMatchModeName(MatchModeEnum.getMatchModeByCode(selector.getMatchMode()));</span><br><span class="line">        selector.setTypeName(SelectorTypeEnum.getSelectorTypeByCode(selector.getType()));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> pageInfo;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Rule-分页同理，只需用-PageHelper-原生流程即可。"><a href="#Rule-分页同理，只需用-PageHelper-原生流程即可。" class="headerlink" title="Rule 分页同理，只需用 PageHelper 原生流程即可。"></a>Rule 分页同理，只需用 PageHelper 原生流程即可。</h4><p>这样做的好处是：<strong>再也不用担心 searchByCondition 返回的是 ArrayList 还是 Page 对象，保证每次都能拿到核心分页能力！</strong></p>
+<hr>
+<h2 id="四、相关源码片段及解释"><a href="#四、相关源码片段及解释" class="headerlink" title="四、相关源码片段及解释"></a>四、相关源码片段及解释</h2><p>PageHelper核心对象原理：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PageHelper底层源码</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;E&gt; Page&lt;E&gt; <span class="title function_">startPage</span><span class="params">(<span class="type">int</span> pageNum, <span class="type">int</span> pageSize)</span> &#123;</span><br><span class="line">    <span class="comment">// 通过分页拦截器自动包装Page对象</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>PageInfo构造函数要求：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">PageInfo</span><span class="params">(List&lt;? extends T&gt; list, <span class="type">int</span> navigatePages)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (list <span class="keyword">instanceof</span> Page) &#123;</span><br><span class="line">        <span class="comment">// 保留所有分页元数据</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 没有总数、页码，只是普通list</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以<strong>务必用Page对象！！</strong>，否则开发者每次都容易被误导踩坑。</p>
+<hr>
+<h2 id="五、陷阱总结与后续展望"><a href="#五、陷阱总结与后续展望" class="headerlink" title="五、陷阱总结与后续展望"></a>五、陷阱总结与后续展望</h2><h3 id="易踩坑点"><a href="#易踩坑点" class="headerlink" title="易踩坑点"></a>易踩坑点</h3><ul>
+<li>各种“快捷”写法虽然方便，但实际返回类型往往不可控</li>
+<li>PageHelper的拦截器只能保证最直接的 Mapper&#x2F;SQL 返回 Page 类型</li>
+<li>任意再包一层 List，或被其他泛型原型包裹，会丢失分页元数据</li>
+</ul>
+<h3 id="修复建议与最佳实践"><a href="#修复建议与最佳实践" class="headerlink" title="修复建议与最佳实践"></a>修复建议与最佳实践</h3><ul>
+<li>必须保证分页被 Mapper 端页面级拦截并返回 Page</li>
+<li>只对核心场景做更改（Selector 和 Rule），兼顾解耦与通用性</li>
+<li>其他地方如用到 searchByCondition 需要仔细校验，不要“偷懒”滥用包裹写法</li>
+<li>可以考虑统一分页处理工具类或代码注释，减小误导风险</li>
+</ul>
+<hr>
+<h2 id="六、更多高级改造建议"><a href="#六、更多高级改造建议" class="headerlink" title="六、更多高级改造建议"></a>六、更多高级改造建议</h2><ul>
+<li>可以用全局分页工具进行类型判断，自动降级为 List 但告警</li>
+<li>定义统一分页接口约束，后续新模块统一走 Page</li>
+<li>建议社区维护统一分页文档，供团队协作时查阅</li>
+</ul>
+<hr>
+<h2 id="七、PR详情与链接"><a href="#七、PR详情与链接" class="headerlink" title="七、PR详情与链接"></a>七、PR详情与链接</h2><p>本次修复 PR 👉 <a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/pull/6243">#6243</a></p>
+<ul>
+<li>由 VampireAchao 提交</li>
+<li>只改动 Selector&#x2F;Rule 分页逻辑，其他模块暂不变动</li>
+<li>彻底解决官方后台分页失效“史诗大坑”</li>
+</ul>
+<hr>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><p>分页逻辑看似简单，实则暗藏“类型陷阱”。本次 ShenYu 的 <a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/issues/6239">issue #6239</a> 与 <a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/pull/6243">PR #6243</a>，不仅修复了实际线上BUG，更为后续所有基于 PageHelper 的开发场景敲响了警钟：<strong>一定要确保 Page 对象贯穿全流程，避免隐式 List 误包。</strong></p>
+<p>面对海量数据与高并发场景，只有把分页基础做好，才能为平台稳定和高效打好坚实基础！</p>
+<hr>
+<p><strong>欢迎讨论更多ShenYu相关疑问与最佳实践，也欢迎关注PR进展和后续优化。</strong></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/12/02/tracy/" title="tracy"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">tracy</div></div><div class="info-2"><div class="info-item-1"> 做自己喜欢的事情，并为之努力，这是一种幸福。——乔治·库勒  Tracy：超强实时帧分析利器，C++程序性能剖析的超级神器在游戏开发和高性能工程领域，性能优化一直是“制胜之道”。但只有精准、高效的性能剖析工具，才能让开发者真正洞悉代码瓶颈，发现不可见的卡顿。今天介绍一款在全球游戏及专业软件开发圈备受推崇的开源利器——Tracy！  一、项目基本信息 项目地址：wolfpld&#x2F;tracy 官网主页：tracy.nereid.pl 主要语言：C++ Star数：14,556+ Fork数：948+ 标签关键词：profiler、profiling-library、performance、gamedev、gamedevelopment 主要定位：Frame profiler（帧级实时性能剖析）   二、什么是 Tracy？Tracy 是一个专门为高性能与实时性场景打造的“帧级高精度性能分析器”。它允许你在程序运行时，对于每一帧、每一线程甚至每一个函数，进行实时的性能采样、热点分析、瓶颈定位。最初因服务于游戏开发而流行，如今已广泛用于图形渲染、服务器、实时音视频等领域。 核心...</div></div></div></a><a class="pagination-related" href="/2025/11/30/milvus/" title="milvus"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">milvus</div></div><div class="info-2"><div class="info-item-1"> 努力工作并不是成功的全部，但没有努力工作是绝对不会成功的。——弗里德里希·恩格斯  Milvus：云原生高性能向量数据库，AI大模型与相似性检索新基石！在生成式AI和嵌入式搜索席卷全球的今天，从图像相似检索到LLM上下文RAG，向量数据库早已不是“黑科技”，而是AI数据基础设施的红利赛道。今天要为大家深度解析一个全球最火爆的开源向量数据库项目——Milvus！  一、项目简介 项目地址：milvus-io&#x2F;milvus 官网主页：https://milvus.io 一句话描述：Milvus是一款高性能、云原生的向量数据库，用于大规模向量的ANN（近似最近邻）检索。 主要语言：Go（核心），多语言客户端适配 Stars：40,896+ Forks：3,655+ License：Apache 2.0 标签关键词：vector-database embedding-store distributed faiss hnsw diskann llm rag image-search vector-search   二、Milvus 能做什么？1. 面向AI与嵌入式应用场景的向量...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2020/06/10/%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%9E%E5%AE%9A%E4%B8%AD%E6%96%87%E5%A7%93%E5%90%8D%E6%8E%92%E5%BA%8F/" title="一行代码搞定中文姓名排序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-06-10</div><div class="info-item-2">一行代码搞定中文姓名排序</div></div><div class="info-2"><div class="info-item-1">上码！ 两个参数分别为：一个字符串数组、一个接收比较器，以确定所述阵列的顺序 Collator是一个抽象基类，子类实现特定的整理策略。 1Arrays.sort(names, Collator.getInstance(java.util.Locale.CHINA));  完整代码如下： 12345String[] names = &#123;&quot;张三&quot;, &quot;李四&quot;, &quot;王五&quot;, &quot;赵六&quot;, &quot;狂神&quot;, &quot;阿超&quot;&#125;;        Arrays.sort(names, Collator.getInstance(java.util.Locale.CHINA));        for (String name : names) &#123;            System.out.println(name);        &#125;  输出结果： 123456阿超狂神李四王五张三赵六  </div></div></div></a><a class="pagination-related" href="/2021/05/17/mybatis-plus%E9%9A%8F%E6%9C%BA%E6%9F%A5%E8%AF%A2%E5%B7%A5%E5%85%B7%E7%B1%BB/" title="mybatis-plus随机查询工具类"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-05-17</div><div class="info-item-2">mybatis-plus随机查询工具类</div></div><div class="info-2"><div class="info-item-1"> 作为一个人，对父母要尊敬，对子女要慈爱，对穷亲戚要慷慨，对一切人要有礼貌。——(美国)罗素  都封装好了 12345678910111213141516171819202122232425262728293031323334353637383940414243/** * 随机取几条 * * @param function 表名::列名 * @return T * @author &lt;achao1441470436@gmail.com&gt; * @since 2021/5/17 0017 10:34 */@SuppressWarnings(&quot;unchecked&quot;)public static &lt;T, O&gt; List&lt;O&gt; getAny(SFunction&lt;O, T&gt; function, Integer limit) &#123;    SerializedLambda lambda = Optional.ofNullable(function).map(LambdaUtils::resolve).orElseThrow(...</div></div></div></a><a class="pagination-related" href="/2022/10/09/%E5%9B%9E%E6%94%B6%E7%AB%99%E6%8B%A6%E6%88%AA%E5%99%A8/" title="回收站拦截器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-10-09</div><div class="info-item-2">回收站拦截器</div></div><div class="info-2"><div class="info-item-1"> 阿谀奉承者的喉咙是一座敞开的坟墓——佚名  基于mybatis-plus的租户拦截器TenantLineInnerInterceptor复制过来拓展 kotlin代码如下： 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889909192939495969798991001011021031041051061071081091101111121131141151161171181191201211221231241251261271281291301311321331341351361371381391401411421431441451461471481491501511521531541551561571581591601611621631641651661671681691701711721...</div></div></div></a><a class="pagination-related" href="/2024/02/03/%E9%98%BF%E9%87%8C%E4%BA%91oss-cloud-sdk-springboot3%E5%85%BC%E5%AE%B9%E9%97%AE%E9%A2%98/" title="阿里云oss-cloud-sdk-springboot3兼容问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-03</div><div class="info-item-2">阿里云oss-cloud-sdk-springboot3兼容问题</div></div><div class="info-2"><div class="info-item-1"> 辛勤的蜂蜜永远没有时间悲哀。——布莱克  前两天提到了： minio临时凭证直传切换到阿里云oss | 阿超 但是忘记说依赖和配置了，因为我本地是jdk17+springboot3，所以需要修改，首先是依赖： 123456&lt;!-- https://mvnrepository.com/artifact/com.aliyun.oss/aliyun-sdk-oss --&gt;        &lt;dependency&gt;            &lt;groupId&gt;com.aliyun.oss&lt;/groupId&gt;            &lt;artifactId&gt;aliyun-sdk-oss&lt;/artifactId&gt;            &lt;version&gt;3.17.4&lt;/version&gt;        &lt;/dependency&gt;  按照我原来的博客里肯定是不行的 阿里云OSS临时凭证前后端配合上传文件 | 阿超 不能使用原来的 12345&lt;dependency&gt;    &lt;gr...</div></div></div></a><a class="pagination-related" href="/2020/08/21/Bigdecimal/" title="Bigdecimal"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-21</div><div class="info-item-2">Bigdecimal</div></div><div class="info-2"><div class="info-item-1">转载，原文 一、简介  Java在java.math包中提供的API类BigDecimal，用来对超过16位有效位的数进行精确的运算。双精度浮点型变量double可以处理16位有效数。在实际应用中，需要对更大或者更小的数进行运算和处理。float和double只能用来做科学计算或者是工程计算，在商业计算中要用java.math.BigDecimal。BigDecimal所创建的是对象，我们不能使用传统的+、-、*、&#x2F;等算术运算符直接对其对象进行数学运算，而必须调用其相对应的方法。方法中的参数也必须是BigDecimal的对象。构造器是类的特殊方法，专门用来创建对象，特别是带有参数的对象。 二、构造器描述BigDecimal(int)    创建一个具有参数所指定整数值的对象。BigDecimal(double) 创建一个具有参数所指定双精度值的对象。BigDecimal(long)  创建一个具有参数所指定长整数值的对象。BigDecimal(String) 创建一个具有参数所指定以字符串表示的数值的对象。 三、方法描述add(BigDecimal)    BigDec...</div></div></div></a><a class="pagination-related" href="/2022/12/12/%E5%BC%80%E6%BA%90ocr%E5%BA%93tesseract/" title="开源ocr库tesseract"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-12</div><div class="info-item-2">开源ocr库tesseract</div></div><div class="info-2"><div class="info-item-1"> 强者容易坚强，正如弱者容易软弱。——爱默生  分享一个开源的OCR库 文档链接：https://tesseract-ocr.github.io/ 源码地址：https://github.com/tesseract-ocr/tesseract 其包含了多种编程语言   </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%97%AE%E9%A2%98%E7%8E%B0%E8%B1%A1%E5%9B%9E%E9%A1%BE"><span class="toc-number">1.</span> <span class="toc-text">一、问题现象回顾</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B9%E6%9C%AC%E5%8E%9F%E5%9B%A0%E8%BF%BD%E6%BA%AF-%E2%80%94%E2%80%94-PageHelper-%E7%9A%84%E4%BD%BF%E7%94%A8%E9%99%B7%E9%98%B1"><span class="toc-number">2.</span> <span class="toc-text">二、根本原因追溯 —— PageHelper 的使用陷阱</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%8F%E5%85%B8%E2%80%9D%E9%99%B7%E9%98%B1%E2%80%9D%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="toc-number">2.1.</span> <span class="toc-text">经典”陷阱”代码：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF%E9%99%B7%E9%98%B1%EF%BC%9F"><span class="toc-number">2.1.1.</span> <span class="toc-text">为什么是陷阱？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A1%88%E4%BE%8B%E5%9B%9E%E6%BA%AF"><span class="toc-number">2.1.2.</span> <span class="toc-text">案例回溯</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BB%93%E8%AE%BA"><span class="toc-number">2.1.3.</span> <span class="toc-text">结论</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BF%AE%E5%A4%8D%E6%80%9D%E8%B7%AF%E4%B8%8E%E6%94%B9%E8%BF%9B%E5%AE%9E%E8%B7%B5"><span class="toc-number">3.</span> <span class="toc-text">三、修复思路与改进实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%8F%90%E5%8F%96-PageHelper-%E7%9C%9F%E5%88%86%E9%A1%B5%E8%83%BD%E5%8A%9B"><span class="toc-number">3.1.</span> <span class="toc-text">1. 提取 PageHelper 真分页能力</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BC%98%E5%8C%96%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.2.</span> <span class="toc-text">2. 优化代码实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Selector-%E5%88%86%E9%A1%B5%E4%BB%A3%E7%A0%81%E4%BC%98%E5%8C%96%EF%BC%9A"><span class="toc-number">3.2.1.</span> <span class="toc-text">Selector 分页代码优化：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Rule-%E5%88%86%E9%A1%B5%E5%90%8C%E7%90%86%EF%BC%8C%E5%8F%AA%E9%9C%80%E7%94%A8-PageHelper-%E5%8E%9F%E7%94%9F%E6%B5%81%E7%A8%8B%E5%8D%B3%E5%8F%AF%E3%80%82"><span class="toc-number">3.2.2.</span> <span class="toc-text">Rule 分页同理，只需用 PageHelper 原生流程即可。</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%9B%B8%E5%85%B3%E6%BA%90%E7%A0%81%E7%89%87%E6%AE%B5%E5%8F%8A%E8%A7%A3%E9%87%8A"><span class="toc-number">4.</span> <span class="toc-text">四、相关源码片段及解释</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E9%99%B7%E9%98%B1%E6%80%BB%E7%BB%93%E4%B8%8E%E5%90%8E%E7%BB%AD%E5%B1%95%E6%9C%9B"><span class="toc-number">5.</span> <span class="toc-text">五、陷阱总结与后续展望</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%98%93%E8%B8%A9%E5%9D%91%E7%82%B9"><span class="toc-number">5.1.</span> <span class="toc-text">易踩坑点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%BB%BA%E8%AE%AE%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.2.</span> <span class="toc-text">修复建议与最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%9B%B4%E5%A4%9A%E9%AB%98%E7%BA%A7%E6%94%B9%E9%80%A0%E5%BB%BA%E8%AE%AE"><span class="toc-number">6.</span> <span class="toc-text">六、更多高级改造建议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81PR%E8%AF%A6%E6%83%85%E4%B8%8E%E9%93%BE%E6%8E%A5"><span class="toc-number">7.</span> <span class="toc-text">七、PR详情与链接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">八、总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

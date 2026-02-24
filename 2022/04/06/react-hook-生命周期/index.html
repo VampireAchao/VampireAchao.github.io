@@ -1,0 +1,195 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>react hook 生命周期 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="诚实的生活方式其实是按照自己身体的意愿行事，饿的时候才吃饭，爱的时候不必撒谎。——马尔克斯《霍乱时期的爱情》  官方文档：https:&#x2F;&#x2F;zh-hans.reactjs.org&#x2F;docs&#x2F;hooks-reference.html#conditionally-firing-an-effect 直接上代码： 1234567891011121314151617181920212223242526272">
+<meta property="og:type" content="article">
+<meta property="og:title" content="react hook 生命周期">
+<meta property="og:url" content="https://vampireachao.gitee.io/2022/04/06/react-hook-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="诚实的生活方式其实是按照自己身体的意愿行事，饿的时候才吃饭，爱的时候不必撒谎。——马尔克斯《霍乱时期的爱情》  官方文档：https:&#x2F;&#x2F;zh-hans.reactjs.org&#x2F;docs&#x2F;hooks-reference.html#conditionally-firing-an-effect 直接上代码： 1234567891011121314151617181920212223242526272">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2022-04-06T11:38:18.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.254Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="前端">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "react hook 生命周期",
+  "url": "https://vampireachao.gitee.io/2022/04/06/react-hook-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2022-04-06T11:38:18.000Z",
+  "dateModified": "2026-02-24T09:48:42.254Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2022/04/06/react-hook-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'react hook 生命周期',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">react hook 生命周期</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">react hook 生命周期</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-04-06T11:38:18.000Z" title="发表于 2022-04-06 19:38:18">2022-04-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.254Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>诚实的生活方式其实是按照自己身体的意愿行事，饿的时候才吃饭，爱的时候不必撒谎。——马尔克斯《霍乱时期的爱情》</p>
+</blockquote>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://zh-hans.reactjs.org/docs/hooks-reference.html#conditionally-firing-an-effect">https://zh-hans.reactjs.org/docs/hooks-reference.html#conditionally-firing-an-effect</a></p>
+<p>直接上代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#x27;use strict&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">LikeButton</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> [liked, setLiked] = <span class="title class_">React</span>.<span class="title function_">useState</span>(<span class="literal">false</span>)</span><br><span class="line">    <span class="keyword">const</span> [count, setCount] = <span class="title class_">React</span>.<span class="title function_">useState</span>(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="title class_">React</span>.<span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 只执行一次</span></span><br><span class="line">        <span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> <span class="title function_">setCount</span>(<span class="function"><span class="params">state</span> =&gt;</span> ++state), <span class="number">1000</span>)</span><br><span class="line">    &#125;, [])</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> setLiked(!liked)&#125; &gt;</span></span><br><span class="line"><span class="language-xml">            &#123;liked ? <span class="tag">&lt;<span class="name">ButtonText</span> <span class="attr">count</span>=<span class="string">&#123;count&#125;</span> /&gt;</span> : &#x27;不喜欢&#x27;&#125;</span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">ButtonText</span>(<span class="params">&#123; count &#125;</span>) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="title class_">React</span>.<span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 只执行一次</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="property">log</span><span class="string">`我来了`</span></span><br><span class="line">        <span class="comment">// 组件销毁时执行一次</span></span><br><span class="line">        <span class="keyword">return</span> <span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="property">log</span><span class="string">`我溜了`</span></span><br><span class="line">    &#125;, [])</span><br><span class="line"></span><br><span class="line">    <span class="title class_">React</span>.<span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 当props.count发生变更时触发</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="property">log</span><span class="string">`<span class="subst">$&#123;&#123; count &#125;&#125;</span>`</span></span><br><span class="line">    &#125;, [count])</span><br><span class="line"></span><br><span class="line">    <span class="title class_">React</span>.<span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 有变更时触发</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="property">log</span><span class="string">`风吹草动`</span></span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;count&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    )</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">ReactDOM</span>.<span class="title function_">render</span>(<span class="language-xml"><span class="tag">&lt;<span class="name">LikeButton</span> /&gt;</span></span>, <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&#x27;#like_button_container&#x27;</span>))</span><br></pre></td></tr></table></figure>
+
+<p>可参考官网<code>effect</code>一节</p>
+<p>效果：</p>
+<p>初始化</p>
+<p><img src="/img/oss/picGo/image-20220406194145903.png" alt="image-20220406194145903"></p>
+<p>点击按钮</p>
+<p><img src="/img/oss/picGo/image-20220406194157841.png" alt="image-20220406194157841"></p>
+<p>再次点击，销毁</p>
+<p><img src="/img/oss/picGo/image-20220406194214207.png" alt="image-20220406194214207"></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%89%8D%E7%AB%AF/">前端</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/04/07/setState%E5%BC%82%E6%AD%A5%E9%97%AE%E9%A2%98/" title="setState异步问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">setState异步问题</div></div><div class="info-2"><div class="info-item-1"> 若人间有情，那是开始，也是尽头。——北岛怀念顾城  今天使用react中setState后立马从state中获取，然后使用，发现时灵时不灵的，我立马意识到setState可能是异步的，翻看官方文档，果然：  调用 setState 其实是异步的 —— 不要指望在调用 setState 之后，this.state 会立即映射为新的值。如果你需要基于当前的 state 来计算出新的值，那你应该传递一个函数，而不是一个对象（详情见下文）。 代码不会像预期那样运行的示例： 123456789101112131415161718incrementCount() &#123;  // 注意：这样 *不会* 像预期的那样工作。  this.setState(&#123;count: this.state.count + 1&#125;);&#125;handleSomething() &#123;  // 假设 `this.state.count` 从 0 开始。  this.incrementCount();  this.incrementCount();  this.incrementC...</div></div></div></a><a class="pagination-related" href="/2022/04/05/%E4%BD%BF%E7%94%A8BiFunction%E6%9B%B4%E6%94%B9map%E7%9A%84value/" title="使用BiFunction更改map的value"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">使用BiFunction更改map的value</div></div><div class="info-2"><div class="info-item-1"> 伟大变为可笑只有一步，但再走一步，可笑又会变为伟大。——佩思  这个PR是这样的： map 通过传入的BiFunction实现来返回值为新的map，支持返回别的类型 123456789101112131415161718/** * 通过biFunction自定义一个规则，此规则将原Map中的元素转换成新的元素，生成新的Map返回&lt;br&gt; * 变更过程通过传入的 &#123;@link BiFunction&#125; 实现来返回一个值可以为不同类型的 &#123;@link Map&#125; * * @param map        原有的map * @param biFunction &#123;@code lambda&#125;，参数包含&#123;@code key&#125;,&#123;@code value&#125;，返回值会作为新的&#123;@code value&#125; * @param &lt;K&gt;        &#123;@code key&#125;的类型 * @param &lt;V&gt;        &#123;@...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/01/03/%E5%9C%A8vue%E4%B8%AD%E4%BD%BF%E7%94%A8ts/" title="在vue中使用ts"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-03</div><div class="info-item-2">在vue中使用ts</div></div><div class="info-2"><div class="info-item-1"> 诚实的生活方式其实是按照自己身体的意愿行事，饿的时候才吃饭，爱的时候不必撒谎。——马尔克斯《霍乱时期的爱情》  官方文档：https://www.typescriptlang.org/docs/handbook/intro.html 首先找到中文文档：https://www.tslang.cn/samples/index.html 寻找到vue.js  跳转过去后就是教程，我们跟着教程一步一步来 首先新建一个空项目  然后新建src目录和components目录 1234typescript-vue-tutorial/├─ dist/└─ src/   └─ components/  输入命令下载依赖 1D:\file\projects\vue-ts-demo&gt;cnpm install --save-dev typescript webpack webpack-cli ts-loader css-loader vue vue-loader vue-template-compiler  很快就下载完毕  然后初始化ts环境 1tsc --init  可以看到多出了ts配置文...</div></div></div></a><a class="pagination-related" href="/2022/03/31/vue%E9%A1%B9%E7%9B%AE%E9%85%8D%E7%BD%AE%E5%8F%AF%E9%80%89%E8%B0%83%E7%94%A8%E9%93%BE/" title="vue项目配置可选调用链"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-03-31</div><div class="info-item-2">vue项目配置可选调用链</div></div><div class="info-2"><div class="info-item-1"> 生活是苦难的，我又划着我的断桨出发了。——博尔赫斯  可选调用链就是?.写法 有些vue项目没有默认配置，因此只能手动配置 介绍：https://babeljs.io/docs/en/babel-plugin-proposal-optional-chaining 安装： 1cnpm i --save-dev @babel/plugin-proposal-optional-chaining  然后配置在根目录下的babel.config.js 新增： 123&#123;  &quot;plugins&quot;: [&quot;@babel/plugin-proposal-optional-chaining&quot;]&#125;  完整： 12345678module.exports = &#123;  presets: [    &quot;@babel/preset-env&quot;,    [&#x27;@vue/app&#x27;,      &#123; useBuiltIns: &#x27;entry&#x27; &#125;]  ],  &quot;plugi...</div></div></div></a><a class="pagination-related" href="/2021/09/27/vue%E4%B8%AD%E5%B1%9E%E6%80%A7%E7%AE%80%E5%86%99/" title="vue中属性简写"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-09-27</div><div class="info-item-2">vue中属性简写</div></div><div class="info-2"><div class="info-item-1"> 任何职业都不简单，如果只是一般地完成任务当然不太困难，但要真正事业有所成就，给社会做出贡献，就不是那么容易的，所以，搞各行各业都需要树雄心大志，有了志气，才会随时提高标准来要求自己。 —— 谢觉哉  我们可以在包含vue-loader的vue项目中如下写法 123&lt;div :class=&quot;[&#123; active: active &#125;, isButton ? prefix + &#x27;-button&#x27; : null]&quot;&gt;&lt;/div&gt;&lt;!-- 简写 --&gt;&lt;div :class=&quot;&#123; active, [`$&#123;prefix&#125;-button`]: isButton &#125;&quot;&gt;&lt;/div&gt;  这里三个值： 12345678910export default &#123;	data() &#123;		return &#123;			active: true,			isButton: true,			prefix: &#x27;...</div></div></div></a><a class="pagination-related" href="/2026/02/21/seerr/" title="seerr"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-21</div><div class="info-item-2">seerr</div></div><div class="info-2"><div class="info-item-1"> 完成工作的方法是爱惜每一分钟。——达尔文  关注系统与媒体库的专属搭档 Seerr 毫不夸张地说，在现代在线媒体的繁荣时代，拥有一个高效的媒体请求与管理系统已变得至关重要。今天，我们要为大家介绍一款特别适合Jellyfin、Plex 和 Emby 用户的开源应用软件 Seerr。它不仅提供智能化、直观的界面，还在便捷性与功能性之间找到了一个完美的平衡。  Seerr 是什么？Seerr 是一款免费的开源软件，专为管理多媒体资源库的请求流程而设计，非常适合那些利用 Jellyfin、Plex 或 Emby 媒体服务器的朋友。同时，Seerr可以完美地与您现有的服务集成，比如 Sonarr 和 Radarr，大大简化了媒体管理的复杂性。 以目前 Github 上近万的 Star 数为证明，Seerr 无疑是当下备受推崇的开源媒体管理解决方案之一。  主要特性Seerr 的功能经过精心打磨，可以提供全面且令人满意的使用体验：  深度集成：兼容 Jellyfin、Emby 和 Plex，支持用户身份认证以及用户导入和管理。 数据库支持：支持 PostgreSQL 和 SQLite，灵活...</div></div></div></a><a class="pagination-related" href="/2024/06/06/vue-sax%E4%BD%BF%E7%94%A8cdn%E5%BC%95%E5%85%A5/" title="vue-sax使用cdn引入"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-06</div><div class="info-item-2">vue-sax使用cdn引入</div></div><div class="info-2"><div class="info-item-1"> 等待走运无异于等待死亡。——福特  代码如下： 1234567891011121314151617181920&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;    &lt;link href=&quot;https://unpkg.com/vuesax@4.0.1-alpha.16/dist/vuesax.min.css&quot; rel=&quot;stylesheet&quot;&gt;    &lt;meta name=&quot;viewport&quot; content=&quot;initial-scale=1, maximum-scale=1, user-scalable=no&quot;&gt;&lt;/head&gt;&lt;body&gt;&lt;div id=&quot;app&quot;&gt;    &lt;vs-button&gt;Hello World&lt;/vs-button&gt;&lt;/div&gt;&lt;script src=&quot;https://cdn.jsdelivr.net/...</div></div></div></a><a class="pagination-related" href="/2021/08/14/uniapp%E6%B8%85%E9%99%A4%E7%BC%93%E5%AD%98/" title="uniapp清除缓存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-08-14</div><div class="info-item-2">uniapp清除缓存</div></div><div class="info-2"><div class="info-item-1"> 每一幅作品，都是艺术家对自己生命的延伸。——灵遁者  清楚缓存的函数为uni.clearStorage(); 文档 以及还有计算缓存大小的函数 1234567uni.getStorageInfo(&#123;    success: function (res) &#123;        console.log(res.keys);        console.log(res.currentSize);        console.log(res.limitSize);    &#125;&#125;);  success 返回参数说明    参数 类型 说明    keys Array＜String＞ 当前 storage 中所有的 key   currentSize Number 当前占用的空间大小, 单位：kb   limitSize Number 限制的空间大小, 单位：kb   文档 </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

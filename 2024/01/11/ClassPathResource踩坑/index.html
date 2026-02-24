@@ -1,0 +1,192 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ClassPathResource踩坑 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="不要对一切人都以不信任的眼光看待，但要谨慎而坚定。——德谟克里特  今天看到一个问题 12345678910111213static &#123;    try &#123;        ClassPathResource resource &#x3D; new ClassPathResource(&quot;ip2region.xdb&quot;);        &#x2F;&#x2F;获取真实文件路径">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ClassPathResource踩坑">
+<meta property="og:url" content="https://vampireachao.gitee.io/2024/01/11/ClassPathResource%E8%B8%A9%E5%9D%91/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="不要对一切人都以不信任的眼光看待，但要谨慎而坚定。——德谟克里特  今天看到一个问题 12345678910111213static &#123;    try &#123;        ClassPathResource resource &#x3D; new ClassPathResource(&quot;ip2region.xdb&quot;);        &#x2F;&#x2F;获取真实文件路径">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2024-01-11T13:05:56.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:41.992Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "ClassPathResource踩坑",
+  "url": "https://vampireachao.gitee.io/2024/01/11/ClassPathResource%E8%B8%A9%E5%9D%91/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2024-01-11T13:05:56.000Z",
+  "dateModified": "2026-02-24T09:48:41.992Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2024/01/11/ClassPathResource%E8%B8%A9%E5%9D%91/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ClassPathResource踩坑',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">ClassPathResource踩坑</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">ClassPathResource踩坑</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-01-11T13:05:56.000Z" title="发表于 2024-01-11 21:05:56">2024-01-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:41.992Z" title="更新于 2026-02-24 17:48:41">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>不要对一切人都以不信任的眼光看待，但要谨慎而坚定。——德谟克里特</p>
+</blockquote>
+<p>今天看到一个问题</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="type">ClassPathResource</span> <span class="variable">resource</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ClassPathResource</span>(<span class="string">&quot;ip2region.xdb&quot;</span>);</span><br><span class="line">        <span class="comment">//获取真实文件路径</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">path</span> <span class="operator">=</span> resource.getURL().getPath();</span><br><span class="line">        <span class="type">byte</span>[] cBuff = Searcher.loadContentFromFile(path);</span><br><span class="line">        SEARCHER = Searcher.newWithBuffer(cBuff);</span><br><span class="line">        log.info(<span class="string">&quot;加载了ip2region.xdb文件,Searcher初始化完成!&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        log.error(<span class="string">&quot;初始化ip2region.xdb文件失败,报错信息:[&#123;&#125;]&quot;</span>, e.getMessage(), e);</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(<span class="string">&quot;系统异常!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>报错：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/User/achao/IdeaProjects/achao/target/achao-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/ip2region.xdb (No such file or directory)</span><br></pre></td></tr></table></figure>
+
+<p>这里发现多了<code>!</code>这个目录</p>
+<p>改成直接读取<code>inputStream</code>解决</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ClassPathResource</span> <span class="variable">resource</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ClassPathResource</span>(<span class="string">&quot;ip2region.xdb&quot;</span>);</span><br><span class="line"><span class="type">InputStream</span> <span class="variable">inputStream</span> <span class="operator">=</span> resource.getInputStream();</span><br><span class="line"><span class="comment">// 然后使用inputStream来读取数据</span></span><br></pre></td></tr></table></figure>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/01/12/promisesaplus-com/" title="promisesaplus.com"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">promisesaplus.com</div></div><div class="info-2"><div class="info-item-1"> 产生巨大后果的思想常常是朴素的。——列夫·托尔斯泰  今天刷到一个网站： https://promisesaplus.com/ 对应的组织： https://github.com/promises-aplus/ 对应有一个开源库用来检验是否符合Promise/A+规范： https://github.com/promises-aplus/promises-tests/ 安装： 1npm install promises-aplus-tests -g  然后添加CI脚本 12345678&#123;    &quot;devDependencies&quot;: &#123;        &quot;promises-aplus-tests&quot;: &quot;*&quot;    &#125;,    &quot;scripts&quot;: &#123;        &quot;test&quot;: &quot;run-my-own-tests &amp;&amp; promises-aplus-tests test/my-adapter&quot;    &#...</div></div></div></a><a class="pagination-related" href="/2024/01/10/ip%E8%A7%A3%E6%9E%90ip2region/" title="ip解析ip2region"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">ip解析ip2region</div></div><div class="info-2"><div class="info-item-1"> 做人要正直无欺，真实无伪，又要温厚和平，勿太棱角峭历。——陆陇其  https://github.com/lionsoul2014/ip2region 今天分享一个ip解析库ip2region 这里相关的java实现： https://github.com/lionsoul2014/ip2region/tree/master/binding/java maven依赖： 12345&lt;dependency&gt;    &lt;groupId&gt;org.lionsoul&lt;/groupId&gt;    &lt;artifactId&gt;ip2region&lt;/artifactId&gt;    &lt;version&gt;2.7.0&lt;/version&gt;&lt;/dependency&gt;  然后是完全基于文件的查询 123456789101112131415161718192021222324252627282930313233import org.lionsoul.ip2region.xdb.Searcher;import java.io.*...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2023/08/01/windows%E6%96%87%E4%BB%B6%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86%E5%99%A8%E6%8E%92%E5%BA%8F/" title="windows文件资源管理器排序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-01</div><div class="info-item-2">windows文件资源管理器排序</div></div><div class="info-2"><div class="info-item-1"> 单独一个人可以灭亡的地方，两个人在一起可能得救。——巴尔扎克  今天做一个需求：按照windows文件资源管理器的排序规则进行文件排序 但我在研究过程中，发现了一丝不妙，这玩意儿的规则比我想的复杂 自己之前写了一版 js文件名排序 | 阿超 但是感觉不特别满意，于是到处去搜了搜 发现微软的vscode的一个相关的issue，指出文件资源管理器和vscode中的排序发生了不一致 https://github.com/microsoft/vscode/issues/27759 然后我大概找到了vscode里的文件名排序js源码： https://github.com/microsoft/vscode/blob/main/src/vs/base/common/comparers.ts#L157 感觉还行，但我又发现一位朋友曾经写过的java版本的，就直接拿来用了 https://github.com/kookob/windows-filename-sort 效果还不错，勉强满足了需求hh </div></div></div></a><a class="pagination-related" href="/2020/10/11/SQLite%E5%85%A5%E9%97%A8%E3%81%AEjava%E5%88%9B%E5%BB%BA%E5%BA%93%E8%A1%A8/" title="SQLite入门のjava创建库表"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-10-11</div><div class="info-item-2">SQLite入门のjava创建库表</div></div><div class="info-2"><div class="info-item-1"> 人们因为能忘却，所以自己能渐渐的脱离了受过的苦痛，也因为能忘却，所以照样得再犯前人的错误。——鲁迅  关于SQLite  SQLite是一个C语言库，它实现了一个小型、快速、自包含、高可靠性、全功能的SQL数据库引擎。SQLite是世界上使用最多的数据库引擎。SQLite内置于所有的移动电话和大多数计算机中，并捆绑在人们每天使用的无数其他应用程序中。  首先引入依赖 1234567&lt;!-- sqlite驱动 --&gt;&lt;!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc --&gt;&lt;dependency&gt;    &lt;groupId&gt;org.xerial&lt;/groupId&gt;    &lt;artifactId&gt;sqlite-jdbc&lt;/artifactId&gt;    &lt;version&gt;3.32.3.2&lt;/version&gt;&lt;/dependency&gt;  然后java代码 123456789101112131415...</div></div></div></a><a class="pagination-related" href="/2021/02/04/toMap%EF%BC%88%E4%BA%8C%EF%BC%89/" title="toMap（二）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-02-04</div><div class="info-item-2">toMap（二）</div></div><div class="info-2"><div class="info-item-1"> 一切的美德都包含在自我信赖里。——爱默森  今天继续聊聊Stream中Jdk8已经为我们封装好的这个Collectors.toMap 前两天写的List to Map工具类是为了解决key重复问题 实际上我们可以用Collectors.toMap的重载直接解决，例如 12List&lt;User&gt; userList = new ArrayList&lt;&gt;(10);        Map&lt;Integer, User&gt; userMap = userList.stream().collect(Collectors.toMap(User::getId, Function.identity(), (user1, user2) -&gt; user2));  我们在toMap的第三个参数给定，这里我们直接返回user2，意思是如果遇到重复的key[例如这里的userId重复]，我们使用第二个user，也就是后者去覆盖前者 除了这点，我们还可以看到一个包含四个参数的重载  这里第四个参数是用于返回指定的map使用的 例如我们需要返回一个LinkedHashMap 就...</div></div></div></a><a class="pagination-related" href="/2023/09/17/QLExpress/" title="QLExpress"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-17</div><div class="info-item-2">QLExpress</div></div><div class="info-2"><div class="info-item-1"> 方向是比速度更重要的追求。——白岩松  QLExpress是一种强大，轻量级，动态的Java平台语言，旨在提高开发人员在不同业务场景中的生产力。 https://github.com/alibaba/QLExpress 安装 12345&lt;dependency&gt;  &lt;groupId&gt;com.alibaba&lt;/groupId&gt;  &lt;artifactId&gt;QLExpress&lt;/artifactId&gt;  &lt;version&gt;3.3.2&lt;/version&gt;&lt;/dependency&gt;  代码： 12345678ExpressRunner runner = new ExpressRunner();DefaultContext&lt;String, Object&gt; context = new DefaultContext&lt;String, Object&gt;();context.put(&quot;a&quot;, 1);context.put(&quot;b&quot;, 2);cont...</div></div></div></a><a class="pagination-related" href="/2024/09/02/Apache-ShenYu%E6%B3%A8%E5%86%8C%E5%A4%B1%E8%B4%A5%E9%97%AE%E9%A2%98/" title="Apache-ShenYu注册失败问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-02</div><div class="info-item-2">Apache-ShenYu注册失败问题</div></div><div class="info-2"><div class="info-item-1"> 金钱和时间是人生两种最沉重的负担，最不快乐的就是那些拥有这两种东西太多，多得不知怎样使用的人。——约翰逊  https://github.com/apache/shenyu/pull/5648 主要是当client id发生变化以后，再次启动ShenyuTestHttpApplication 会报错client id不匹配注册不上，这里调整了判断，如果token里不存在client id，就不进行校验 123456String clientIdFromToken = JwtUtils.getClientId(token);if (StringUtils.isNotEmpty(clientIdFromToken)        &amp;&amp; StringUtils.isNotEmpty(dashboardUserVO.getClientId())        &amp;&amp; !StringUtils.equals(dashboardUserVO.getClientId(), clientIdFromToken)) &#123;    throw new Authe...</div></div></div></a><a class="pagination-related" href="/2020/12/20/jvisualvm%E5%AE%89%E8%A3%85%E5%B9%B6%E6%9F%A5%E7%9C%8BGC%E8%BF%87%E7%A8%8B/" title="jvisualvm安装并查看GC过程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-12-20</div><div class="info-item-2">jvisualvm安装并查看GC过程</div></div><div class="info-2"><div class="info-item-1"> 非知之艰，行之惟艰。——《尚书》  首先WIN+R输入cmd打开控制台  输入jvisualvm启动 如果报jvisualvm不是内部或外部命令，也不是可运行的程序，说明我们没有安装  那我们去安装一个 官网下载   然后解压 双击运行  如果弹框  我们就可以指定一下jdk路径 编辑visualvm.conf  修改jdk路径  保存，再次运行就可以打开了 打开后点击我接受  然后找到我们当前项目就可以查看信息啦  我们还可以安装插件  安装一个Visual GC   完成后重启一下 重启好了后就可以看到我们的GC过程了  </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

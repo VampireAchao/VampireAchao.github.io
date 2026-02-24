@@ -1,0 +1,271 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>android studio logcat技巧 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="对人民来说，唯一的权利是法律，对个人来说唯一的权利是良心。——雨果  很多朋友不会用 LogCat 看日志 View logs with Logcat &nbsp;|&nbsp; Android Studio &nbsp;|&nbsp; Android Developers 这个是官方文档，例如这里可以反向筛选： 1level:error -tag:DeviceDoctorHandler -ta">
+<meta property="og:type" content="article">
+<meta property="og:title" content="android studio logcat技巧">
+<meta property="og:url" content="https://vampireachao.gitee.io/2024/05/07/android-studio-logcat%E6%8A%80%E5%B7%A7/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="对人民来说，唯一的权利是法律，对个人来说唯一的权利是良心。——雨果  很多朋友不会用 LogCat 看日志 View logs with Logcat &nbsp;|&nbsp; Android Studio &nbsp;|&nbsp; Android Developers 这个是官方文档，例如这里可以反向筛选： 1level:error -tag:DeviceDoctorHandler -ta">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2024-05-07T04:22:09.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:41.945Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="android">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "android studio logcat技巧",
+  "url": "https://vampireachao.gitee.io/2024/05/07/android-studio-logcat%E6%8A%80%E5%B7%A7/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2024-05-07T04:22:09.000Z",
+  "dateModified": "2026-02-24T09:48:41.945Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2024/05/07/android-studio-logcat%E6%8A%80%E5%B7%A7/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'android studio logcat技巧',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">android studio logcat技巧</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">android studio logcat技巧</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-05-07T04:22:09.000Z" title="发表于 2024-05-07 12:22:09">2024-05-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:41.945Z" title="更新于 2026-02-24 17:48:41">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>对人民来说，唯一的权利是法律，对个人来说唯一的权利是良心。——雨果</p>
+</blockquote>
+<p>很多朋友不会用 <code>LogCat</code> 看日志</p>
+<p><a target="_blank" rel="noopener" href="https://developer.android.google.cn/studio/debug/logcat">View logs with Logcat &nbsp;|&nbsp; Android Studio &nbsp;|&nbsp; Android Developers</a></p>
+<p>这个是官方文档，例如这里可以反向筛选：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">level:error -tag:DeviceDoctorHandler -tag:AndroidRuntime -tag:OOMEventManager -tag:MiuiFastConnectService -tag:.gms.persisten -tag:ANDR-PERF -tag:SELinux -tag:GCM -tag:libc</span><br></pre></td></tr></table></figure>
+
+<p>这里就是筛选出除了后面一大串 <code>Tag</code> 的 <code>Error</code> 等级日志</p>
+<p>译文：</p>
+<h1 id="使用Logcat查看日志"><a href="#使用Logcat查看日志" class="headerlink" title="使用Logcat查看日志"></a>使用Logcat查看日志</h1><p>Android Studio 中的 Logcat 窗口通过实时显示来自设备的日志来帮助您调试应用程序，例如，使用 <code>Log</code> 类添加到应用程序的消息、来自在 Android 上运行的服务的消息、或系统消息，例如发生垃圾收集时。当应用程序引发异常时，Logcat 会显示一条消息，后跟包含该代码行链接的关联堆栈跟踪。</p>
+<h2 id="Logcat-窗口入门"><a href="#Logcat-窗口入门" class="headerlink" title="Logcat 窗口入门"></a>Logcat 窗口入门</h2><p>要查看应用程序的日志消息，请执行以下操作。</p>
+<ol>
+<li>在 Android Studio 中，在物理设备或模拟器上构建并运行您的应用。</li>
+<li>从菜单栏中选择“视图”&gt;“工具窗口”&gt;“Logcat”。</li>
+</ol>
+<p>默认情况下，Logcat 滚动到末尾。单击 Logcat 视图或使用鼠标滚轮向上滚动可关闭此功能。要重新打开它，请从工具栏中单击滚动到末尾 <img src="https://developer.android.google.cn/static/studio/images/buttons/logcat-scroll-end.png" alt="Scroll to the End icon"> 。您还可以使用工具栏清除、暂停或重新启动 Logcat。</p>
+<p><img src="https://developer.android.google.cn/static/studio/images/debug/logcat-window.png" alt="The Logcat window UI"></p>
+<p>图 1.Logcat 格式化日志，以便更轻松地扫描有用信息（例如标签和消息）并识别不同类型的日志（例如警告和错误）。</p>
+<h3 id="如何读取日志"><a href="#如何读取日志" class="headerlink" title="如何读取日志"></a>如何读取日志</h3><p>每个日志都有一个日期、时间戳、进程和线程 ID、标签、包名称、优先级以及与其关联的消息。不同的标签具有独特的颜色，有助于识别日志的类型。每个日志条目的优先级为 <code>FATAL</code> 、 <code>ERROR</code> 、 <code>WARNING</code> 、 <code>INFO</code> 、 <code>DEBUG</code> 或 <code>VERBOSE</code> 。</p>
+<p>例如，以下日志消息的优先级为 <code>DEBUG</code> ，标签为 <code>ProfileInstaller</code> ：</p>
+<p>2022-12-29 04:00:18.823 30249-30321 ProfileInstaller        com.google.samples.apps.sunflower    D  Installing profile for com.google.samples.apps.sunflower</p>
+<h3 id="配置日志视图"><a href="#配置日志视图" class="headerlink" title="配置日志视图"></a>配置日志视图</h3><p>标准日志视图显示每个日志的日期、时间、进程和线程 ID、标签、包名称、优先级以及与其关联的消息。默认情况下，消息行不会在日志视图中换行，但您可以使用 Logcat 工具栏中的 Soft-Wrap <img src="https://developer.android.google.cn/static/studio/images/buttons/logcat-soft-wrap.png" alt="Soft-Wrap icon"> 选项。</p>
+<p>您可以通过单击 Logcat 工具栏中的配置 Logcat 格式选项 <img src="https://developer.android.google.cn/static/studio/images/buttons/logcat-formatting-options.png"> 切换到默认显示信息较少的紧凑视图。</p>
+<p>要进一步配置要显示的信息量，请选择“修改视图”，然后选择是否要查看显示的时间戳、标签、进程 ID 或包名称。</p>
+<h4 id="更改配色方案"><a href="#更改配色方案" class="headerlink" title="更改配色方案"></a>更改配色方案</h4><p>要更改配色方案，请导航至 Android Studio &gt; 设置 &gt; 编辑器 &gt; 配色方案。要更改日志视图的配色方案，请选择 Android Logcat。要更改过滤器的配色方案，请选择 Logcat 过滤器。</p>
+<h4 id="附加配置选项"><a href="#附加配置选项" class="headerlink" title="附加配置选项"></a>附加配置选项</h4><p>有关其他配置选项，请导航至 Android Studio &gt; 设置 &gt; 工具 &gt; Logcat。从这里，您可以选择 Logcat 循环缓冲区大小、新 Logcat 窗口的默认过滤器，以及是否要将历史过滤器添加到自动完成。</p>
+<h3 id="在多个窗口中使用Logcat"><a href="#在多个窗口中使用Logcat" class="headerlink" title="在多个窗口中使用Logcat"></a>在多个窗口中使用Logcat</h3><p>选项卡可帮助您轻松在不同设备或查询之间切换。您可以通过单击新建选项卡 <img src="https://developer.android.google.cn/static/studio/images/buttons/logcat-new-tab.png" alt="New Tab icon"> 创建多个 Logcat 选项卡。右键单击选项卡可以对其进行重命名和重新排列。</p>
+<p>此外，您可以在选项卡中拆分视图，以帮助您更轻松地比较两组日志。要创建拆分，请在日志视图中右键单击或单击工具栏中的“拆分面板”选项，然后选择“向右拆分”或“向下拆分”。要关闭拆分，请右键单击并选择关闭。每个拆分都允许您设置自己的设备连接、查看选项和查询。</p>
+<p><img src="https://developer.android.google.cn/static/studio/images/debug/logcat-split-view.png" alt="Multiple Logcat windows"> 图 2. Android Studio 中的拆分 Logcat 窗口。</p>
+<p>在 Logcat 工具栏中，您可以滚动到日志末尾，也可以单击特定行以保持该行可见。</p>
+<p>在 Android Studio 中，您可以直接从主查询字段生成键值搜索。该查询系统提供您想要查询的内容的准确性，并根据键值排除日志。虽然您可以选择使用正则表达式，但您不必依赖它们进行查询。要查看建议，请在查询字段中按 <code>Ctrl</code> + <code>Space</code> 。</p>
+<p><img src="https://developer.android.google.cn/static/studio/images/debug/logcat-query-suggestions.png" alt="List of suggestions in the query field"> 图 3. 在查询字段中按 <code>Ctrl</code> + <code>Space</code> 可查看建议查询的列表。</p>
+<p>以下是您可以在查询中使用的键的一些示例：</p>
+<ul>
+<li><code>tag</code> ：与日志条目的 <code>tag</code> 字段匹配。</li>
+<li><code>package</code> ：与日志记录应用程序的包名称匹配。</li>
+<li><code>process</code> ：与日志记录应用程序的进程名称匹配。</li>
+<li><code>message</code> ：与日志条目的消息部分匹配。</li>
+<li><code>level</code> ：匹配指定或更高的严重日志级别 - 例如， <code>DEBUG</code> 。</li>
+<li><code>age</code> ：如果条目时间戳是最近的，则匹配。值指定为数字后跟指定时间单位的字母： <code>s</code> 表示秒， <code>m</code> 表示分钟， <code>h</code> 表示小时， <code>d</code> 仅过滤过去 5 分钟内记录的消息。</li>
+</ul>
+<p>以下字段支持否定和正则表达式匹配： <code>tag</code> 、 <code>package</code> 、 <code>message</code> 和 <code>line</code> 。</p>
+<p>通过在字段名称前添加 <code>-</code> 来表示否定。例如， <code>-tag:MyTag</code> 匹配 <code>tag</code> 不包含字符串 <code>MyTag</code> 的日志条目。</p>
+<p>正则表达式匹配是通过在字段名后附加 <code>~</code> 来表示的。例如， <code>tag~:My.*Tag</code> 。</p>
+<p>否定和正则表达式修饰符可以组合使用。例如， <code>-tag~:My.*Tag</code> 。</p>
+<h3 id="Logical-operators-and-parentheses"><a href="#Logical-operators-and-parentheses" class="headerlink" title="Logical operators and parentheses"></a>Logical operators and parentheses</h3><p>查询语言支持由 <code>&amp;</code> 和 <code>|</code> 以及括号表示的 <code>AND</code> 和 <code>OR</code> 运算符。例如：</p>
+<p><code>(tag:foo | level:ERROR) &amp; package:mine</code></p>
+<p>请注意，强制执行正常的运算符优先级，因此如下：</p>
+<p><code>tag:foo | level:ERROR &amp; package:mine</code></p>
+<p> 被评价为：</p>
+<p><code>tag:foo | (level:ERROR &amp; package:mine)</code></p>
+<h3 id="Implicit-logical-operators"><a href="#Implicit-logical-operators" class="headerlink" title="Implicit logical operators"></a>Implicit logical operators</h3><p>如果未应用逻辑运算符，则查询语言会自动评估多个非否定 <code>key-value</code> 过滤条件，其键与 <code>OR</code> 相同，而其他所有内容均具有 <code>AND</code> .</p>
+<p> 例如：</p>
+<p><code>tag:foo tag:bar package:myapp</code></p>
+<p> 被评价为：</p>
+<p><code>(tag:foo | tag:bar) &amp; package:myapp</code></p>
+<p> 但：</p>
+<p><code>tag:foo -tag:bar package:myapp</code></p>
+<p> 被评价为：</p>
+<p><code>tag:foo &amp; -tag:bar &amp; package:myapp</code></p>
+<p>如果多个查询项由空格分隔且没有逻辑运算符，则它们将被视为具有低优先级的 AND。例如，术语 <code>foo bar tag:bar1 | tag:bar2</code> 相当于 <code>&#39;foo bar&#39; &amp; (tag: bar1 | tag: bar2)</code> 。</p>
+<h3 id="Special-queries"><a href="#Special-queries" class="headerlink" title="Special queries"></a>Special queries</h3><p><strong><code>package:mine</code></strong></p>
+<p>包密钥支持特殊值 <code>mine</code> 。此特殊值与打开的项目中包含的任何包名称相匹配。</p>
+<p><strong><code>level</code></strong></p>
+<p><code>level</code> 查询与 Logcat 消息的日志级别匹配，其中日志条目级别大于或等于查询级别。</p>
+<p>例如， <code>level:INFO</code> 匹配日志级别为 <code>INFO</code> 、 <code>WARN</code> 、 <code>ERROR</code> 或 <code>ASSERT</code> 的任何日志条目。级别不区分大小写。有效级别为： <code>VERBOSE</code> 、 <code>DEBUG</code> 、 <code>INFO</code> 、 <code>WARN</code> 、 <code>ERROR</code> 和 <code>ASSERT</code> .</p>
+<p><strong><code>age</code></strong></p>
+<p><code>age</code> 查询根据时间戳匹配条目，格式为 <code>age:&lt;number&gt;&lt;unit&gt;</code> ，其中</p>
+<ul>
+<li>  <code>&lt;number&gt;</code> 是一个整数</li>
+<li><code>&lt;unit&gt;</code> 是 <code>s</code> 、 <code>m</code> 、 <code>h</code> 和 <code>d</code> 之一（秒、分钟、小时和天）。</li>
+</ul>
+<p>给定以下列表， <code>age</code> 查询将匹配时间戳在值所描述的范围内的日志消息。例如：查询 <code>age:5m</code> 匹配时间戳不早于 5 分钟前的条目。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">age:30sage:5mage:3hage:1d</span><br></pre></td></tr></table></figure>
+
+<p>请注意，时间戳是与主机的时间戳进行比较，而不是与连接的设备的时间戳进行比较。如果设备的时间设置不正确，则此查询可能无法按预期工作。</p>
+<p>  <strong><code>is</code> 键</strong></p>
+<p>您可以按如下方式使用 <code>is</code> 键：</p>
+<ul>
+<li><code>is:crash</code> 匹配表示应用程序崩溃（本机或 Java）的日志条目。</li>
+<li><code>is:stacktrace</code> 匹配代表任何看起来像 Java 堆栈跟踪的日志条目，无论日志级别如何。</li>
+</ul>
+<p>  <strong><code>name</code> 键</strong></p>
+<p><code>name</code> 键可让您为已保存的过滤器提供唯一的名称，以便在过滤器历史记录下拉列表中轻松识别它。尽管多次指定 <code>name</code> 不会出现错误，但 IDE 仅在查询中使用 <code>name</code> 最后指定的值。</p>
+<h3 id="View-query-history"><a href="#View-query-history" class="headerlink" title="View query history"></a>View query history</h3><p>您可以通过单击查询字段旁边的显示历史记录 <img src="https://developer.android.google.cn/static/studio/images/buttons/logcat-filter-icon.png" alt="Filter icon"> 来查看查询历史记录。要收藏某个查询，使其位于所有工作室项目列表的顶部，请单击它旁边的星号。您还可以使用 <code>name:</code> 键使收藏夹查询更易于识别。有关详细信息，请参阅特殊查询。</p>
+<p><img src="https://developer.android.google.cn/static/studio/images/debug/logcat-fav-query.png" alt="UI for favoriting a query"></p>
+<p>图 4. 通过单击查询旁边的星号来收藏该查询。</p>
+<h2 id="Track-logs-across-app-crashes-and-restarts"><a href="#Track-logs-across-app-crashes-and-restarts" class="headerlink" title="Track logs across app crashes and restarts"></a>Track logs across app crashes and restarts</h2><p>当 Logcat 注意到您的应用程序进程已停止并重新启动时，它会在输出中显示一条消息，例如 <code>PROCESS ENDED</code> 和 <code>PROCESS STARTED</code> 。重新启动 Logcat 会保留您的会话配置，例如选项卡拆分、筛选器和视图选项，以便您可以轻松地继续会话。</p>
+<p><img src="https://developer.android.google.cn/static/studio/images/debug/logcat-track-crashes.png" alt="Logcat window for app crashes"></p>
+<p>图 5. 当您的应用程序进程重新启动时，Logcat 会打印一条消息，表明该进程已结束然后又开始。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/android/">android</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/05/08/%E5%AE%89%E5%8D%93%E4%B8%8B%E6%8B%89%E5%88%B7%E6%96%B0%E7%BB%84%E4%BB%B6/" title="安卓下拉刷新组件"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">安卓下拉刷新组件</div></div><div class="info-2"><div class="info-item-1"> 当一个民族破灭，心理上退化时，便会衍生恶德德奢侈。——尼采  是这个组件： https://github.com/scwang90/SmartRefreshLayout/ 这里我用到了自定义 RefreshHeader 12345        ClassicsHeader classicsHeader = new ClassicsHeader(context);classicsHeader.setEnableLastTime(false);classicsHeader.setArrowResource(R.mipmap.foo);classicsHeader.setProgressResource(R.mipmap.bar);binding.smartRefreshLayout.setRefreshHeader(classicsHeader);//设置Header  然后xml 12345678910&lt;!-- SmartRefreshLayout containing the ObservableRecyclerView --&gt;    &lt;com.scwang...</div></div></div></a><a class="pagination-related" href="/2024/05/06/Apache-Fury/" title="Apache Fury"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Apache Fury</div></div><div class="info-2"><div class="info-item-1"> 得道者多助，失道者寡助。——孟子  https://fury.apache.org/ Apache Fury 是一个 Java 序列化库，它提供了线程安全和高性能的序列化解决方案。在这个示例中，我们通过继承一个抽象序列化类来实现自定义的序列化逻辑。 例如 我们定义了一个 FurySerialize 类，它扩展了一个抽象的 AbsSerialize 类。这个类实现了两个主要方法：encode 用于将对象序列化成字节，而 decode 用于将字节反序列化成对象。 1234567891011121314151617181920212223242526public class FurySerialize extends AbsSerialize &#123;    private static ThreadSafeFury fury;    static &#123;        fury = Fury.builder()            .withLanguage(Language.JAVA)            .withRefTracking(true)        ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/02/10/%E5%AE%89%E5%8D%93usb%E6%8E%A7%E5%88%B6scrcpy/" title="安卓usb控制scrcpy"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-10</div><div class="info-item-2">安卓usb控制scrcpy</div></div><div class="info-2"><div class="info-item-1"> 食不过绝，欲不过多，冬不及温，夏不及凉。——葛洪  分享一下开源项目scrcpy GitHub - Genymobile&#x2F;scrcpy: Display and control your Android device 它可以用电脑显示和控制您的 Android 设备 通过 USB 或 TCP&#x2F;IP 连接的 Android 设备（视频和音频），并允许使用计算机的键盘和鼠标控制设备。它不需要任何root访问权限。适用于 Linux、Windows 和 macOS 我们安装一下  Linux Linux目录 Windows 窗户 macOS 苹果操作系统  我这里是mac，所以 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889909192939495969798991001011...</div></div></div></a><a class="pagination-related" href="/2021/04/14/%E5%AE%89%E5%8D%93%E8%8E%B7%E5%8F%96%E7%89%88%E6%9C%AC%E5%8F%B7/" title="安卓获取版本号"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-04-14</div><div class="info-item-2">安卓获取版本号</div></div><div class="info-2"><div class="info-item-1"> 读书多了，容颜自然改变，很多时候，自己可能以为许多看过的书籍都成了过眼云烟，不复记忆，其实他们仍是潜在的。在气质里，在谈吐上，在胸襟的无涯，当然也可能显露在生活和文字里。——三毛《送你一匹马》  我们可以使用下面的方式获取版本号 123456789101112131415161718192021222324252627282930package com.ruben.utils;import android.content.Context;import android.content.pm.PackageManager;import android.util.Log;/** * 我还没有写描述 * * @author &lt;achao1441470436@gmail.com&gt; * @date 2021/4/14 0014 22:41 */public class AppUtils &#123;    /**     * 获取版本号     *     * @param context     * @return java.lang.String     * @author...</div></div></div></a><a class="pagination-related" href="/2025/08/15/Android-DataBackup/" title="Android-DataBackup"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-08-15</div><div class="info-item-2">Android-DataBackup</div></div><div class="info-2"><div class="info-item-1"> 靡有不初,鲜克有终。一一《诗经》  https://github.com/XayahSuSuSu/Android-DataBackup Android-DataBackup：Android 数据备份的终极解决方案在智能手机已经成为我们生活不可或缺的一部分的今天，数据安全与备份的重要性日益突显——无论是联系人、短信、照片，还是应用数据、系统设置，一旦丢失都可能带来巨大麻烦。你是否曾在刷机、升级、迁移设备时为数据丢失而苦恼？有没有一款真正免费、强大、易用、开源的 Android 备份工具？今天要为你深度推荐的就是开源项目 Android-DataBackup，它已经获得 5000+ Star，被 200+ 人 Fork，成为国内外 Android 高级用户的“备份神器”！ 1. 项目由来与背景Android-DataBackup 的灵感源自 speed-backup，这是 CoolApk@落叶凄凉TEL 的一款广受好评的备份脚本。项目作者 XayahSuSuSu 在获得原作者同意后，将脚本理念升级为现代化 Android 应用，带给用户更友好的操作体验、更丰富的功能和更强的兼容性。...</div></div></div></a><a class="pagination-related" href="/2025/06/02/IndicatorSeekBar/" title="IndicatorSeekBar"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-06-02</div><div class="info-item-2">IndicatorSeekBar</div></div><div class="info-2"><div class="info-item-1"> 路曼曼其修远兮，吾将上下而求索。—— 屈 原《离骚》  https://github.com/warkiz/IndicatorSeekBar IndicatorSeekBar：功能丰富的 Android 自定义进度条控件在 Android 开发中，进度条（SeekBar）是一个常用的控件，主要用于调节值或显示进度。然而，默认的 SeekBar 功能有限，样式单一，难以满足复杂的 UI 需求。为了解决这些问题，IndicatorSeekBar 提供了一个强大的自定义进度条解决方案。 IndicatorSeekBar 是一个高度可定制的 Android 开源控件，支持各种样式和功能，包括指示器显示、分段标记、动态颜色变化等，能够显著提升用户体验。  什么是 IndicatorSeekBar？IndicatorSeekBar 是一个 Android 自定义控件，用于实现带指示器的进度条。它不仅支持显示实时进度，还提供了丰富的样式与功能选项，适用于各种复杂的 UI 场景。  核心功能 实时指示器显示：在用户拖动进度条时，指示器会显示当前的进度值。 支持分段标记：可以将进度条分为多个段，...</div></div></div></a><a class="pagination-related" href="/2025/01/26/SwipeDelMenuLayout/" title="SwipeDelMenuLayout"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-26</div><div class="info-item-2">SwipeDelMenuLayout</div></div><div class="info-2"><div class="info-item-1"> 如果打算爱一个人，你要想清楚，是否愿意为了他，放弃如上帝般自由的心灵，从此心甘情愿有了羁绊。——《了不起的盖茨比》  GitHub地址：SwipeDelMenuLayout   最近研究了一款非常轻量、易用的侧滑删除控件 SwipeDelMenuLayout，它与传统的 RecyclerView 或 ListView 的实现方式完全不同，完全不依赖任何特定的父布局，可以直接用在任意的 ViewGroup 中。这种设计让它的耦合性降到了零，无论你使用什么布局结构，都可以轻松集成侧滑删除功能。以下内容将详细介绍它的使用方法及其优势。  SwipeDelMenuLayout 是什么？SwipeDelMenuLayout 是一个自定义 ViewGroup，用于实现像 iOS 一样的滑动删除菜单。它通过简单替换 Item 的根布局即可实现侧滑效果，而不需要对 RecyclerView 或 ListView 进行额外的侵入式改造。无论你的项目需求如何，只需引入这个控件，就能快速实现高效、平滑的侧滑交互。 关键点：  不依赖特定父布局，可应用于任意 ViewGroup。 完全解耦，无需修改现...</div></div></div></a><a class="pagination-related" href="/2020/09/29/android%E4%B9%8Bgradle%E9%85%8D%E7%BD%AE%E4%BB%93%E5%BA%93%E4%B8%8E%E5%BC%95%E5%85%A5%E4%BE%9D%E8%B5%96/" title="android之gradle配置仓库与引入依赖"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-29</div><div class="info-item-2">android之gradle配置仓库与引入依赖</div></div><div class="info-2"><div class="info-item-1"> 勿以恶小而为之，勿以善小而不为。——《三国志》刘备语  安卓配置gradle镜像地址  在不同的视图中找到这个build.gradle  12345678910111213141516171819202122232425262728// Top-level build file where you can add configuration options common to all sub-projects/modules.buildscript &#123;    repositories &#123;        maven &#123; url &#x27;https://maven.aliyun.com/repository/google&#x27; &#125;        maven &#123; url &#x27;https://maven.aliyun.com/repository/gradle-plugin&#x27; &#125;        maven &#123; url &#x27;https://maven.aliyun.com/repos...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8Logcat%E6%9F%A5%E7%9C%8B%E6%97%A5%E5%BF%97"><span class="toc-number">1.</span> <span class="toc-text">使用Logcat查看日志</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Logcat-%E7%AA%97%E5%8F%A3%E5%85%A5%E9%97%A8"><span class="toc-number">1.1.</span> <span class="toc-text">Logcat 窗口入门</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E8%AF%BB%E5%8F%96%E6%97%A5%E5%BF%97"><span class="toc-number">1.1.1.</span> <span class="toc-text">如何读取日志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%97%A5%E5%BF%97%E8%A7%86%E5%9B%BE"><span class="toc-number">1.1.2.</span> <span class="toc-text">配置日志视图</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9B%B4%E6%94%B9%E9%85%8D%E8%89%B2%E6%96%B9%E6%A1%88"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">更改配色方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%99%84%E5%8A%A0%E9%85%8D%E7%BD%AE%E9%80%89%E9%A1%B9"><span class="toc-number">1.1.2.2.</span> <span class="toc-text">附加配置选项</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E5%A4%9A%E4%B8%AA%E7%AA%97%E5%8F%A3%E4%B8%AD%E4%BD%BF%E7%94%A8Logcat"><span class="toc-number">1.1.3.</span> <span class="toc-text">在多个窗口中使用Logcat</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Logical-operators-and-parentheses"><span class="toc-number">1.1.4.</span> <span class="toc-text">Logical operators and parentheses</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Implicit-logical-operators"><span class="toc-number">1.1.5.</span> <span class="toc-text">Implicit logical operators</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Special-queries"><span class="toc-number">1.1.6.</span> <span class="toc-text">Special queries</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#View-query-history"><span class="toc-number">1.1.7.</span> <span class="toc-text">View query history</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Track-logs-across-app-crashes-and-restarts"><span class="toc-number">1.2.</span> <span class="toc-text">Track logs across app crashes and restarts</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

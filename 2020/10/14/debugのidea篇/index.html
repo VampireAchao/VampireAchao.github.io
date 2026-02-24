@@ -1,0 +1,263 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>debugのidea篇 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="君子藏器于身，待时而动。——《周易》  今天写写如何debug，开发中Debug基本是每个开发者最得力的技巧 首先我们需要以Debug模式启动  启动之后我们在需要调试的地方打断点  然后程序运行到这里来的时候就会被拦截住  很多人一看这个就直接懵了，这么多按钮是干嘛的？ 我们如果要让程序执行下一步，我们就可以点击步过  点击之后我们可以看到程序执行到下一步了  我们可以看到上一步我们方法执行后">
+<meta property="og:type" content="article">
+<meta property="og:title" content="debugのidea篇">
+<meta property="og:url" content="https://vampireachao.gitee.io/2020/10/14/debug%E3%81%AEidea%E7%AF%87/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="君子藏器于身，待时而动。——《周易》  今天写写如何debug，开发中Debug基本是每个开发者最得力的技巧 首先我们需要以Debug模式启动  启动之后我们在需要调试的地方打断点  然后程序运行到这里来的时候就会被拦截住  很多人一看这个就直接懵了，这么多按钮是干嘛的？ 我们如果要让程序执行下一步，我们就可以点击步过  点击之后我们可以看到程序执行到下一步了  我们可以看到上一步我们方法执行后">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2020-10-14T12:05:40.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.009Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="小技巧">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "debugのidea篇",
+  "url": "https://vampireachao.gitee.io/2020/10/14/debug%E3%81%AEidea%E7%AF%87/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2020-10-14T12:05:40.000Z",
+  "dateModified": "2026-02-24T09:48:42.009Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2020/10/14/debug%E3%81%AEidea%E7%AF%87/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'debugのidea篇',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">debugのidea篇</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">debugのidea篇</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-10-14T12:05:40.000Z" title="发表于 2020-10-14 20:05:40">2020-10-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.009Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>君子藏器于身，待时而动。——《周易》</p>
+</blockquote>
+<p>今天写写如何<code>debug</code>，开发中<code>Debug</code>基本是每个开发者最得力的技巧</p>
+<p>首先我们需要以<code>Debug</code>模式启动</p>
+<p><img src="/img/oss/picGo/image-20201014200851006.png" alt="image-20201014200851006"></p>
+<p>启动之后我们在需要调试的地方打断点</p>
+<p><img src="/img/oss/picGo/image-20201014200939815.png" alt="image-20201014200939815"></p>
+<p>然后程序运行到这里来的时候就会被拦截住</p>
+<p><img src="/img/oss/picGo/image-20201014201018224.png" alt="image-20201014201018224"></p>
+<p>很多人一看这个就直接懵了，这么多按钮是干嘛的？</p>
+<p>我们如果要让程序执行下一步，我们就可以点击步过</p>
+<p><img src="/img/oss/picGo/image-20201014202511621.png" alt="image-20201014202511621"></p>
+<p>点击之后我们可以看到程序执行到下一步了</p>
+<p><img src="/img/oss/picGo/image-20201014203158492.png" alt="image-20201014203158492"></p>
+<p>我们可以看到上一步我们方法执行后user的结果</p>
+<p>点击下面<code>user</code>的左箭头</p>
+<p><img src="/img/oss/picGo/image-20201014203250269.png" alt="image-20201014203250269"></p>
+<p>看到了我们<code>user</code>的信息</p>
+<p><img src="/img/oss/picGo/image-20201014203308653.png" alt="image-20201014203308653"></p>
+<p>除此之外，在上面也能看到</p>
+<p><img src="/img/oss/picGo/image-20201014203340092.png" alt="image-20201014203340092"></p>
+<p>我们就可以一直这样下一步去查看我们程序执行的过程</p>
+<p>我们如果想要放开程序，让程序恢复正常</p>
+<p>就可以点击恢复按钮</p>
+<p><img src="/img/oss/picGo/image-20201014203515403.png" alt="image-20201014203515403"></p>
+<p>点击之后程序就恢复正常了，如果我们需要跳一大步时也可以点这个恢复，但需要打一个断点</p>
+<p>比如我现在需要从68行跳到72行</p>
+<p>就可以在72行打个断点</p>
+<p><img src="/img/oss/picGo/image-20201014203646059.png" alt="image-20201014203646059"></p>
+<p>然后点击恢复程序</p>
+<p>就可以看到程序执行到72行来了</p>
+<p><img src="/img/oss/picGo/image-20201014203713124.png" alt="image-20201014203713124"></p>
+<p>如果我们需要进入这个方法内部，我们则可以点击步入</p>
+<p><img src="/img/oss/picGo/image-20201014203801364.png" alt="image-20201014203801364"></p>
+<p>然后就到<code>spring</code>的源码这里了</p>
+<p>我们如果要出来</p>
+<p>可以直接点步出</p>
+<p><img src="/img/oss/picGo/image-20201014204146387.png" alt="image-20201014204146387"></p>
+<p>点击步出后就到了实现类了</p>
+<p><img src="/img/oss/picGo/image-20201014204208184.png" alt="image-20201014204208184"></p>
+<p>我们可以继续在实现类中打断点</p>
+<p>然后点击恢复程序</p>
+<p><img src="/img/oss/picGo/image-20201014204514307.png" alt="image-20201014204514307"></p>
+<p>可以看到我们的程序执行到了这里来</p>
+<p>当然我们也可以悬停到上面的参数</p>
+<p>此时我们可以点击这个+</p>
+<p><img src="/img/oss/picGo/image-20201014205159955.png" alt="image-20201014205159955"></p>
+<p>可以看到打开了一个弹窗</p>
+<p><img src="/img/oss/picGo/image-20201014205231204.png" alt="image-20201014205231204"></p>
+<p>例如还有就是我们可以进行表达式计算</p>
+<p><img src="/img/oss/picGo/image-20201014205401667.png" alt="image-20201014205401667"></p>
+<p>点击后可以在里面修改，然后评估结果</p>
+<p><img src="/img/oss/picGo/image-20201014205540875.png" alt="image-20201014205540875"></p>
+<p>我们还可以右键代码或者点下面的按钮，运行到光标处</p>
+<p><img src="/img/oss/picGo/image-20201014205724378.png" alt="image-20201014205724378"></p>
+<p>如果我们程序跑过了，我们可以点击丢帧按钮</p>
+<p><img src="/img/oss/picGo/image-20201014211101280.png" alt="image-20201014211101280"></p>
+<p>比如我现在断点运行到下方72行，我想让程序回到67行</p>
+<p><img src="/img/oss/picGo/image-20201014211235815.png" alt="image-20201014211235815"></p>
+<p>点击丢帧后再次点击恢复程序可以看到程序回到了上个断点去</p>
+<p><img src="/img/oss/picGo/image-20201014211300000.png" alt="image-20201014211300000"></p>
+<p>但这样会导致我们的参数值丢失</p>
+<p><img src="/img/oss/picGo/image-20201014211427759.png" alt="image-20201014211427759"></p>
+<p>还有我们的断点可以设置条件</p>
+<p>只需要右键我们的断点</p>
+<p><img src="/img/oss/picGo/image-20201014205849994.png" alt="image-20201014205849994"></p>
+<p><img src="/img/oss/picGo/image-20201014205910865.png" alt="image-20201014205910865"></p>
+<p>如果我们的条件不满足就不会停住</p>
+<p>点击这个按钮可以查看我们之前打的断点</p>
+<p><img src="/img/oss/picGo/image-20201014210126841.png" alt="image-20201014210126841"></p>
+<p><img src="/img/oss/picGo/image-20201014210145323.png" alt="image-20201014210145323"></p>
+<p>我们还可以启用和停用断点</p>
+<p><img src="/img/oss/picGo/image-20201014210232576.png" alt="image-20201014210232576"></p>
+<p>还可以添加或移除观察点</p>
+<p><img src="/img/oss/picGo/image-20201014210608866.png" alt="image-20201014210608866"></p>
+<p>点击后就可以添加到我们下方的变量区观察</p>
+<p><img src="/img/oss/picGo/image-20201014210703936.png" alt="image-20201014210703936"></p>
+<p>也可以右键下方的这些变量移除</p>
+<p><img src="/img/oss/picGo/image-20201014210730152.png" alt="image-20201014210730152"></p>
+<p>我们还可以在左边帧区域点击右键进行一些操作</p>
+<p><img src="/img/oss/picGo/image-20201014210857817.png" alt="image-20201014210857817"></p>
+<p>这就是<code>Debug</code>的基本姿势了</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/">小技巧</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2020/10/15/springboot%E5%90%AF%E5%8A%A8%E6%97%B6%E6%89%A7%E8%A1%8C/" title="springboot启动时执行"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">springboot启动时执行</div></div><div class="info-2"><div class="info-item-1"> 人生就象弈棋，一步失误，全盘皆输，这是令人悲哀之事；而且人生还不如弈棋，不可能再来一局，也不能悔棋。——弗洛伊德  springboot在启动时需要执行的代码 可以实现CommandLineRunner接口然后重写run方法，在run方法里执行 1234567891011121314151617package com.ruben.init;import org.springframework.boot.CommandLineRunner;import org.springframework.stereotype.Component;/** * @ClassName: SomeMagic * @Date: 2020/10/15 0015 20:15 * @Description: */@Componentpublic class SomeMagic implements CommandLineRunner &#123;    @Override    public void run(String... args) throws Exception &#123;        Sy...</div></div></div></a><a class="pagination-related" href="/2020/10/13/Springboot-Mybatis-SQLite/" title="Springboot+Mybatis+SQLite"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Springboot+Mybatis+SQLite</div></div><div class="info-2"><div class="info-item-1"> 时人莫小池中水，浅处无妨有卧龙。——唐·窦庠《醉中赠符载》  之前写过一个springboot的小项目 现在又在往里加东西啦！ 之前没有对数据库添加支持，今天就往里整合SQLite吧！ 首先先引入依赖 1234567891011121314&lt;!-- https://mvnrepository.com/artifact/org.mybatis.spring.boot/mybatis-spring-boot-starter --&gt;&lt;dependency&gt;    &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;    &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;    &lt;version&gt;2.1.3&lt;/version&gt;&lt;/dependency&gt;&lt;!-- sqlite驱动 --&gt;&lt;!-- https://mvnrepository.com/artifact/org.xe...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2021/07/28/idea%E9%85%8D%E7%BD%AE%E6%9E%9A%E4%B8%BE%E6%A8%A1%E6%9D%BF/" title="idea配置枚举模板"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-28</div><div class="info-item-2">idea配置枚举模板</div></div><div class="info-2"><div class="info-item-1"> 对我们帮助最大的，并不是朋友们的实际帮助，而是我们坚信得到他们的帮助的信念——伊壁鸠鲁  我们可以配置枚举模板 这样新建枚举的时候就会带上我们的模板中包含的内容，就不用每次都去写  123456789101112131415161718192021#if ($&#123;PACKAGE_NAME&#125; &amp;&amp; $&#123;PACKAGE_NAME&#125; != &quot;&quot;)package $&#123;PACKAGE_NAME&#125;;#end#parse(&quot;File Header.java&quot;)import lombok.AllArgsConstructor;import lombok.Getter;/** * $DESCRIPTION * * @author &lt;achao1441470436@gmail.com&gt; * @since $DATE $TIME */@Getter@AllArgsConstructorpublic enum $&#123;NAME&#125; &#123;    /**   ...</div></div></div></a><a class="pagination-related" href="/2021/07/03/markdown%E8%BD%AChtml%E6%8F%92%E4%BB%B6/" title="markdown转html插件"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-03</div><div class="info-item-2">markdown转html插件</div></div><div class="info-2"><div class="info-item-1"> 人不能象走兽那样活着，应该追求知识和美德。——但丁  商店页  使用方式很简单 直接右键选择markdown转换即可  然后就好了  </div></div></div></a><a class="pagination-related" href="/2025/01/09/github-metrics/" title="github-metrics"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-09</div><div class="info-item-2">github-metrics</div></div><div class="info-2"><div class="info-item-1"> 坚强的信念能赢得强者的心，并使他们变得更坚强。 ——白哲特  最近在探索如何通过 GitHub Actions 自动生成个性化的 GitHub 个人主页统计数据时，发现了一个非常强大的工具 —— Metrics。这个工具由开源开发者 lowlighter 创建，能够根据你的 GitHub 数据生成多种可视化的统计图表，并将其集成到你的 README 文件中。它不仅可以展示代码提交记录、仓库概览，还支持各种第三方平台的扩展数据，比如 Spotify、Wakatime、RSS 等，让你的个人主页变得更加丰富和有趣。 什么是 Metrics？Metrics 是一个基于 GitHub Actions 的自动化工具，它通过访问 GitHub API 获取用户的数据，并生成个性化的统计图表。这些图表可以直接嵌入到你的 GitHub 个人主页的 README 文件中。它支持多种插件和模块，你可以根据自己的需求自定义统计内容。 使用 Metrics 的主要步骤包括设置 GitHub Actions、生成配置文件以及集成到 README 中。 如何使用 Metrics？设置 GitHub Act...</div></div></div></a><a class="pagination-related" href="/2021/07/04/qq%E6%8E%A8%E5%B9%BF/" title="qq推广"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-04</div><div class="info-item-2">qq推广</div></div><div class="info-2"><div class="info-item-1"> 在自己身上，克服这个时代。——尼采  我们接入QQ客服，可以让用户在网页上直接打开QQ窗口与号主交谈 进入网址  登录后刷新一下页面  选择想要的样式，复制下面的代码  然后我们复制到我们的网站上，点击打开，然后到“QQ在线状态”官网开启服务。    然后就可以使用QQ客服啦~  </div></div></div></a><a class="pagination-related" href="/2025/10/12/weekly/" title="weekly"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-12</div><div class="info-item-2">weekly</div></div><div class="info-2"><div class="info-item-1"> 盛年不重来，一日难再晨。及时宜自勉，岁月不待人。——陶渊明  GitHub - ruanyf&#x2F;weekly: 科技爱好者周刊，每周五发布 科技爱好者周刊（ruanyf&#x2F;weekly）：开发者最值得订阅的知识宝库在开源圈、IT圈、开发者社区，科技爱好者周刊（ruanyf&#x2F;weekly）几乎无人不晓。它不仅仅是一个“周刊”，更像是一座面向中文开发者的知识灯塔，持续为大家带来最新、最全的技术资讯、工具推荐、项目分享和行业思考。无论你是学生、码农、架构师还是技术管理者，这个项目都值得你认真关注和订阅。  一、项目简介 项目地址：ruanyf&#x2F;weekly 一句话描述：科技爱好者周刊，每周五发布 开源之星：76,877+ Star，3,655+ Fork，3,444+ 订阅，中文最有影响力的技术周刊之一 作者：阮一峰（知名技术作者，ES6&#x2F;Node.js&#x2F;科技趋势领域的布道者） 内容更新：每周五更新一刊，持续不间断 内容类型：技术新闻、工具推荐、资源整理、读者投稿、行业观察、生活感悟   二、为什么科技爱好者周刊如此受欢迎？1....</div></div></div></a><a class="pagination-related" href="/2023/03/29/%E5%B0%8F%E6%95%B0%E7%82%B9%E5%9D%91/" title="小数点坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-03-29</div><div class="info-item-2">小数点坑</div></div><div class="info-2"><div class="info-item-1"> 高尚的生活是由知识导引的生活，……没有知识的爱与没有爱的知识，都不可能产生高尚的生活。——罗素  今天看到一个有趣的issue：https://gitee.com/dromara/hutool/issues/I6REMW  问题描述（包括截图）1System.out.println(NumberUtil.add(&quot;1.00&quot;,&quot;0.00&quot;));  在本地计算是正确的1，但是在客户德语电脑上计算出来 居然是100  原来是德国采用“,”作为小数点 https://en.wikipedia.org/wiki/Decimal_separator  在德国，小数点符号是 , 而不是 .。这意味着在德国，小数点符号用于表示小数部分，例如 3,14 表示 3 和 0.14 的和。在德国，点号 . 通常用作千位分隔符，例如 1.000 表示 1000。这与在美国和其他一些国家使用小数点符号和逗号的方式不同。因此，在进行数字计算时，需要根据不同的语言环境设置适当的小数点符号和千位分隔符。在 Java 中，可以使用 Locale 类来设置小数点符号和千位分...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

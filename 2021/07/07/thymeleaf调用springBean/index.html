@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>thymeleaf调用springBean | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="没有经过战斗的舍弃，是虚伪的；没有经过苦难的超脱，是轻佻的。——傅雷  昨天写了一篇关于前端精度丢失的博客 今天发现还有个问题，如果我们需要使用thymeleaf在js中使用获取的数据是一个对象 并且里面的属性还是超出16位的Long类型的话，仍然会导致精度丢失 这里我们可以直接写一个JsonManager 12345678910111213141516171819&#x2F;** * Json转换管理层">
+<meta property="og:type" content="article">
+<meta property="og:title" content="thymeleaf调用springBean">
+<meta property="og:url" content="https://vampireachao.gitee.io/2021/07/07/thymeleaf%E8%B0%83%E7%94%A8springBean/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="没有经过战斗的舍弃，是虚伪的；没有经过苦难的超脱，是轻佻的。——傅雷  昨天写了一篇关于前端精度丢失的博客 今天发现还有个问题，如果我们需要使用thymeleaf在js中使用获取的数据是一个对象 并且里面的属性还是超出16位的Long类型的话，仍然会导致精度丢失 这里我们可以直接写一个JsonManager 12345678910111213141516171819&#x2F;** * Json转换管理层">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2021-07-07T12:19:12.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.350Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "thymeleaf调用springBean",
+  "url": "https://vampireachao.gitee.io/2021/07/07/thymeleaf%E8%B0%83%E7%94%A8springBean/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2021-07-07T12:19:12.000Z",
+  "dateModified": "2026-02-24T09:48:42.350Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2021/07/07/thymeleaf%E8%B0%83%E7%94%A8springBean/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'thymeleaf调用springBean',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">thymeleaf调用springBean</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">thymeleaf调用springBean</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-07-07T12:19:12.000Z" title="发表于 2021-07-07 20:19:12">2021-07-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.350Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>没有经过战斗的舍弃，是虚伪的；没有经过苦难的超脱，是轻佻的。——傅雷</p>
+</blockquote>
+<p>昨天写了一篇<a target="_blank" rel="noopener" href="https://vampireachao.github.io/2021/07/06/js%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E5%9D%91/">关于前端精度丢失的博客</a></p>
+<p>今天发现还有个问题，如果我们需要使用<code>thymeleaf</code>在<code>js</code>中使用获取的数据是一个对象</p>
+<p>并且里面的属性还是超出16位的<code>Long</code>类型的话，仍然会导致精度丢失</p>
+<p>这里我们可以直接写一个<code>JsonManager</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Json转换管理层</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2021/7/7 11:12</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">JsonManager</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 序列化处理精度丢失</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> serializeObj 将要序列化的对象</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> java.lang.Object</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@since</span> 2021/7/7 11:16</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    Object <span class="title function_">browserCompatible</span><span class="params">(Object serializeObj)</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实现类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;</span><br><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.serializer.SerializerFeature;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Service;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Json转换管理层实现类</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2021/7/7 11:13</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JsonManagerImpl</span> <span class="keyword">implements</span> <span class="title class_">JsonManager</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 序列化处理精度丢失</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> serializeObj 将要序列化的对象</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> java.lang.Object</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@since</span> 2021/7/7 11:16</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Object <span class="title function_">browserCompatible</span><span class="params">(Object serializeObj)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> JSON.parse(JSON.toJSONString(serializeObj, SerializerFeature.BrowserCompatible));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后我们可以在页面上调用</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">th:inline</span>=<span class="string">&quot;javascript&quot;</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">let</span> ruben = [[$&#123;@jsonManagerImpl.<span class="title function_">browserCompatible</span>(ruben)&#125;]];</span></span><br><span class="line"><span class="language-javascript">    <span class="variable language_">console</span>.<span class="title function_">log</span>(ruben)</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我们打开浏览器控制台查看我们替换后的结果</p>
+<p><img src="/img/oss/picGo/image-20210707230245389.png" alt="image-20210707230245389"></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2021/07/08/%E8%87%AA%E7%94%A8%E6%A8%A1%E6%9D%BFsql/" title="自用模板sql"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">自用模板sql</div></div><div class="info-2"><div class="info-item-1"> 真正的伟人，能在愚昧和喧嚣的物质世界中，静心倾听荒漠的声音。——深泉学院（美国）  自用sql，我建站时每张表必备如下字段： 12345678DROP TABLE IF EXISTS `common_template`;CREATE TABLE `common_template`  (  `id` bigint(0) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT &#x27;主键&#x27;,  `gmt_deleted`datetime(0) DEFAULT NULL COMMENT  &#x27;逻辑删除字段 NULL未删除 有值表示已删除，值为删除时间&#x27;,  `gmt_create` datetime(0) NOT NULL COMMENT &#x27;现在时表示主动式创建&#x27;,  `gmt_modified` datetime(0) NOT NULL COMMENT &#x27;过去分词表示被动式更新&#x27;,  PRIMARY KEY (`id`) USING BTREE) ENGINE = InnoDB CH...</div></div></div></a><a class="pagination-related" href="/2021/07/06/js%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E5%9D%91/" title="js精度丢失坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">js精度丢失坑</div></div><div class="info-2"><div class="info-item-1"> 飞蛾扑火时一定是极快乐幸福的。——三毛  我们在进行开发时可能会遇到这样一个坑，那就是js代码的精度丢失  可以看到16位以后就会出现精度丢失的问题 我们定义一个简单接口，这里用com.baomidou.mybatisplus.core.toolkit.IdWorker.getId()生成19位为Long类型的id 12345@GetMapping(&quot;json&quot;)@ResponseBodypublic Ruben json() &#123;    return new Ruben(IdWorker.getId());&#125;  返回的Ruben对象 1234567891011121314151617181920/** * @author &lt;achao1441470436@gmail.com&gt; * @since 2021/7/6 0006 21:37 */public class Ruben &#123;    private Long id;    public Ruben(Long id) &#123;        this.id = i...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2020/12/13/%E4%BD%BF%E7%94%A8java%E6%93%8D%E4%BD%9Cword/" title="使用java操作word"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-12-13</div><div class="info-item-2">使用java操作word</div></div><div class="info-2"><div class="info-item-1"> 真正的美德不可没有实用的智慧，而实用的智慧也不可没有美德。——亚里士多德  可以使用Spire操作word Spire.Doc for Java 是一款专业的 Java Word 组件，开发人员使用它可以轻松地将 Word 文档创建、读取、编辑、转换和打印等功能集成到自己的 Java 应用程序中。作为一款完全独立的组件，Spire.Doc for Java 的运行环境无需安装 Microsoft Office。 Spire.Doc for Java 能执行多种 Word 文档处理任务，包括生成、读取、转换和打印 Word 文档，插入图片，添加页眉和页脚，创建表格，添加表单域和邮件合并域，添加书签，添加文本和图片水印，设置背景颜色和背景图片，添加脚注和尾注，添加超链接，加密和解密 Word 文档，添加批注，添加形状等。 官方文档 依赖 12345&lt;dependency&gt;    &lt;groupId&gt;e-iceblue&lt;/groupId&gt;    &lt;artifactId&gt;spire.doc.free&lt;/artifactId&gt;  ...</div></div></div></a><a class="pagination-related" href="/2022/01/05/java%E7%94%9F%E6%88%90%E5%B8%A6logo%E4%BA%8C%E7%BB%B4%E7%A0%81/" title="java生成带logo二维码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-05</div><div class="info-item-2">java生成带logo二维码</div></div><div class="info-2"><div class="info-item-1"> 人生如路。须在荒凉中走出繁华的风景来。——七堇年  代码很简单，需要用到hutool 我这边logo是网络地址，实际开发中可以使用本地地址 1QrCodeUtil.generatePng(&quot;二维码实际的值&quot;, QrConfig.create().setImg(ImgUtil.getImage(URLUtil.url(/img/oss/2020-06-01/head.jpg))))  然后这里的返回值就是byte[]我们可以返回给前端 当然，也推荐使用客户端生成二维码，这样避免了网络传输带来的损耗 简单场景和安卓等java客户端应用可以用这个方法 </div></div></div></a><a class="pagination-related" href="/2023/11/26/spring-state-machine%E7%9B%91%E5%90%AC%E5%99%A8/" title="spring-state-machine监听器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-26</div><div class="info-item-2">spring-state-machine监听器</div></div><div class="info-2"><div class="info-item-1"> 在做艺术家之前，先要做一个人。——罗丹  分享一个spring-state-machine监听器的用法： 12345678910111213141516171819202122232425262728293031323334353637383940stateMachine.addStateListener(new StateMachineListenerAdapter&lt;States, Events&gt;() &#123;			@Override			public void stateEntered(State&lt;States, Events&gt; state) &#123;				StateMachineMessage message = new StateMachineMessage();				message.setMessage(&quot;Enter state &quot; + state.getId().toString());				simpMessagingTemplate.convertAndSend(&quot;/topic/sm.messag...</div></div></div></a><a class="pagination-related" href="/2022/07/19/h2%E4%BB%8E1-4-200%E5%8D%87%E7%BA%A7%E5%88%B02-1-212/" title="h2从1.4.200升级到2.1.212"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-19</div><div class="info-item-2">h2从1.4.200升级到2.1.212</div></div><div class="info-2"><div class="info-item-1"> 鲸落海底，哺暗界众生十五年。——加里·斯奈德  如果直接修改GAV版本号 12345&lt;dependency&gt;    &lt;groupId&gt;com.h2database&lt;/groupId&gt;    &lt;artifactId&gt;h2&lt;/artifactId&gt;    &lt;version&gt;2.1.212&lt;/version&gt;&lt;/dependency&gt;  你会获得一堆报错  下面是我的ddl： 123456789101112131415161718192021222324drop table if exists user_info;create table if not exists user_info(    id    BIGINT(20) AUTO_INCREMENT NOT NULL COMMENT &#x27;主键ID&#x27;,    name  VARCHAR(30)               NULL DEFAULT NULL COMMENT &#x27;姓名&#x27;,    age...</div></div></div></a><a class="pagination-related" href="/2020/12/30/Collections-shuffle/" title="Collections.shuffle()"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-12-30</div><div class="info-item-2">Collections.shuffle()</div></div><div class="info-2"><div class="info-item-1"> 莫等闲，白了少年头，空悲切。——岳飞  转  Java.util.Collections类下有一个静态的shuffle()方法,如下： 1）static void shuffle(List&lt;?&gt; list)  使用默认随机源对列表进行置换，所有置换发生的可能性都是大致相等的。 2）static void shuffle(List&lt;?&gt; list, Random rand) 使用指定的随机源对指定列表进行置换，所有置换发生的可能性都是大致相等的，假定随机源是公平的。 通俗一点的说，就像洗牌一样，随机打乱原来的顺序。 注意：如果给定一个整型数组，用Arrays.asList()方法将其转化为一个集合类，有两种途径： 1）用List list&#x3D;ArrayList(Arrays.asList(ia)),用shuffle()打乱不会改变底层数组的顺序。 2）用List list&#x3D;Arrays.aslist(ia),然后用shuffle()打乱会改变底层数组的顺序。代码例子如下：  12345678910111213141516171819202...</div></div></div></a><a class="pagination-related" href="/2021/03/23/mybatis-plus%E4%BB%8E3-1%E5%8D%87%E7%BA%A7%E5%88%B03-4-2/" title="mybatis-plus从3.1升级到3.4.2"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-03-23</div><div class="info-item-2">mybatis-plus从3.1升级到3.4.2</div></div><div class="info-2"><div class="info-item-1"> 虚荣是一件无聊的骗人的东西；得到它的人，未必有什么功德，失去它的人，也未必有什么过失。——莎士比亚  123456&lt;!--    mybatis-plus    --&gt;&lt;dependency&gt;    &lt;groupId&gt;com.baomidou&lt;/groupId&gt;    &lt;artifactId&gt;mybatis-plus-boot-starter&lt;/artifactId&gt;    &lt;version&gt;3.4.2&lt;/version&gt;&lt;/dependency&gt;  然后我们的租户、分页等配置需要修改为如下新写法 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061package com.ruben.config;import com.baomidou.mybatisplus.annotation.DbType;im...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

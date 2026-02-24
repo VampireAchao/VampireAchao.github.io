@@ -1,0 +1,196 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>spring-state-machine拦截器 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="不乘人于利，不迫人于险。——刘向  继续分享spring-state-machine状态机的拦截器使用，这里需要留意一个细节： 如果一个事件没有被状态机接受（例如当前状态不是事件的source导致无法转换） 则不会进入拦截器进行处理（但监听器仍然工作，监听器的博客） 这里配置拦截器也很简单： 1234567891011machine.addStateMachineInterceptor(new">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring-state-machine拦截器">
+<meta property="og:url" content="https://vampireachao.gitee.io/2023/11/27/spring-state-machine%E6%8B%A6%E6%88%AA%E5%99%A8/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="不乘人于利，不迫人于险。——刘向  继续分享spring-state-machine状态机的拦截器使用，这里需要留意一个细节： 如果一个事件没有被状态机接受（例如当前状态不是事件的source导致无法转换） 则不会进入拦截器进行处理（但监听器仍然工作，监听器的博客） 这里配置拦截器也很简单： 1234567891011machine.addStateMachineInterceptor(new">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2023-11-27T00:47:48.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.338Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "spring-state-machine拦截器",
+  "url": "https://vampireachao.gitee.io/2023/11/27/spring-state-machine%E6%8B%A6%E6%88%AA%E5%99%A8/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2023-11-27T00:47:48.000Z",
+  "dateModified": "2026-02-24T09:48:42.338Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2023/11/27/spring-state-machine%E6%8B%A6%E6%88%AA%E5%99%A8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'spring-state-machine拦截器',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">spring-state-machine拦截器</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">spring-state-machine拦截器</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-11-27T00:47:48.000Z" title="发表于 2023-11-27 08:47:48">2023-11-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.338Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>不乘人于利，不迫人于险。——刘向</p>
+</blockquote>
+<p>继续分享<code>spring-state-machine</code>状态机的拦截器使用，这里需要留意一个细节：</p>
+<p>如果一个事件没有被状态机接受（例如当前状态不是事件的<code>source</code>导致无法转换）</p>
+<p>则不会进入拦截器进行处理（但监听器仍然工作，<a target="_blank" rel="noopener" href="https://vampireachao.github.io/2023/11/26/spring-state-machine%E7%9B%91%E5%90%AC%E5%99%A8/">监听器的博客</a>）</p>
+<p>这里配置拦截器也很简单：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">machine.addStateMachineInterceptor(<span class="keyword">new</span> <span class="title class_">StateMachineInterceptorAdapter</span>&lt;TestStates,TestEvents&gt;() &#123;</span><br><span class="line">			<span class="meta">@Override</span></span><br><span class="line">			<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">postStateChange</span><span class="params">(State&lt;TestStates, TestEvents&gt; state, Message&lt;TestEvents&gt; message,</span></span><br><span class="line"><span class="params">					Transition&lt;TestStates, TestEvents&gt; transition, StateMachine&lt;TestStates, TestEvents&gt; stateMachine,</span></span><br><span class="line"><span class="params">					StateMachine&lt;TestStates, TestEvents&gt; rootStateMachine)</span> &#123;</span><br><span class="line">				<span class="keyword">if</span> (state.getId() == TestStates.S4) &#123;</span><br><span class="line">					nullCheck.set(transition == <span class="literal">null</span>);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="built_in">super</span>.postStateChange(state, message, transition, stateMachine, rootStateMachine);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">stateMachine.getStateMachineAccessor().withRegion()</span><br><span class="line">                    .addStateMachineInterceptor(<span class="keyword">new</span> <span class="title class_">StateMachineInterceptor</span>());</span><br></pre></td></tr></table></figure>
+
+<p>同样，这里有非常多的方法在不同的时机执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">postStateChange</span><br><span class="line">postTransition</span><br><span class="line">preEvent</span><br><span class="line">preStateChange</span><br><span class="line">preTransition</span><br><span class="line">stateMachineError</span><br></pre></td></tr></table></figure>
+
+<p>拦截器主要的特征是可以修改状态机、事件的行为，例如在 <code>preEvent</code> 方法中返回 <code>null</code>，则事件不会执行</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/11/28/cannot-open-shared-object-file-No-such-file-or-directory/" title="cannot open shared object file: No such file or directory"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">cannot open shared object file: No such file or directory</div></div><div class="info-2"><div class="info-item-1"> 偿付能力，完全是个调节问题，不是收入问题。——洛根·史密斯  今天集成声网native rtc-linux-server-sdk的时候，遇到报错： 1234567Caused by: java.lang.UnsatisfiedLinkError: /usr/java/packages/lib/libbinding.so: libagora_rtc_sdk.so: cannot open shared object file: No such file or directory at java.base/jdk.internal.loader.NativeLibraries.load(Native Method) ~[na:na] at java.base/jdk.internal.loader.NativeLibraries$NativeLibraryImpl.open(NativeLibraries.java:388) ~[na:na] at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLib...</div></div></div></a><a class="pagination-related" href="/2023/11/26/spring-state-machine%E7%9B%91%E5%90%AC%E5%99%A8/" title="spring-state-machine监听器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">spring-state-machine监听器</div></div><div class="info-2"><div class="info-item-1"> 在做艺术家之前，先要做一个人。——罗丹  分享一个spring-state-machine监听器的用法： 12345678910111213141516171819202122232425262728293031323334353637383940stateMachine.addStateListener(new StateMachineListenerAdapter&lt;States, Events&gt;() &#123;			@Override			public void stateEntered(State&lt;States, Events&gt; state) &#123;				StateMachineMessage message = new StateMachineMessage();				message.setMessage(&quot;Enter state &quot; + state.getId().toString());				simpMessagingTemplate.convertAndSend(&quot;/topic/sm.messag...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/03/26/idea%E4%B8%8B%E8%BD%BD%E4%B8%8D%E4%B8%8B%E6%9D%A5maven%E4%B8%89%E6%96%B9%E5%BA%93%E6%BA%90%E7%A0%81%E5%A4%84%E7%90%86%EF%BC%88%E4%BA%8C%EF%BC%89/" title="idea下载不下来maven三方库源码处理（二）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-26</div><div class="info-item-2">idea下载不下来maven三方库源码处理（二）</div></div><div class="info-2"><div class="info-item-1"> 把每一个黎明看作是生命的开始，把每一个黄昏看作你生命的小结。——罗斯金  实际上我这里就是因为配置maven镜像不正确导致的： 原先我的配置： 123456&lt;mirror&gt;    &lt;id&gt;nexus-tencentyun&lt;/id&gt;    &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;    &lt;name&gt;Nexus tencentyun&lt;/name&gt;    &lt;url&gt;http://mirrors.cloud.tencent.com/nexus/repository/maven-public/&lt;/url&gt;&lt;/mirror&gt;  现在： 123456&lt;mirror&gt;    &lt;id&gt;nexus-tencentyun&lt;/id&gt;    &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;    &lt;name&gt;Nexus tencentyun&lt;/name&gt;    &lt;url&gt;htt...</div></div></div></a><a class="pagination-related" href="/2020/06/15/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%8F%91/" title="快速开发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-06-15</div><div class="info-item-2">快速开发</div></div><div class="info-2"><div class="info-item-1">如今，开发网站已经不是什么稀奇事了 那么如何快速进行网站的开发呢？ 首先我推荐的是这款快速开发框架——《jeecgboot》 Jeecg-Boot 是一款基于BPM的低代码开发平台！采用前后端分离架构： SpringBoot 2.x，Ant Design&amp;Vue，Mybatis-plus，Shiro，JWT。强大的代码生成器让前后端代码一键生成，无需写任何代码！！帮助Java项目解决70%的重复工作，让开发更关注业务逻辑，既能快速提高效率，节省研发成本，同时又不失灵活性！各种低代码能力，在线开发：Online表单、Online图表、Online报表、表单设计器、流程设计器、报表设计器、大屏设计器 等等… 其次，是一款gitee上的一套解决方案——《人人开源》 包含了一款快速开发框架Vue+springboot前后端分离、一整7Kstars的权限系统 这两款框架因为都是基于springboot，所以其他的组件都是开箱即用，用很少的配置甚至0配置就能引入组件开始使用 还有一套基于Spring+SpringMVC+Mybatis分布式敏捷开发系统架构，提供整套公共微服务服务模块...</div></div></div></a><a class="pagination-related" href="/2024/02/15/mapstruct%E6%A8%A1%E6%9D%BF/" title="mapstruct模板"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-15</div><div class="info-item-2">mapstruct模板</div></div><div class="info-2"><div class="info-item-1"> 自信是成功的秘诀。——韦恩·戴克  分享一个idea的mapstruct模板 12345678910111213141516171819#if ($&#123;PACKAGE_NAME&#125; &amp;&amp; $&#123;PACKAGE_NAME&#125; != &quot;&quot;)package $&#123;PACKAGE_NAME&#125;;#end#parse(&quot;File Header.java&quot;)import jakarta.annotation.Nullable;import org.mapstruct.Mapper;import org.springframework.core.convert.converter.Converter;/** * $&#123;NAME&#125;Converter * * @author achao@apache.org * @since $DATE */@Mapper(componentModel = &quot;spring&quot;)public interface $&#123;...</div></div></div></a><a class="pagination-related" href="/2022/08/25/%E8%81%8A%E8%81%8Alambda/" title="聊聊lambda"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-25</div><div class="info-item-2">聊聊lambda</div></div><div class="info-2"><div class="info-item-1">   不速之客只在告辞以后才最受欢迎——莎士比亚  公众号链接：https://mp.weixin.qq.com/s/MFXRBr16LuGn6G2rlOFFEw 简介今天主要聊聊java中的lambda 距离我加入hutool-commiter已经有一段时间了，想起曾经封装过的一个类Opt，就是使用lambda，按照惯例，先介绍下dromara组织下的项目hutool   Hutool是一个小而全的Java工具类库，通过静态方法封装，降低相关API的学习成本，提高工作效率，使Java拥有函数式语言般的优雅，让Java语言也可以“甜甜的”。  这个类Opt的灵感来源是对jdk内置的java.util.Optional的拓展，在一些细节方面进了了简化处理 下面主要是通过其介绍lambda的使用 快速上手依靠idea编译器的提示进行快速上手 下方是判断user是否为空，不为空通过User#getSchool()获取学校名的操作 例如此处我写到这里 1234User user = new User();// idea提示下方参数，如果没显示，光标放到括号里按ctrl+p主动呼出    ...</div></div></div></a><a class="pagination-related" href="/2023/02/15/bean-searcher%E5%86%85%E5%B5%8C%E5%8F%82%E6%95%B0/" title="bean-searcher内嵌参数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-15</div><div class="info-item-2">bean-searcher内嵌参数</div></div><div class="info-2"><div class="info-item-1"> 凡事有私心的人，虚荣心强的人，一切以我为中心的人才最爱听拍马屁的奉承话、甜言蜜语，其中一定包含着辛辣——席勒  文档链接 这里的内嵌参数中的一种，拼接参数可以让我们传入自定义的sql，更加的灵活 例如嵌入到@SearchBean.tables里 123456789101112@SearchBean(    tables = &quot;:table:&quot;      // 参数 table 由检索时动态指定，这在分表检索时非常有用) public class Order &#123;        @DbField(&quot;id&quot;)    private long id;    @DbField(&quot;order_no&quot;)    private String orderNo;&#125;  又或者是groupBy里 12345678910@SearchBean(    tables = &quot;student&quot;,     groupBy = &quot;:groupBy:&quot;           // 动态指定分组条件)...</div></div></div></a><a class="pagination-related" href="/2022/10/22/maven%E8%85%BE%E8%AE%AF%E4%BA%91%E9%95%9C%E5%83%8F/" title="maven腾讯云镜像"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-10-22</div><div class="info-item-2">maven腾讯云镜像</div></div><div class="info-2"><div class="info-item-1"> 人们在年轻的时候，谁也不知道自己年轻——切斯特顿  因为阿里云镜像维护，导致暂停同步镜像了  所以更换为腾讯云镜像： https://mirrors.cloud.tencent.com/help/maven.html  设置方法打开maven的设置文件settings.xml，配置如下repository mirror： 123456&lt;mirror&gt;    &lt;id&gt;nexus-tencentyun&lt;/id&gt;    &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;    &lt;name&gt;Nexus tencentyun&lt;/name&gt;    &lt;url&gt;http://mirrors.cloud.tencent.com/nexus/repository/maven-public/&lt;/url&gt;&lt;/mirror&gt;  </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

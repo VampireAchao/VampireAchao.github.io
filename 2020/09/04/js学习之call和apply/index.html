@@ -1,0 +1,204 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>js学习之call和apply | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="贪玩蓝月真好玩，但学习还是要继续的 我们平时调用一个js函数是这样的 12345678910var ruben &#x3D; &#123;    say: function (word) &#123;        if (this.name &#x3D;&#x3D; null) &#123;            this.name &#x3D; &quot;ruben&quot;;        &#125;        ret">
+<meta property="og:type" content="article">
+<meta property="og:title" content="js学习之call和apply">
+<meta property="og:url" content="https://vampireachao.gitee.io/2020/09/04/js%E5%AD%A6%E4%B9%A0%E4%B9%8Bcall%E5%92%8Capply/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="贪玩蓝月真好玩，但学习还是要继续的 我们平时调用一个js函数是这样的 12345678910var ruben &#x3D; &#123;    say: function (word) &#123;        if (this.name &#x3D;&#x3D; null) &#123;            this.name &#x3D; &quot;ruben&quot;;        &#125;        ret">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2020-09-04T11:56:31.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.147Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="前端">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "js学习之call和apply",
+  "url": "https://vampireachao.gitee.io/2020/09/04/js%E5%AD%A6%E4%B9%A0%E4%B9%8Bcall%E5%92%8Capply/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2020-09-04T11:56:31.000Z",
+  "dateModified": "2026-02-24T09:48:42.147Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2020/09/04/js%E5%AD%A6%E4%B9%A0%E4%B9%8Bcall%E5%92%8Capply/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'js学习之call和apply',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">js学习之call和apply</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">js学习之call和apply</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-09-04T11:56:31.000Z" title="发表于 2020-09-04 19:56:31">2020-09-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.147Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><img src="/img/oss/picGo/7F2(ZBE%7B0%5BQ$TW%7D96%5DV%60)RV.jpg" alt="img"></p>
+<p>贪玩蓝月真好玩，但学习还是要继续的</p>
+<p>我们平时调用一个<code>js</code>函数是这样的</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> ruben = &#123;</span><br><span class="line">    <span class="attr">say</span>: <span class="keyword">function</span> (<span class="params">word</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">name</span> == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">name</span> = <span class="string">&quot;ruben&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">name</span> + <span class="string">&quot;说：&quot;</span> + word;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> whatRubenSaid = ruben.<span class="title function_">say</span>(<span class="string">&quot;做猪呢，最重要的是开心&quot;</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(whatRubenSaid);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果</p>
+<p><img src="/img/oss/picGo/image-20200904200656453.png" alt="image-20200904200656453"></p>
+<p>那么我们现在新创建一个对象</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> <span class="title class_">Achao</span> = &#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;Achao&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们想在<code>Achao</code>里调用<code>ruben</code>里的<code>say</code>函数</p>
+<p>我们就可以这样</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> whatAchaoSaid = ruben.<span class="property">say</span>.<span class="title function_">call</span>(<span class="title class_">Achao</span>, <span class="string">&quot;村头恶霸华农、刑部尚书手工耿、木瓜大盗莫叔、非洲人犯朱一旦&quot;</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(whatAchaoSaid);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果</p>
+<p><img src="/img/oss/picGo/image-20200904200840356.png" alt="image-20200904200840356"></p>
+<p>这就是<code>call</code>函数的使用方式和场景了</p>
+<p>那么还有一个<code>apply</code>呢？</p>
+<p>和<code>call</code>不同，它调用方法给的参数需要是一个数组</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> <span class="title class_">Hegel</span> = &#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;黑格尔&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> whatHegelSaid = ruben.<span class="property">say</span>.<span class="title function_">apply</span>(<span class="title class_">Hegel</span>, [<span class="string">&quot;只有永远躺在泥坑里的人，才不会再掉进坑里。&quot;</span>])</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(whatHegelSaid);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/oss/picGo/image-20200904201116252.png" alt="image-20200904201116252"></p>
+<p>否则会抛出异常</p>
+<p><img src="/img/oss/picGo/image-20200904201148445.png" alt="image-20200904201148445"></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%89%8D%E7%AB%AF/">前端</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2020/09/05/vue%E7%BB%93%E5%90%88elementUI%E8%BF%9B%E8%A1%8C%E5%BF%AB%E9%80%9F%E5%BC%80%E5%8F%91/" title="vue结合elementUI进行快速开发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">vue结合elementUI进行快速开发</div></div><div class="info-2"><div class="info-item-1"> 人生最重要的不是努力，不是奋斗，而是抉择。  我们引入一个elementUI 1cnpm i element-ui   然后在main.js中引入 我们来做个测试，首先在页面中的methods中定义个welcome方法 123456789methods: &#123;  welcome() &#123;    this.$message(&#123;      showClose: true,      message: &quot;欢迎&quot;,      type: &quot;success&quot;,    &#125;);  &#125;,&#125;,  然后在created中调用该方法  进入home页面，刷新 可以看到效果了  那我们再引入个导航栏 首先创建header.vue  然后编写导航栏 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869&lt...</div></div></div></a><a class="pagination-related" href="/2020/09/03/vue2-0%E9%85%8D%E7%BD%AE%E8%B7%AF%E7%94%B1/" title="vue2.0配置路由"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">vue2.0配置路由</div></div><div class="info-2"><div class="info-item-1"> 古希腊哲学家芝诺的学生问他：“老师，难道你有不懂得的东西吗？”芝诺风趣地回答：“如果用小圆代表你们学到的知识，用大圆代表我学到的知识，那么大圆的面积是多一点；但两圆之外的空白，都是我们的无知面，圆越大，其圆周接触的无知面就越多。”  先说下端口配置吧 项目根目录下新建一个文件叫vue.config.js  12345module.exports = &#123;    devServer: &#123;        port: 3000    &#125;&#125;  然后npm run serve运行项目，可以看到端口号变了  然后再配置个路由吧 1cnpm i vue-router   在main.js中引入 123456789101112import Vue from &#x27;vue&#x27;import App from &#x27;./App.vue&#x27;import router from &#x27;@/router&#x27;Vue.config.productionTip = falsenew Vue(&#123;  router,  rend...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/01/06/js%E7%94%9F%E6%88%90%E4%BA%8C%E7%BB%B4%E7%A0%81/" title="js生成二维码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-06</div><div class="info-item-2">js生成二维码</div></div><div class="info-2"><div class="info-item-1"> 我们飞得越高，我们在那些不能飞的人眼中的形象就越渺小。——尼采《查拉图斯特拉如是说》  我们使用qrcodejs生成：https://github.com/davidshimjs/qrcodejs 下载这个js并引用  不知道怎么下载的可以直接到这个链接下按ctrl+s另存为 https://raw.githubusercontent.com/davidshimjs/qrcodejs/master/qrcode.min.js 然后编写代码： 123456789101112131415161718192021&lt;!DOCTYPE html&gt;&lt;html&gt;	&lt;head&gt;		&lt;meta charset=&quot;utf-8&quot;&gt;		&lt;title&gt;&lt;/title&gt;		&lt;script src=&quot;./js/qrcode.min.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;	&lt;/head&gt;	&lt;body&gt...</div></div></div></a><a class="pagination-related" href="/2026/02/08/likec4/" title="likec4"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-08</div><div class="info-item-2">likec4</div></div><div class="info-2"><div class="info-item-1"> 光景不待人，须叟发成丝。——李白  LikeC4：把软件架构“写成代码”，让图永远跟着真相走软件架构图经常有一个痛点：画完就过时。新服务上线、依赖变更、部署策略调整，图不更新，团队就错用信息。LikeC4 的思路是“Architecture as Code”——把架构作为模型编写，用工具从模型自动���成“永远最新”的可视化图；并提供 CLI、VS Code 扩展、在线 Playground、模板仓库等配套，让你在本地与云端都能轻松协作与演进。  仓库主页：likec4&#x2F;likec4 官网与文档：likec4.dev · Playground：playground.likec4.dev · Demo：template.likec4.dev&#x2F;view&#x2F;index VS Code 扩展与安装量：Marketplace · Open VSX 许可证：MIT License 项目一句话：Visualize, collaborate on, and evolve your software architecture with always up-to-dat...</div></div></div></a><a class="pagination-related" href="/2020/09/17/%E4%B8%80%E7%AF%87%EF%BC%8C%E8%AE%A9%E4%BD%A0%E4%BC%9A%E5%86%99%E5%8E%9F%E7%94%9Fajax/" title="一篇，让你会写原生ajax"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-17</div><div class="info-item-2">一篇，让你会写原生ajax</div></div><div class="info-2"><div class="info-item-1">   在这个社会转型期，最大的悲剧不是坏人的嚣张，而是好人的过度沉默。——马丁·路德·金  非常简单啦~ 大家可以拿去任意定制，比如请求方式使用参数传入、指定参数类型、调用时控制是否同步等 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109var Ajax = &#123;    /**     * get参数格式化，转换对象成url方式     * @param data 对象 转换前： &#123;&quot;username&quot;:&quot;ruben&quot;,&quot;password&quot;:&quot;achao&quot;&#125;     * @returns &...</div></div></div></a><a class="pagination-related" href="/2021/06/02/%E5%85%B3%E4%BA%8Ewx-getUserInfo%E8%8E%B7%E5%8F%96%E5%88%B0%E5%8C%BF%E5%90%8D%E6%95%B0%E6%8D%AE%E7%9A%84%E5%9D%91/" title="关于wx.getUserInfo获取到匿名数据的坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-02</div><div class="info-item-2">关于wx.getUserInfo获取到匿名数据的坑</div></div><div class="info-2"><div class="info-item-1"> 生命的黎明是乐园，青春才是真正的天堂。——华兹华斯  今天搞了很久，发现使用wx.getUserInfo获取到的用户昵称一直是：“微信用户”，并且头像也是默认的。。。  然后官方文档里发现 https://developers.weixin.qq.com/miniprogram/dev/api/open-api/user-info/wx.getUserInfo.html  打开后是这个页面  然后我们看wx.getUserProfile的文档：  wx.getUserProfile只能在页面产生点击事件（例如 button 上 bindtap 的回调中）后才可调用每次请求都会弹出授权窗口，用户同意后返回 userInfo。该接口用于替换 wx.getUserInfo，详见 用户信息接口调整说明。  注意desc是必填  我们配置好appid后   调用wx.getUserProfile 代码如下 12345678910111213141516171819202122232425262728&lt;template&gt;	&lt;view style=&quot;width:1...</div></div></div></a><a class="pagination-related" href="/2021/06/27/before%E5%92%8Cafter%E9%80%89%E6%8B%A9%E5%99%A8/" title="before和after选择器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-27</div><div class="info-item-2">before和after选择器</div></div><div class="info-2"><div class="info-item-1"> 在科学上没有平坦的大道，只有不畏劳苦，沿着陡峭山路攀登的人，才有希望达到光辉的顶点——马克思  我们可以使用::before和::after去选择我们节点内部的首项或尾项 例如我这里代码如下 123456789101112131415161718192021222324252627282930313233343536&lt;!DOCTYPE html&gt;&lt;html&gt;	&lt;head&gt;		&lt;meta charset=&quot;utf-8&quot;&gt;		&lt;title&gt;&lt;/title&gt;		&lt;style&gt;			.ruben-parent &#123;				width: 100%;				border: 0.1em solid #ababab;				text-align: center;			&#125;			.ruben-parent::before,			.ruben-parent::after &#123;				margin: 0 auto;				content: &#x27;&#x27;;				...</div></div></div></a><a class="pagination-related" href="/2022/01/02/%E5%9B%BE%E7%89%87%E6%87%92%E5%8A%A0%E8%BD%BD/" title="图片懒加载"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-02</div><div class="info-item-2">图片懒加载</div></div><div class="info-2"><div class="info-item-1"> 如果你只读每个人都在读的书，你也只能想到每个人都能想到的事。——村上春树  首先贴代码： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566&lt;!DOCTYPE html&gt;&lt;html&gt;	&lt;head&gt;		&lt;meta charset=&quot;utf-8&quot;&gt;		&lt;title&gt;&lt;/title&gt;		&lt;style type=&quot;text/css&quot;&gt;			.ruben &#123;				width: 400px;				height: 300px;				background-color: #e8e8e8			&#125;			.ruben img &#123;				width: 100%;				height: 100%;			&#125;		&lt;/style&gt;	&lt;...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

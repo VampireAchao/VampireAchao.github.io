@@ -1,0 +1,207 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>druid监控配置 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="你的道路是什么，老兄？乖孩子的路，疯子的路，五彩的路，浪荡子的路，任何的路。到底在什么地方，给什么人，怎么走呢？——杰克·凯鲁亚克《在路上》  项目地址：https:&#x2F;&#x2F;github.com&#x2F;alibaba&#x2F;druid&#x2F;wiki 这和fastjson一样也是温绍写的 首先引入gav 12345&lt;dependency&gt;    &lt;groupId&gt;com.alibaba&lt;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="druid监控配置">
+<meta property="og:url" content="https://vampireachao.gitee.io/2022/01/14/druid%E7%9B%91%E6%8E%A7%E9%85%8D%E7%BD%AE/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="你的道路是什么，老兄？乖孩子的路，疯子的路，五彩的路，浪荡子的路，任何的路。到底在什么地方，给什么人，怎么走呢？——杰克·凯鲁亚克《在路上》  项目地址：https:&#x2F;&#x2F;github.com&#x2F;alibaba&#x2F;druid&#x2F;wiki 这和fastjson一样也是温绍写的 首先引入gav 12345&lt;dependency&gt;    &lt;groupId&gt;com.alibaba&lt;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2022-01-14T10:57:31.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.013Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "druid监控配置",
+  "url": "https://vampireachao.gitee.io/2022/01/14/druid%E7%9B%91%E6%8E%A7%E9%85%8D%E7%BD%AE/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2022-01-14T10:57:31.000Z",
+  "dateModified": "2026-02-24T09:48:42.013Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2022/01/14/druid%E7%9B%91%E6%8E%A7%E9%85%8D%E7%BD%AE/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'druid监控配置',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">druid监控配置</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">druid监控配置</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-14T10:57:31.000Z" title="发表于 2022-01-14 18:57:31">2022-01-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.013Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>你的道路是什么，老兄？乖孩子的路，疯子的路，五彩的路，浪荡子的路，任何的路。到底在什么地方，给什么人，怎么走呢？——杰克·凯鲁亚克《在路上》</p>
+</blockquote>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/alibaba/druid/wiki">https://github.com/alibaba/druid/wiki</a></p>
+<p>这和<code>fastjson</code>一样也是温绍写的</p>
+<p>首先引入<code>gav</code></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>druid-spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;druid-version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我当前引入的版本是<code>1.2.8</code></p>
+<p><img src="/img/oss/picGo/image-20220114110631373.png" alt="image-20220114110631373"></p>
+<p>在配置文件中开启统计监控和可视化面板</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 应用名称</span></span><br><span class="line"><span class="attr">spring.application.name</span>=<span class="string">simple-druid</span></span><br><span class="line"><span class="comment"># 应用服务 WEB 访问端口</span></span><br><span class="line"><span class="attr">server.port</span>=<span class="string">8787</span></span><br><span class="line"><span class="comment"># 数据库驱动：</span></span><br><span class="line"><span class="attr">spring.datasource.driver-class-name</span>=<span class="string">com.mysql.cj.jdbc.Driver</span></span><br><span class="line"><span class="comment"># 数据源名称</span></span><br><span class="line"><span class="attr">spring.datasource.name</span>=<span class="string">defaultDataSource</span></span><br><span class="line"><span class="comment"># 数据库连接地址</span></span><br><span class="line"><span class="attr">spring.datasource.url</span>=<span class="string">jdbc:mysql://192.168.0.1:3306/ruben?autoReconnect=true&amp;zeroDateTimeBehavior=CONVERT_TO_NULL&amp;useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=false&amp;nullCatalogMeansCurrent=true&amp;serverTimezone=Asia/Shanghai&amp;allowMultiQueries=true&amp;allowPublicKeyRetrieval=true</span></span><br><span class="line"><span class="comment"># 数据库用户名&amp;密码：</span></span><br><span class="line"><span class="attr">spring.datasource.username</span>=<span class="string">用户名</span></span><br><span class="line"><span class="attr">spring.datasource.password</span>=<span class="string">密码</span></span><br><span class="line"><span class="comment"># druid配置</span></span><br><span class="line"><span class="comment"># Druid内置提供一个StatFilter，用于统计监控信息</span></span><br><span class="line"><span class="attr">spring.datasource.druid.web-stat-filter.enabled</span>=<span class="string">true</span></span><br><span class="line"><span class="comment"># Druid内置提供了一个StatViewServlet用于展示Druid的统计信息</span></span><br><span class="line"><span class="attr">spring.datasource.druid.stat-view-servlet.enabled</span>=<span class="string">true</span></span><br></pre></td></tr></table></figure>
+
+<p>我们配置好了，启动项目，访问：<a target="_blank" rel="noopener" href="http://localhost:8787/druid/datasource.html">http://localhost:8787/druid/datasource.html</a></p>
+<p>我们可以看到对我们数据库的监控</p>
+<p><img src="/img/oss/picGo/image-20220114112814398.png" alt="image-20220114112814398"></p>
+<p>包括能看到连接池的信息等</p>
+<p><img src="/img/oss/picGo/image-20220114112859140.png" alt="image-20220114112859140"></p>
+<p>非常好用</p>
+<p>我们访问测试一下</p>
+<p><img src="/img/oss/picGo/image-20220114115847748.png" alt="image-20220114115847748"></p>
+<p>可以看到连接数确实有监控到</p>
+<p>我们也可以限制一下线程数</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 最大线程数</span></span><br><span class="line"><span class="attr">spring.datasource.druid.max-active</span>=<span class="string">5</span></span><br><span class="line"><span class="comment"># 最大等待时间</span></span><br><span class="line"><span class="attr">spring.datasource.druid.max-wait</span>=<span class="string">5000</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们再次请求，当超过这个连接数时，如果其他连接没释放，则会抛出异常</p>
+<p><img src="/img/oss/picGo/image-20220114135355403.png" alt="image-20220114135355403"></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/01/15/druid%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%B3%84%E9%9C%B2/" title="druid连接池泄露"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">druid连接池泄露</div></div><div class="info-2"><div class="info-item-1"> 才华是刀刃，辛苦是磨刀石，很锋利的刀刃，若日久未磨，依旧会成为废韧——老舍  当程序存在缺陷时，申请的连接忘记关闭，这时候，就存在连接泄漏了 我们使用druid时，可以配置如下参数进行用来关闭长时间不使用的连接 1234567891011121314151617181920212223242526272829303132333435spring:  # 数据源配置  datasource:    druid:      # 统计监控信息      web-stat-filter:        enabled: true      # 可视化展示Druid的统计信息      stat-view-servlet:        enabled: true      filter:        # sql注入        wall:          enabled: true          db-type: mysql        slf4j:          enabled: true          statement-sql-pretty-format: t...</div></div></div></a><a class="pagination-related" href="/2022/01/13/for-of%E5%92%8Cfor-in/" title="for of和for in"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">for of和for in</div></div><div class="info-2"><div class="info-item-1"> 人生而自由，却无往不在枷锁中——卢梭《社会契约论》  我之前写过一篇for in的博客 for in是遍历对象key或者数组下标 前端还可以使用for of来遍历value 简单写一下两者区别和使用方式吧： 12let ruben = &#123;name:&#x27;ruben&#x27;, age:21&#125;for(key in ruben) console.log(key)   然后是for of  提示对象并不是iterable(可迭代的) 因此for of并不能遍历对象的key 接下来看数组的： 12let list = [1,2,3,4,5,6]for(i in list) console.log(i)   可以看到是遍历获取出了下标并不是实际的值 而for of： 12let list = [1,2,3,4,5,6]for(i of list) console.log(i)   遍历出了我们的value </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2021/03/22/mybatis-plus%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8/" title="mybatis-plus代码生成器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-03-22</div><div class="info-item-2">mybatis-plus代码生成器</div></div><div class="info-2"><div class="info-item-1"> 一个能思想的人，才真是一个力量无边的人。——巴尔扎克  你是否对每天重复单表CRUD，改mapper.xml字段已经感到厌烦？ 那么快点来整mybatis-plus代码生成器吧！ 首先到官网 并且从github拉下来最新的代码~ 没错，最新的！  https://github.com/baomidou/generator  当然，除了github，我们也可以选择gitee  https://gitee.com/baomidou/generator  然后用尽你的全力去点clone——哦！中文是克隆  然后你可以喝杯水  虽然代码拉下来了，但我们还需要使用gradle加载依赖~ 此时我们可以看看README.md 这告诉了我们如何使用  我们按照说明新建一个启动类(当然如果你想新建一个测试类也可以,这不重要~) 如果你是新建的启动类，那么你需要去build.gradle里找到这些dependencies 注意，这里有两个build.gradle，我们需要选择这一个  然后把testImplementation改为implementation 你也可以改你需要的那个，例如mysql...</div></div></div></a><a class="pagination-related" href="/2025/02/20/HuTool%E5%91%8A%E5%88%ABDromara%EF%BC%8C%E8%BD%AC%E5%9E%8B%E5%95%86%E4%B8%9A%E5%8C%96%E8%83%8C%E5%90%8E%E7%9A%84%E6%B7%B1%E5%B1%82%E5%8E%9F%E5%9B%A0%EF%BC%9F/" title="HuTool告别Dromara，转型商业化背后的深层原因？"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-20</div><div class="info-item-2">HuTool告别Dromara，转型商业化背后的深层原因？</div></div><div class="info-2"><div class="info-item-1"> 爱自己是终身浪漫的开始。——奥斯卡·王尔德的《理想的丈夫》  最近，开源界一个重磅新闻引发了广泛的讨论：HuTool宣布告别Dromara组织，正式转移到商业化公司账号。这一消息不仅震动了开源社区，也让我们开始反思开源项目的未来走向，特别是在商业化压力日益加剧的今天。 1. 开源的理想与现实：商业化的抉择在开源社区中，HuTool一直是一个备受推崇的项目。它以简洁、高效的工具库为开发者提供了大量的便利，尤其在Java开发者中间有着极高的声誉。HuTool本身在加入Dromara组织之前，已经有着强大的社区支持和广泛的使用群体。然而，随着项目的不断壮大，HuTool面临的一个问题越来越突出——资金与资源的匮乏。 尽管开源项目有其理想主义的成分，很多开源贡献者也抱有让技术回馈社会的想法，但在实际操作中，长期的开发与维护是需要大量资金与人力资源的。这就让许多曾经致力于开源的项目，最终不得不面对是否要转型为商业化项目的问题。HuTool的退出Dromara，正是一个标志性的事件。 2. 商业化的力量：如何平衡开源与盈利HuTool的转型并非孤例。近年来，越来越多的开源项目都在探索商业化...</div></div></div></a><a class="pagination-related" href="/2022/06/02/%E9%93%BE%E5%BC%8FConsumer/" title="链式Consumer"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-06-02</div><div class="info-item-2">链式Consumer</div></div><div class="info-2"><div class="info-item-1"> 这个时代不会阻止你自己闪耀,但你也覆盖不了任何人的光辉——黄渤  今天发现一种方便的链式Consumer写法 1234567891011121314151617import lombok.experimental.UtilityClass;import java.util.function.Consumer;import java.util.stream.Stream;/** * @author VampireAchao * @since 2022/6/2 10:57 */@UtilityClasspublic class LambdaHelper &#123;    @SafeVarargs    public static &lt;T&gt; Consumer&lt;T&gt; consumers(Consumer&lt;T&gt;... consumers) &#123;        return Stream.of(consumers).reduce(Consumer::andThen).orElseGet(() -&gt; o -&gt; &#123;&#125;)...</div></div></div></a><a class="pagination-related" href="/2021/09/02/shaun/" title="shaun"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-09-02</div><div class="info-item-2">shaun</div></div><div class="info-2"><div class="info-item-1"> 为伟大的事业捐躯，从来就不能算作失败。——拜伦  项目地址：https://gitee.com/baomidou/shaun  主要依托 pac4j-jwt 来提供默认使用 JWT 的 WEB 安全组件 优点 迅速集成,只需要少量配置+代码即可实现基本的接口防护 默认使用 jwt 进行身份认证 灵活的 jwt 配置,默认签名+加密 更多高级功能只需实现对应接口并注入到spring容器内 本框架各类均不会使用session(pac4j提供的类除外) 前后端不分离下,能依托pac4j的各种client快速集成三方登录(redirect跳转那种),例如oauth(qq,微信) 和 cas。    引入GAV  12345&lt;dependency&gt;    &lt;groupId&gt;com.baomidou&lt;/groupId&gt;    &lt;artifactId&gt;shaun-spring-boot-starter&lt;/artifactId&gt;    &lt;version&gt;1.2&lt;/version&gt;&lt;/dependency&...</div></div></div></a><a class="pagination-related" href="/2022/01/21/thymeleaf%E5%8A%A8%E6%80%81%E6%B8%B2%E6%9F%93html/" title="thymeleaf动态渲染html"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-21</div><div class="info-item-2">thymeleaf动态渲染html</div></div><div class="info-2"><div class="info-item-1"> 君子忍人所不能忍，容人所不能容，处人所不能处。——邓拓  我们可以使用thymeleaf进行动态渲染html内容 假设我的整个页面都是字符串，例如如下格式： 123456789&quot;&lt;!DOCTYPE html&gt;\n&quot; +   &quot;&lt;html&gt;\n&quot; +   &quot;    &lt;head&gt;\n&quot; +   &quot;        &lt;meta charset=\&quot;utf-8\&quot;&gt;\n&quot; +   &quot;        &lt;title&gt;&lt;/title&gt;\n&quot; +   &quot;    &lt;/head&gt;\n&quot; +   &quot;    &lt;body&gt;\n&quot; +   &quot;    &lt;/body&gt;\n&quot; +   &quot;&lt;/html&gt;&quot;  那我们渲染的话，其实可以直接新建一个页面，用[(${page})]语法，例如 1[($&#12...</div></div></div></a><a class="pagination-related" href="/2024/01/30/%E6%96%B0%E7%89%88%E9%98%BF%E9%87%8C%E4%BA%91%E5%86%85%E5%AE%B9%E5%AE%89%E5%85%A8%E5%AF%B9%E6%8E%A5/" title="新版阿里云内容安全对接"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-01-30</div><div class="info-item-2">新版阿里云内容安全对接</div></div><div class="info-2"><div class="info-item-1"> 只有不够聪明的人才批评、指责和抱怨别人。但是，善解人意和宽恕他人，需要培养和自制的功夫。——卡耐基  文档： 图片审核增强版SDK_内容安全(Content Moderation)-阿里云帮助中心 代码： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475import cn.hutool.core.thread.AsyncUtil;import cn.hutool.core.util.RandomUtil;import com.alibaba.nacos.common.utils.JacksonUtils;import com.aliyun.auth.credentials.Credential;import com.aliyun.auth.credentials.provider.StaticCredentialProvider;import co...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

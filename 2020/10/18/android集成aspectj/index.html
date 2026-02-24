@@ -1,0 +1,202 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>android集成aspectj | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="谢谢火焰给你光明，但不要忘了在黑暗中替你执灯的人！——泰戈尔  安卓集成aspectj 首先要引入依赖 先在项目gradle中配置   123456dependencies &#123;        classpath &quot;com.android.tools.build:gradle:4.0.1&quot;        classpath &#x27;com.hujiang.aspe">
+<meta property="og:type" content="article">
+<meta property="og:title" content="android集成aspectj">
+<meta property="og:url" content="https://vampireachao.gitee.io/2020/10/18/android%E9%9B%86%E6%88%90aspectj/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="谢谢火焰给你光明，但不要忘了在黑暗中替你执灯的人！——泰戈尔  安卓集成aspectj 首先要引入依赖 先在项目gradle中配置   123456dependencies &#123;        classpath &quot;com.android.tools.build:gradle:4.0.1&quot;        classpath &#x27;com.hujiang.aspe">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2020-10-18T08:08:07.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:41.947Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="android">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "android集成aspectj",
+  "url": "https://vampireachao.gitee.io/2020/10/18/android%E9%9B%86%E6%88%90aspectj/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2020-10-18T08:08:07.000Z",
+  "dateModified": "2026-02-24T09:48:41.947Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2020/10/18/android%E9%9B%86%E6%88%90aspectj/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'android集成aspectj',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">android集成aspectj</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">android集成aspectj</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-10-18T08:08:07.000Z" title="发表于 2020-10-18 16:08:07">2020-10-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:41.947Z" title="更新于 2026-02-24 17:48:41">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>谢谢火焰给你光明，但不要忘了在黑暗中替你执灯的人！——泰戈尔</p>
+</blockquote>
+<p>安卓集成<code>aspectj</code></p>
+<p>首先要引入依赖</p>
+<p>先在项目<code>gradle</code>中配置</p>
+<p><img src="/img/oss/picGo/image-20201018161737699.png" alt="image-20201018161737699"></p>
+<p><img src="/img/oss/picGo/image-20201018161810565.png" alt="image-20201018161810565"></p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">dependencies</span> &#123;</span><br><span class="line">        <span class="keyword">classpath</span> <span class="string">&quot;com.android.tools.build:gradle:4.0.1&quot;</span></span><br><span class="line">        <span class="keyword">classpath</span> <span class="string">&#x27;com.hujiang.aspectjx:gradle-android-plugin-aspectjx:2.0.10&#x27;</span></span><br><span class="line">        <span class="comment">// <span class="doctag">NOTE:</span> Do not place your application dependencies here; they belong</span></span><br><span class="line">        <span class="comment">// in the individual module build.gradle files</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在模块<code>gradle</code>中配置</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply plugin: <span class="string">&#x27;android-aspectjx&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>以及</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">aspectjx &#123;</span><br><span class="line">        <span class="keyword">exclude</span> <span class="string">&#x27;module-info.class&#x27;</span></span><br><span class="line">        enabled <span class="keyword">true</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/oss/picGo/image-20201018161954549.png" alt="image-20201018161954549"></p>
+<p>还有在最下面的依赖中加入</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">api <span class="string">&#x27;org.aspectj:aspectjrt:1.9.5&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/oss/picGo/image-20201018162047092.png" alt="image-20201018162047092"></p>
+<p>之后就可以使用我们的<code>AOP</code>了</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/android/">android</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2020/10/19/%E5%AE%89%E5%8D%93activity%E7%AE%A1%E7%90%86%E5%99%A8/" title="安卓activity管理器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">安卓activity管理器</div></div><div class="info-2"><div class="info-item-1"> 悲剧就是把有价值的东西毁灭给人看。——鲁迅  其实原理就是一个list，使用AOP在创建时添加，销毁时移除 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112package com.ruben.utils;import android.app.Activity;import android.os.Build;import java.util.Collections;import java.util.LinkedList;import java.util.List;import java.util.stream.Collectors;/** * @ClassName: MyActi...</div></div></div></a><a class="pagination-related" href="/2020/10/17/idea%E5%B8%B8%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE/" title="idea常用快捷键"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">idea常用快捷键</div></div><div class="info-2"><div class="info-item-1"> 时人莫小池中水，浅处无妨有卧龙。——唐·窦庠《醉中赠符载》   常用的有 Ctrl+Z：撤销 Ctrl+Shift+Z：重做 Ctrl+X：剪贴 Ctrl+C：复制 Ctrl+V：粘贴 Ctrl+Y：删除当前行 Ctrl+D:复制当前行 Ctrl+Shift+J：将选中的行合并成一行 Ctrl+N：查找类文件 Ctrl+Shift+N：查找文件 Ctrl+G：定位到文件某一行 Alt+向左箭头：返回上次光标位置 Alt+向右箭头：返回至后一次光标位置 Ctrl+Shift+Backspace：返回上次编辑位置 Ctrl+Shift+反斜杠：返回后一次编辑位置 Ctrl+B：定位至变量定义的位置 Ctrl+Alt+B：定位至选中类或者方法的具体实现 Ctrl+Shift+B:直接定位至光标所在变量的类型定义 Ctrl+U：直接定位至当前方法override或者implements的方法定义处 Ctrl+F12：显示当前文件的文件结构 Ctrl+Alt+F12：显示当前文件的路径，并可以方便的将相关父路径打开 Ctrl+H：显示当前类的继承层次 Ctrl+Shift+H：显示当前方...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/12/08/realm-io/" title="realm.io"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-08</div><div class="info-item-2">realm.io</div></div><div class="info-2"><div class="info-item-1"> 千万不要与同一个敌人交战过频，否则，他会把你的战术都学会的。——爱默生  分享一个数据库：https://realm.io/ java版本的github：https://github.com/realm/realm-java 这是一个旨在取代Core Data和SQLite的高性能移动数据库  </div></div></div></a><a class="pagination-related" href="/2025/06/11/%E8%8D%A3%E8%80%80%E6%89%8B%E6%9C%BALogcat%E4%B8%8D%E6%89%93%E5%8D%B0%E9%97%AE%E9%A2%98/" title="荣耀手机Logcat不打印问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-06-11</div><div class="info-item-2">荣耀手机Logcat不打印问题</div></div><div class="info-2"><div class="info-item-1"> 教师在学校中并不是要给儿童强加某种概念，或形成某种习惯，而是作为集体的一个成员来选择对于儿童起作用的影响，并帮助儿童对这些影响作出适当的反应。——杜威  荣耀手机 Logcat 不打印问题解决方案在 Android 开发过程中，Logcat 是开发者调试应用的重要工具。然而，在使用荣耀手机时，可能会遇到 Logcat 不打印的问题。这种情况通常是由于手机的日志功能未开启所导致的。本文将详细介绍如何通过手机工程菜单解决 Logcat 不打印的问题。  问题现象在使用荣耀手机进行调试时，开发者可能会发现 Logcat 无法打印应用日志。这通常表现为：  Logcat 界面没有应用相关的日志输出。 尝试重新连接手机或重启 IDE 依然无法解决问题。  这种问题的根源通常是手机的 AP 日志（应用日志）功能未开启。  解决方法荣耀手机提供了一个“工程菜单”，可以用来开启日志功能。以下是具体的操作步骤：  1. 进入工程菜单在手机的拨号界面输入以下代码： 1*#*#2846579#*#*  输入后无需点击拨号键，手机会自动弹出一个名为“工程菜单”的界面。  2. 设置日志输出在工程菜单中...</div></div></div></a><a class="pagination-related" href="/2026/02/02/NewPipe/" title="NewPipe"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-02</div><div class="info-item-2">NewPipe</div></div><div class="info-2"><div class="info-item-1"> 时间是一个伟大的作者，它会给每个人写出完美的结局来。——卓别林  NewPipe：Android 上“轻、自由、私密”的流媒体前端如果你希望在 Android 上自由、轻量地浏览和收听主流视频与音频内容，同时尽量减少对专有生态和跟踪服务的依赖，NewPipe 是一个值得认真体验的项目。它是一个开源、轻量的“流媒体前端”，以“尽可能私密与可控”为原则，支持多种服务源，功能齐备，且不会强制你登录某个账号就能订阅或管理内容。  项目主页：newpipe.net 仓库地址：TeamNewPipe&#x2F;NewPipe 许可证：GPLv3 简述：A libre lightweight streaming front-end for Android.  NewPipe 的代码正在进行“重构大改版”，官方推荐对新功能的贡献基于 refactor 分支进行；当前主线代码进入维护模式并以修复为主。与此同时，NewPipe 仍作为“开源自由替代”的代表，持续提供可靠而丰富的使用体验。  为什么用 NewPipe 自由开源与轻量设计使用自由软件许可证，拒绝专有服务绑定。应用和抽取层都不依赖诸如 ...</div></div></div></a><a class="pagination-related" href="/2020/10/23/%E5%AE%89%E5%8D%93%E8%AF%B7%E6%B1%82%E6%96%87%E4%BB%B6%E6%8E%88%E6%9D%83/" title="安卓请求文件授权"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-10-23</div><div class="info-item-2">安卓请求文件授权</div></div><div class="info-2"><div class="info-item-1"> 我将于茫茫人海中访我唯一灵魂之伴侣；得之，我幸；不得，我命，如此而已。——徐志摩  安卓请求文件授权 在AndroidManifest.xml中加上 1234&lt;!-- 往SDCard写入数据权限 --&gt;&lt;uses-permission android:name=&quot;android.permission.WRITE_EXTERNAL_STORAGE&quot; /&gt;&lt;!-- 从SDCard读入数据权限 --&gt;&lt;uses-permission android:name=&quot;android.permission.READ_EXTERNAL_STORAGE&quot; /&gt;   在启动的activity声明 123456//读写权限public static String[] PERMISSIONS_STORAGE = &#123;        Manifest.permission.READ_EXTERNAL_STORAGE,        Manifest.permission.WRITE_EXTERNAL_STOR...</div></div></div></a><a class="pagination-related" href="/2025/04/28/UnPeek-LiveData/" title="UnPeek-LiveData"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-28</div><div class="info-item-2">UnPeek-LiveData</div></div><div class="info-2"><div class="info-item-1"> 天才不能使人不必工作，不能代替劳动。要发展天才，必须长时间地学习和高度紧张地工作。人越有能力，他面临的任务也就越复杂，越重要。 —— 阿·斯米尔诺夫  GitHub - KunMinX&#x2F;UnPeek-LiveData: LiveData 数据倒灌：别问，问就是不可预期 - Perfect alternative to SingleLiveEvent, supporting multiple observers. UnPeek-LiveData：解决 LiveData 数据倒灌问题的完美替代方案在 Android Jetpack 架构中，LiveData 是一个非常强大的组件，用于观察数据变化并与生命周期感知组件协作。然而，开发者经常会遇到一个问题——LiveData 数据倒灌。这种现象会导致旧数据被重新触发，进而引发不可预期的行为。UnPeek-LiveData 是一个专为解决这一问题而设计的轻量级库，它是 SingleLiveEvent 的完美替代品，并支持多个观察者。  什么是 UnPeek-LiveData？UnPeek-LiveData 是一个基于 Jetpa...</div></div></div></a><a class="pagination-related" href="/2025/05/23/titlebar/" title="titlebar"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-05-23</div><div class="info-item-2">titlebar</div></div><div class="info-2"><div class="info-item-1"> 志当存高远。—— 诸葛亮《诫外生书》  https://github.com/getActivity/TitleBar Android 开发神器：TitleBar 的使用与优势解析在 Android 开发中，标题栏（TitleBar）是应用界面设计中不可或缺的一部分。然而，原生的 Toolbar 或 ActionBar 功能有限且自定义成本较高，给开发者带来不少麻烦。为了解决这些痛点，TitleBar 组件应运而生。 今天我们来介绍一个开源库 TitleBar，它是由 getActivity 团队开发的轻量级标题栏工具，帮助开发者快速而灵活地实现标题栏功能。  为什么选择 TitleBar？TitleBar 是一个功能强大且高度可定制的标题栏解决方案，以下是它的主要特点：  高度自定义：支持自定义标题、左右按钮、背景颜色等，满足各种 UI 需求。 轻量易用：只需简单配置即可快速集成，无需繁琐的代码。 兼容性强：支持 Android 各版本，且与多种布局兼容。 代码简洁：使用 TitleBar 可以大幅减少代码量，提升开发效率。 持续维护：由活跃的开源社区支持，拥有完善的文档和示...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

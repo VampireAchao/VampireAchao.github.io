@@ -1,0 +1,313 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>springboot3servlet和tomcat请求大小限制 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="兴趣是最好的老师，其次是耻辱。——胖子邓  123456spring.servlet.multipart.max-file-size&#x3D;1GBspring.servlet.multipart.max-request-size&#x3D;1GBserver.tomcat.max-http-form-post-size&#x3D;1GBserver.tomcat.max-http-post-size&#x3D;1GBserver.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="springboot3servlet和tomcat请求大小限制">
+<meta property="og:url" content="https://vampireachao.gitee.io/2024/12/07/springboot3servlet%E5%92%8Ctomcat%E8%AF%B7%E6%B1%82%E5%A4%A7%E5%B0%8F%E9%99%90%E5%88%B6/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="兴趣是最好的老师，其次是耻辱。——胖子邓  123456spring.servlet.multipart.max-file-size&#x3D;1GBspring.servlet.multipart.max-request-size&#x3D;1GBserver.tomcat.max-http-form-post-size&#x3D;1GBserver.tomcat.max-http-post-size&#x3D;1GBserver.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2024-12-07T06:36:51.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.340Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "springboot3servlet和tomcat请求大小限制",
+  "url": "https://vampireachao.gitee.io/2024/12/07/springboot3servlet%E5%92%8Ctomcat%E8%AF%B7%E6%B1%82%E5%A4%A7%E5%B0%8F%E9%99%90%E5%88%B6/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2024-12-07T06:36:51.000Z",
+  "dateModified": "2026-02-24T09:48:42.340Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2024/12/07/springboot3servlet%E5%92%8Ctomcat%E8%AF%B7%E6%B1%82%E5%A4%A7%E5%B0%8F%E9%99%90%E5%88%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'springboot3servlet和tomcat请求大小限制',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">springboot3servlet和tomcat请求大小限制</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">springboot3servlet和tomcat请求大小限制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-12-07T06:36:51.000Z" title="发表于 2024-12-07 14:36:51">2024-12-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.340Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>兴趣是最好的老师，其次是耻辱。——胖子邓</p>
+</blockquote>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring.servlet.multipart.max-file-size</span>=<span class="string">1GB</span></span><br><span class="line"><span class="attr">spring.servlet.multipart.max-request-size</span>=<span class="string">1GB</span></span><br><span class="line"><span class="attr">server.tomcat.max-http-form-post-size</span>=<span class="string">1GB</span></span><br><span class="line"><span class="attr">server.tomcat.max-http-post-size</span>=<span class="string">1GB</span></span><br><span class="line"><span class="attr">server.tomcat.max-http-response-header-size</span>=<span class="string">1GB</span></span><br><span class="line"><span class="attr">server.tomcat.max-swallow-size</span>=<span class="string">1GB</span></span><br></pre></td></tr></table></figure>
+
+<p>就是这几个配置</p>
+<hr>
+<h3 id="1-spring-servlet-multipart-max-file-size"><a href="#1-spring-servlet-multipart-max-file-size" class="headerlink" title="1. spring.servlet.multipart.max-file-size"></a>1. <strong><code>spring.servlet.multipart.max-file-size</code></strong></h3><ul>
+<li><p><strong>作用</strong>：设置单个文件的最大上传大小。</p>
+</li>
+<li><p><strong>默认值</strong>：1MB</p>
+</li>
+<li><p><strong>范围</strong>：适用于 <code>multipart/form-data</code> 请求中，每个文件的大小限制。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring.servlet.multipart.max-file-size</span>=<span class="string">1GB</span></span><br></pre></td></tr></table></figure>
+
+<p>允许上传的单个文件最大为 1GB。</p>
+</li>
+</ul>
+<hr>
+<h3 id="2-spring-servlet-multipart-max-request-size"><a href="#2-spring-servlet-multipart-max-request-size" class="headerlink" title="2. spring.servlet.multipart.max-request-size"></a>2. <strong><code>spring.servlet.multipart.max-request-size</code></strong></h3><ul>
+<li><p><strong>作用</strong>：设置整个请求的最大大小，包括所有文件和表单字段的总和。</p>
+</li>
+<li><p><strong>默认值</strong>：10MB</p>
+</li>
+<li><p><strong>范围</strong>：适用于 <code>multipart/form-data</code> 请求的整体大小。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring.servlet.multipart.max-request-size</span>=<span class="string">1GB</span></span><br></pre></td></tr></table></figure>
+
+<p>如果总上传的文件大小和表单数据超过 1GB，会抛出 <code>MaxUploadSizeExceededException</code>。</p>
+</li>
+</ul>
+<hr>
+<h3 id="3-server-tomcat-max-http-form-post-size"><a href="#3-server-tomcat-max-http-form-post-size" class="headerlink" title="3. server.tomcat.max-http-form-post-size"></a>3. <strong><code>server.tomcat.max-http-form-post-size</code></strong></h3><ul>
+<li><p><strong>作用</strong>：限制 HTTP 表单提交（<code>application/x-www-form-urlencoded</code>）的最大 POST 请求大小。</p>
+</li>
+<li><p><strong>默认值</strong>：2MB</p>
+</li>
+<li><p><strong>范围</strong>：仅适用于传统表单 POST 请求，不包括文件上传。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server.tomcat.max-http-form-post-size</span>=<span class="string">1GB</span></span><br></pre></td></tr></table></figure>
+
+<p>允许表单 POST 数据最大为 1GB。</p>
+</li>
+</ul>
+<hr>
+<h3 id="4-server-tomcat-max-http-post-size"><a href="#4-server-tomcat-max-http-post-size" class="headerlink" title="4. server.tomcat.max-http-post-size"></a>4. <strong><code>server.tomcat.max-http-post-size</code></strong></h3><ul>
+<li><p><strong>作用</strong>：限制 HTTP POST 请求的最大数据大小。</p>
+</li>
+<li><p><strong>默认值</strong>：2MB</p>
+</li>
+<li><p><strong>范围</strong>：适用于所有 POST 请求的数据限制，包括 <code>application/json</code> 和 <code>multipart/form-data</code>。</p>
+</li>
+<li><p><strong>区别</strong>：这是 Tomcat 提供的全局限制，与 Spring Boot 的 <code>max-file-size</code> 和 <code>max-request-size</code> 配置配合使用。</p>
+</li>
+<li><p><strong>示例</strong>：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server.tomcat.max-http-post-size</span>=<span class="string">1GB</span></span><br></pre></td></tr></table></figure>
+
+<p>允许所有 POST 数据（包括文件和非文件）最大为 1GB。</p>
+</li>
+</ul>
+<hr>
+<h3 id="5-server-tomcat-max-http-response-header-size"><a href="#5-server-tomcat-max-http-response-header-size" class="headerlink" title="5. server.tomcat.max-http-response-header-size"></a>5. <strong><code>server.tomcat.max-http-response-header-size</code></strong></h3><ul>
+<li><p><strong>作用</strong>：限制 HTTP 响应头的最大大小。</p>
+</li>
+<li><p><strong>默认值</strong>：8KB</p>
+</li>
+<li><p><strong>范围</strong>：适用于 HTTP 响应中所有头字段的总大小。</p>
+</li>
+<li><p><strong>场景</strong>：</p>
+<ul>
+<li>如果服务器需要返回很大的 <code>Set-Cookie</code> 或自定义头信息，需要增加此值。</li>
+</ul>
+</li>
+<li><p><strong>示例</strong>：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server.tomcat.max-http-response-header-size</span>=<span class="string">1GB</span></span><br></pre></td></tr></table></figure>
+
+<p>允许 HTTP 响应头的总大小最大为 1GB。</p>
+</li>
+</ul>
+<hr>
+<h3 id="6-server-tomcat-max-swallow-size"><a href="#6-server-tomcat-max-swallow-size" class="headerlink" title="6. server.tomcat.max-swallow-size"></a>6. <strong><code>server.tomcat.max-swallow-size</code></strong></h3><ul>
+<li><p><strong>作用</strong>：限制在请求或响应出错时，Tomcat 能够吞下的剩余数据大小。</p>
+</li>
+<li><p><strong>默认值</strong>：2MB</p>
+</li>
+<li><p><strong>范围</strong>：</p>
+<ul>
+<li>如果请求的数据大小超过了 <code>max-post-size</code> 或 <code>max-http-form-post-size</code>，Tomcat 默认会吞掉超过部分的数据。</li>
+<li><code>max-swallow-size</code> 限制了这些被丢弃的数据大小。</li>
+<li>设置为 <code>-1</code>，表示无限制。</li>
+</ul>
+</li>
+<li><p><strong>示例</strong>：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server.tomcat.max-swallow-size</span>=<span class="string">1GB</span></span><br></pre></td></tr></table></figure>
+
+<p>如果请求被拒绝（例如文件过大），最多仍然允许吞掉 1GB 的数据。</p>
+</li>
+</ul>
+<hr>
+<h3 id="如何选择配置"><a href="#如何选择配置" class="headerlink" title="如何选择配置"></a><strong>如何选择配置</strong></h3><ol>
+<li><p><strong>文件上传场景</strong>：</p>
+<ul>
+<li>配置 <code>spring.servlet.multipart.max-file-size</code> 和 <code>spring.servlet.multipart.max-request-size</code>，这是 Spring Boot 针对 <code>multipart</code> 请求的专用配置。</li>
+<li>如果 Tomcat 的全局限制更小，还需要调整 <code>server.tomcat.max-http-post-size</code>。</li>
+</ul>
+</li>
+<li><p><strong>表单提交场景</strong>：</p>
+<ul>
+<li>配置 <code>server.tomcat.max-http-form-post-size</code> 以适应大表单数据提交。</li>
+<li>如果数据中包含文件，还需要同时调整 <code>max-http-post-size</code>。</li>
+</ul>
+</li>
+<li><p><strong>响应头限制</strong>：</p>
+<ul>
+<li>如果你的应用需要返回较大的头信息（例如 <code>Set-Cookie</code> 或长 token），需要调整 <code>server.tomcat.max-http-response-header-size</code>。</li>
+</ul>
+</li>
+<li><p><strong>吞吐大数据场景</strong>：</p>
+<ul>
+<li>如果请求数据较大且频繁出错，需要调整 <code>server.tomcat.max-swallow-size</code>，防止吞掉数据过多。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a><strong>最佳实践</strong></h3><ul>
+<li>不要设置极大的值（如 <code>1GB</code>），因为这可能会导致内存溢出或性能问题。</li>
+<li>调整配置时，尽量依据实际需求并确保客户端（如浏览器、前端应用）支持相应的大小限制。</li>
+<li>配置 Tomcat 和 Spring Boot 限制时，注意它们之间的相互关系，避免设置冲突。</li>
+</ul>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/12/08/macosicons/" title="macosicons"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">macosicons</div></div><div class="info-2"><div class="info-item-1"> 有人尖刻地嘲讽你，你马上尖酸地回敬他。有人毫无理由地看不起你，你马上轻蔑地鄙视他。有人在你面前大肆炫耀，你马上加倍证明你更厉害。有人对你冷漠，你马上对他冷淡疏远。看，你讨厌的那些人，轻易就把你变成你自己最讨厌的那种样子，这才是“敌人”对你最大的伤害。——扎西拉姆·多多《喃喃》  分享一个开源图标库 macOS Big Sur风格的流行应用程序的替换图标 GitHub - elrumo&#x2F;macOS_Big_Sur_icons_replacements: Replacement icons for popular apps in the style of macOS Big Sur Over 5000+ free icons for macOS Monterey, Big Sur &amp; iOS - massive app icon pack 您只需下载所需的图标，在 Finder 上找到要更新的应用程序，选择它并“File &gt; Get Info”或“⌘-I”，然后将下载的 .icns 文件拖放到新窗口中。 </div></div></div></a><a class="pagination-related" href="/2024/12/06/shenyu-dashboard%E7%9A%84%E4%B8%80%E4%BA%9B%E4%BC%98%E5%8C%96/" title="shenyu-dashboard的一些优化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">shenyu-dashboard的一些优化</div></div><div class="info-2"><div class="info-item-1"> 热爱生活，追求真理，不要以为自己年轻而盲目乐观。——左拉  Namespace optimize by VampireAchao · Pull Request #514 · apache&#x2F;shenyu-dashboard · GitHub      src/components/GlobalHeader/index.js 123-    if (namespaceId !== defaultNamespaceId) &#123;-      message.warn(getIntlContent(&quot;SHENYU.NAMESPACE.ALERTNAMESPACEID.CHANGED&quot;));-    &#125;  src/routes/System/PluginHandle/AddModal.js 12345678910-              &lt;Select placeholder=&#123;getIntlContent(&quot;SHENYU.PLUGIN.PLUGIN.NAME&quot;)&#125;&gt;+         ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2021/07/20/%E6%8E%A5%E5%8F%A3%E8%83%BD%E7%8E%A9%E7%9A%84%E5%B0%8F%E8%8A%B1%E6%8B%9B/" title="接口能玩的小花招"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-20</div><div class="info-item-2">接口能玩的小花招</div></div><div class="info-2"><div class="info-item-1"> 一个人的礼貌是一面照出他的肖像的镜子。——歌德  首先写一个函数式接口 12345678910@FunctionalInterfacepublic interface Person &#123;    /**     * 睡     *     * @author &lt;achao1441470436@gmail.com&gt;     * @since 2021/7/20 0020 23:20     */    void sleep();&#125;  我们能通过调用其中的sleep方法执行函数(方法) 123      Person person = () -&gt; System.out.println(&quot;睡&quot;);      person.sleep();// 执行结果：睡  而执行的函数则是我们接口本身，这个函数式接口就代表了一个函数 函数式接口 其实就可以理解为 函数、方法本身 但我们今天主要聊的不是这个 我们在函数中定义的变量默认就是常量 1234567891011121314@FunctionalInterfacepublic interf...</div></div></div></a><a class="pagination-related" href="/2021/11/20/springboot%E5%AD%A6%E4%B9%A0%E9%A1%B9%E7%9B%AE/" title="springboot学习项目"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-20</div><div class="info-item-2">springboot学习项目</div></div><div class="info-2"><div class="info-item-1"> 物有甘苦，尝之者识；道有夷险，履之者知。一一明·刘基《拟连珠》  分享一个能用来学习的项目 Spring Boot Demogitee地址 介绍：  项目简介spring boot demo 是一个用来深度学习并实战 spring boot 的项目，目前总共包含 66 个集成demo，已经完成 55 个。 该项目已成功集成 actuator(监控)、admin(可视化监控)、logback(日志)、aopLog(通过AOP记录web请求日志)、统一异常处理(json级别和页面级别)、freemarker(模板引擎)、thymeleaf(模板引擎)、Beetl(模板引擎)、Enjoy(模板引擎)、JdbcTemplate(通用JDBC操作数据库)、JPA(强大的ORM框架)、mybatis(强大的ORM框架)、通用Mapper(快速操作Mybatis)、PageHelper(通用的Mybatis分页插件)、mybatis-plus(快速操作Mybatis)、BeetlSQL(强大的ORM框架)、upload(本地文件上传和七牛云文件上传)、redis(缓存)、ehcache(缓存...</div></div></div></a><a class="pagination-related" href="/2023/12/26/docker%E8%BF%90%E8%A1%8Cseata/" title="docker运行seata"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-26</div><div class="info-item-2">docker运行seata</div></div><div class="info-2"><div class="info-item-1"> 怀疑一切与信任一切是同样的错误，能得乎其中方为正道。——乔叟  https://hub.docker.com/r/seataio/seata-server 命令： 1docker run --name seata-server -p 8091:8091 -p 7091:7091 seataio/seata-server:latest  自定义配置文件： 123456docker run --name seata-server \        -p 8091:8091 \        -p 7091:7091 \        -e SEATA_CONFIG_NAME=file:/root/seata-config/registry \        -v /PATH/TO/CONFIG_FILE:/root/seata-config  \        seataio/seata-server  指定ip 12345docker run --name seata-server \        -p 8091:8091 \        -p 7091:7091 \    ...</div></div></div></a><a class="pagination-related" href="/2024/08/02/%E8%BD%BB%E9%87%8F%E7%BA%A7MVC%E6%9C%8D%E5%8A%A1%E5%99%A8actframework/" title="轻量级MVC服务器actframework"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-02</div><div class="info-item-2">轻量级MVC服务器actframework</div></div><div class="info-2"><div class="info-item-1"> 一个人追求的目标越高，他的才能就发展得越快，对社会就越有益，我确信这也是一个真理。——玛克西姆·高尔基  链接： GitHub - actframework&#x2F;actframework: An easy to use Java MVC server stack InstallAdd act-starter-parent into your pom.xml file 12345&lt;parent&gt;  &lt;groupId&gt;org.actframework&lt;/groupId&gt;  &lt;artifactId&gt;act-starter-parent&lt;/artifactId&gt;  &lt;version&gt;1.9.2.0&lt;/version&gt;&lt;/parent&gt;  Or use maven archetype to start a new project: 123456mvn archetype:generate -B \    -DgroupId=com.mycom.helloworld \    -Darti...</div></div></div></a><a class="pagination-related" href="/2022/11/02/jackson-kt-module/" title="jackson kt module"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-11-02</div><div class="info-item-2">jackson kt module</div></div><div class="info-2"><div class="info-item-1"> 儿童在学校的相似，是强制的结果。一旦毕业，强制随即结束。——爱尔维修  我们在使用jackson时，如果项目还包含kotlin，则会有警告  此时需要引入依赖 12345&lt;dependency&gt;    &lt;groupId&gt;com.fasterxml.jackson.module&lt;/groupId&gt;    &lt;artifactId&gt;jackson-module-kotlin&lt;/artifactId&gt;    &lt;version&gt;2.11.3&lt;/version&gt;&lt;/dependency&gt;  并添加module 1234567891011121314151617181920212223242526272829303132333435363738394041424344import com.fasterxml.jackson.module.kotlin.KotlinModule;/** * web配置类 * * @author &lt;achao1441470436@gmail.com&gt; * ...</div></div></div></a><a class="pagination-related" href="/2025/06/15/mqcloud/" title="mqcloud"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-06-15</div><div class="info-item-2">mqcloud</div></div><div class="info-2"><div class="info-item-1"> 教育难，难就在回到常识。——钱理群  https://github.com/sohutv/mqcloud MQCloud：企业级分布式消息队列运维与管理平台在现代互联网业务架构中，消息队列（Message Queue, MQ）是解耦系统、提升吞吐、保障高可用的重要基础设施。随着业务规模的扩大，如何高效、统一、可视化地管理海量的 MQ 集群，成为了企业运维和开发者的共同痛点。 @sohutv&#x2F;mqcloud 正是为了解决这一问题而生的开源项目。它提供了丰富的管理能力和友好的可视化界面，助力企业轻松应对分布式消息中间件的运维难题。  MQCloud 是什么？MQCloud 是搜狐视频团队开源的一套针对 RocketMQ 的分布式消息队列运维与管理平台。它集成了多项运维、监控、诊断、权限和告警等功能，让 MQ 管理从繁琐变得高效、可控和可视。 主要特性包括：  支持多集群管理：可统一管理多个 RocketMQ 集群。 强大的可视化界面：消息、主题、消费组、Broker、队列等一目了然。 权限与安全：细粒度的用户权限和访问控制。 监控与告警：实时监控消息堆积、消费延迟等，异常...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-spring-servlet-multipart-max-file-size"><span class="toc-number">1.</span> <span class="toc-text">1. spring.servlet.multipart.max-file-size</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-spring-servlet-multipart-max-request-size"><span class="toc-number">2.</span> <span class="toc-text">2. spring.servlet.multipart.max-request-size</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-server-tomcat-max-http-form-post-size"><span class="toc-number">3.</span> <span class="toc-text">3. server.tomcat.max-http-form-post-size</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-server-tomcat-max-http-post-size"><span class="toc-number">4.</span> <span class="toc-text">4. server.tomcat.max-http-post-size</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-server-tomcat-max-http-response-header-size"><span class="toc-number">5.</span> <span class="toc-text">5. server.tomcat.max-http-response-header-size</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-server-tomcat-max-swallow-size"><span class="toc-number">6.</span> <span class="toc-text">6. server.tomcat.max-swallow-size</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E9%85%8D%E7%BD%AE"><span class="toc-number">7.</span> <span class="toc-text">如何选择配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">8.</span> <span class="toc-text">最佳实践</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

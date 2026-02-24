@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Converter集合转换 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="只因生命在继续才盲目地产生信念，这种信念是空的。——乔桑塔亚那  前两天写了mapstruct的spring拓展 里面提到了一个Converter 一般我们是对象之间互转，如果是集合的话，可以用Stream#map去一个一个转换 实际上org.springframework.core.convert.ConversionService也为我们提供了参数为org.springframework.c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Converter集合转换">
+<meta property="og:url" content="https://vampireachao.gitee.io/2022/05/12/Converter%E9%9B%86%E5%90%88%E8%BD%AC%E6%8D%A2/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="只因生命在继续才盲目地产生信念，这种信念是空的。——乔桑塔亚那  前两天写了mapstruct的spring拓展 里面提到了一个Converter 一般我们是对象之间互转，如果是集合的话，可以用Stream#map去一个一个转换 实际上org.springframework.core.convert.ConversionService也为我们提供了参数为org.springframework.c">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2022-05-12T04:57:38.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:41.995Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Converter集合转换",
+  "url": "https://vampireachao.gitee.io/2022/05/12/Converter%E9%9B%86%E5%90%88%E8%BD%AC%E6%8D%A2/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2022-05-12T04:57:38.000Z",
+  "dateModified": "2026-02-24T09:48:41.995Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2022/05/12/Converter%E9%9B%86%E5%90%88%E8%BD%AC%E6%8D%A2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Converter集合转换',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">Converter集合转换</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Converter集合转换</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-05-12T04:57:38.000Z" title="发表于 2022-05-12 12:57:38">2022-05-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:41.995Z" title="更新于 2026-02-24 17:48:41">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>只因生命在继续才盲目地产生信念，这种信念是空的。——乔桑塔亚那</p>
+</blockquote>
+<p>前两天写了<a target="_blank" rel="noopener" href="https://vampireachao.github.io/2022/05/01/mapstruct%E7%9A%84spring%E6%8B%93%E5%B1%95/">mapstruct的spring拓展</a></p>
+<p>里面提到了一个<code>Converter</code></p>
+<p>一般我们是对象之间互转，如果是集合的话，可以用<code>Stream#map</code>去一个一个转换</p>
+<p>实际上<code>org.springframework.core.convert.ConversionService</code>也为我们提供了参数为<code>org.springframework.core.convert.TypeDescriptor</code>的转换</p>
+<p>例如我这里封装一个集合之间的转换</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://vampireachao.github.io/2020/11/12/spring%E8%8E%B7%E5%8F%96bean%E7%9A%84%E7%AC%AC%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/"><code>SpringContextHolder</code>工具类</a></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.core.convert.ConversionService;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.convert.TypeDescriptor;</span><br><span class="line"><span class="keyword">import</span> org.springframework.lang.NonNull;</span><br><span class="line"><span class="keyword">import</span> org.springframework.lang.Nullable;</span><br><span class="line"><span class="keyword">import</span> org.springframework.util.CollectionUtils;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> lombok.experimental.UtilityClass;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 转换工具类</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> &lt;achao1441470436@gmail.com&gt;</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2022/5/7 18:56</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@UtilityClass</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConvertUtil</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">ConversionService</span> <span class="variable">CONVERSION_SERVICE</span> <span class="operator">=</span> SpringContextHolder.getBean(ConversionService.class);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; T <span class="title function_">convert</span><span class="params">(<span class="meta">@NonNull</span> Object source, Class&lt;T&gt; targetType)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> CONVERSION_SERVICE.convert(source, targetType);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title function_">convert</span><span class="params">(<span class="meta">@NonNull</span> Object source, <span class="meta">@Nullable</span> TypeDescriptor sourceType, TypeDescriptor targetType)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> CONVERSION_SERVICE.convert(source, sourceType, targetType);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T, R&gt; List&lt;R&gt; <span class="title function_">convertList</span><span class="params">(List&lt;T&gt; source, Class&lt;R&gt; targetClass)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (CollectionUtils.isEmpty(source)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> (List&lt;R&gt;) convert(source, TypeDescriptor.collection(List.class,</span><br><span class="line">                        TypeDescriptor.valueOf(source.get(<span class="number">0</span>).getClass())),</span><br><span class="line">                TypeDescriptor.collection(List.class, TypeDescriptor.valueOf(targetClass)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用起来只需要：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> List&lt;UserVO&gt; result = ConvertUtil.convertList(userList, UserVO.class);</span><br></pre></td></tr></table></figure>
+
+<p>注意前置条件需要配置了<code>User</code>到<code>UserVO</code>的转换器</p>
+<p>如何配置？本篇博客第一行有说明</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/05/13/vue-props%E6%B3%A8%E6%84%8F/" title="vue props注意"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">vue props注意</div></div><div class="info-2"><div class="info-item-1"> 等到看你银色满际，等到分不清季节更替，才敢说沉溺。——《水星记》  官方文档：https://cn.vuejs.org/v2/guide/components-props.html 我们在使用vue的prop时 如果prop其数据类型为一个对象 则传入的是一个对象的地址引用 我们如果在子组件中使用watch将其赋值给一个data，用于外部组件状态发生变化时，内部的某一data也能同时响应： 12345678  watch: &#123;    productionData: &#123;      immediate: true,      handler() &#123;        this.myData = this.myProp      &#125;,    &#125;&#125;  这时候如果我们对myData里的属性进行更改，发现外部(父组件)传过来的对象数据源也发生了变更 如果我们想要深拷贝 则可以使用： 1234567891011function deepClone( obj )&#123;  let clone = obj;  if (obj &amp;...</div></div></div></a><a class="pagination-related" href="/2022/05/11/solon/" title="solon"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">solon</div></div><div class="info-2"><div class="info-item-1"> 人若是看透了自己，便不会再小看别人。——老舍《骆驼祥子》  分享一个很赞的web框架  Solon 是一个微型的 Java 开发框架。项目从 2018 年启动以来，参考过大量前人作品；历时两年，4000 多次的 commit；内核保持 0.1m 的身材，超高的跑分，良好的使用体验。支持：RPC、REST API、MVC、WebSocket、Socket 等多种开发模式。 Solon 强调：克制 + 简洁 + 开放的原则；力求：更小、更快、更自由的体验。  官网地址：https://solon.noear.org/ gitee：https://gitee.com/noear/solon  Solon 家簇成员图谱  上代码感受一下：  Hello World: 12345678910111213141516171819202122232425262728293031323334353637//Handler 模式：public class App&#123;    public static void main(String[] args)&#123;        SolonA...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/10/22/protocol%E7%A4%BA%E4%BE%8B/" title="protocol示例"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-22</div><div class="info-item-2">protocol示例</div></div><div class="info-2"><div class="info-item-1"> 没有意义的事物是最美丽的。——《新名字的故事》  github： https://github.com/protocolbuffers/protobuf 官方文档： https://protobuf.dev/ Protocol Buffers（又名 protobuf）是 Google 的语言中立、平台中立、可扩展的机制，用于序列化结构化数据。您可以在protobuf 的文档中了解更多信息。 使用 Protocol Buffers 在前后端传输数据的示例。后端使用 Spring Boot，前端使用 Parcel 和 JavaScript，前后端通过 .proto 文件定义的 Person 类进行数据传输。 后端 (Java - Spring Boot) pom.xml (包含 Spring Boot 和 Protocol Buffers 的依赖): 12345678910111213141516171819202122232425262728293031323334353637383940414243444546&lt;project xmlns=&quot;http://mav...</div></div></div></a><a class="pagination-related" href="/2021/12/31/jar%E4%B8%AD%E6%B2%A1%E6%9C%89%E4%B8%BB%E6%B8%85%E5%8D%95%E5%B1%9E%E6%80%A7/" title="jar中没有主清单属性"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-12-31</div><div class="info-item-2">jar中没有主清单属性</div></div><div class="info-2"><div class="info-item-1"> 新闻要适合直接感兴趣的人口味。——马克思  我今天遇到了一个报错…  我仔细一看发现jar包才893KB大小  检查了一下打包配置，发现：  这块少了个repackage配置… 12345678&lt;executions&gt;    &lt;execution&gt;        &lt;id&gt;repackage&lt;/id&gt;        &lt;goals&gt;            &lt;goal&gt;repackage&lt;/goal&gt;        &lt;/goals&gt;    &lt;/execution&gt;&lt;/executions&gt;  加上就可以了  再次打包就好了 </div></div></div></a><a class="pagination-related" href="/2021/06/13/reduce%E8%A1%A5%E5%85%85%E4%BA%8C/" title="reduce补充二"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-13</div><div class="info-item-2">reduce补充二</div></div><div class="info-2"><div class="info-item-1"> 人生要有意义只有发扬生命，快乐就是发扬生命的最好方法。——张闻天  关于reduce我已经写过博客了 今天最后再来聊一聊它的第三个重载  之前一直用得少，所以没有去探究它的妙用 最近稍微抽空看了下 发现还挺有意思的 例如它的第三个参数 在并行流的场景下同样的代码竟有不同的效果 如下： 123456789101112131415161718192021222324public static void main(String[] args) &#123;    sum();    parallelSum();&#125;private static void sum() &#123;    List&lt;Integer&gt; list = Stream.generate(() -&gt; 1).limit(100).collect(Collectors.toList());    System.out.println(list);    int sum = list.stream().reduce(1, Integer::sum, (a, b) -&gt; &#123;    ...</div></div></div></a><a class="pagination-related" href="/2021/10/30/%E8%8A%B1%E9%87%8C%E8%83%A1%E5%93%A8%E7%9A%84peeks/" title="花里胡哨的peeks"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-10-30</div><div class="info-item-2">花里胡哨的peeks</div></div><div class="info-2"><div class="info-item-1"> 莫见乎隐，莫显乎微，故君子慎其独也。一一《礼记》  今天又给hutool提交了PR，将前两天写的动态函数式参数用了起来 https://gitee.com/dromara/hutool/pulls/445 [新特性]你啊，总能给我整出点新花样  【以前使用peek】  1Opt.ofNullable(&quot;hutool&quot;).peek(user::setUsername).peek(user::setNickname);   【现在使用peeks】  1Opt.ofNullable(&quot;hutool&quot;).peeks(user::setUsername, user::setNickname);  什么？没看出有什么区别？都差不多？？？Na Na Na！接着往下看：首先是它使用java动态参数(可变参数)的特性，你可以传入0个或n个你想要的操作，例如：  【以前使用peek】  12345678if (condition) &#123;	// 满足条件，我就要把username设置为Opt中的值	hutool.peek(user::setUserna...</div></div></div></a><a class="pagination-related" href="/2023/03/21/mp%E4%B8%ADtypeHandler%E8%87%AA%E5%8A%A8%E8%8E%B7%E5%8F%96%E5%AD%97%E6%AE%B5%E7%B1%BB%E5%9E%8B/" title="mp中typeHandler自动获取字段类型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-03-21</div><div class="info-item-2">mp中typeHandler自动获取字段类型</div></div><div class="info-2"><div class="info-item-1"> 相熟的人表现出恭而敬之的样子总是叫人感到可笑。——歌德  一般我们在实体类上指定 @TableName(autoResultMap = true) 即可使用typeHandler指定转换器，然后就可以自动转换了 例如List&lt;XXX&gt;的Json可以如下使用： 12@TableField(typeHandler = JsonListHandler.class)private List&lt;CalcUnitEnum&gt; calcUnits;  这里JsonListHandler如下，JacksonUtil就懒得赘述了： 1234567891011121314151617181920212223242526import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;import java.util.List;/** * @author VampireAchao * @since 2023/3/20 17:43 */public class JsonListHandler&lt;...</div></div></div></a><a class="pagination-related" href="/2020/12/07/validator%E5%88%86%E7%BB%84%E6%A0%A1%E9%AA%8C/" title="validator分组校验"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-12-07</div><div class="info-item-2">validator分组校验</div></div><div class="info-2"><div class="info-item-1"> 当生活像一首歌那样轻快流畅时，笑颜常开乃易事；而在一切事都不妙时仍能微笑的人，是真正的乐观。——威尔科克斯  之前写过一篇springboot实现validator校验 今天进行一个补充 我们可以使用分组校验 首先是我们可以定义一个接口在我们的实现类里  然后在我们需要分组校验的注解上给上groups参数  最后在controller上也给我们的@Validated注解加上我们的分组参数  最后运行就只会校验我们分组的参数 那如果有这么一种场景：一个接口，传入Id时修改，不传入Id时新增，修改和新增又是不同的校验的话，我们该怎么处理呢？ 其实很简单，我们可以注入一个Validator，然后在代码里进行分组校验  1234567891011121314151617181920212223242526272829303132333435363738394041package com.ruben;import com.ruben.pojo.User;import com.ruben.utils.SpringContextHolder;import org.junit.jupiter....</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

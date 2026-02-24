@@ -1,0 +1,230 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>apache-incubator-streampark源码编译本地运行（二） | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="多做一些好事情，不图报酬，还可以使我们短短的生命很体面和有价值，这本身就可以算是一种报酬。——马克·吐温  书接上文apache-incubator-streampark源码编译本地运行 时隔今日，streampark又发生了一些变化 执行（因为我本机仍然没有配置mvnw，所以干脆用命令）： 1mvn -Pscala-2.12,shaded,dist -DskipTests clean pack">
+<meta property="og:type" content="article">
+<meta property="og:title" content="apache-incubator-streampark源码编译本地运行（二）">
+<meta property="og:url" content="https://vampireachao.gitee.io/2023/05/07/apache-incubator-streampark%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C%EF%BC%88%E4%BA%8C%EF%BC%89/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="多做一些好事情，不图报酬，还可以使我们短短的生命很体面和有价值，这本身就可以算是一种报酬。——马克·吐温  书接上文apache-incubator-streampark源码编译本地运行 时隔今日，streampark又发生了一些变化 执行（因为我本机仍然没有配置mvnw，所以干脆用命令）： 1mvn -Pscala-2.12,shaded,dist -DskipTests clean pack">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2023-05-07T04:20:00.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:41.949Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "apache-incubator-streampark源码编译本地运行（二）",
+  "url": "https://vampireachao.gitee.io/2023/05/07/apache-incubator-streampark%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C%EF%BC%88%E4%BA%8C%EF%BC%89/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2023-05-07T04:20:00.000Z",
+  "dateModified": "2026-02-24T09:48:41.949Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2023/05/07/apache-incubator-streampark%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C%EF%BC%88%E4%BA%8C%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'apache-incubator-streampark源码编译本地运行（二）',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">apache-incubator-streampark源码编译本地运行（二）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">apache-incubator-streampark源码编译本地运行（二）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-05-07T04:20:00.000Z" title="发表于 2023-05-07 12:20:00">2023-05-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:41.949Z" title="更新于 2026-02-24 17:48:41">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>多做一些好事情，不图报酬，还可以使我们短短的生命很体面和有价值，这本身就可以算是一种报酬。——马克·吐温</p>
+</blockquote>
+<p>书接上文<a target="_blank" rel="noopener" href="https://vampireachao.github.io/2023/04/09/apache-incubator-streampark%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C/">apache-incubator-streampark源码编译本地运行</a></p>
+<p>时隔今日，<code>streampark</code>又发生了一些变化</p>
+<p>执行（因为我本机仍然没有配置<code>mvnw</code>，所以干脆用命令）：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn -Pscala-2.12,shaded,dist -DskipTests clean package</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/oss/blog/vampireachao/image-20230507122627678.png" alt="image-20230507122627678"></p>
+<p>剩下的步骤就不再赘述，在开头的链接，上次已经提过了</p>
+<p>但是期间如果提示<code>spotless:check</code>的报错，可以使用</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn spotless:apply</span><br></pre></td></tr></table></figure>
+
+<p>让代码格式化一下即可</p>
+<p>重新执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn -Pscala-2.12,shaded,dist -DskipTests clean package</span><br></pre></td></tr></table></figure>
+
+<p>重新刷新下依赖</p>
+<p><img src="/img/oss/blog/vampireachao/image-20230507141525626.png" alt="image-20230507141525626"></p>
+<p>如果报错<code>ApplicationType is already defined as Java enum ApplicationType</code></p>
+<p><img src="/img/oss/blog/vampireachao/image-20230507142407869.png" alt="image-20230507142407869"></p>
+<p>这个貌似是因为不小心设置了下<code>scala</code>环境就搞坏了，我换了台电脑就好了</p>
+<p><img src="/img/oss/blog/vampireachao/image-20230507144415718.png" alt="image-20230507144415718"></p>
+<p>但是原来的电脑里还是坏的，我删除了本地项目目录，重新拉了一下代码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone -c core.longpaths=true https://github.com/VampireAchao/incubator-streampark.git</span><br></pre></td></tr></table></figure>
+
+<p>执行<code>mvn -Pscala-2.12,shaded,dist -DskipTests clean package</code>时一直报错（未解决）</p>
+<p><img src="/img/oss/blog/vampireachao/image-20230507145512839.png" alt="image-20230507145512839"></p>
+<p>删除掉<code>maven</code>本地库里<code>streampark</code>文件夹重新拉代码也不行</p>
+<p>重新执行发现拉取不到<code>org.apache.streampark:streampark-shaded-slf4j</code></p>
+<p><img src="/img/oss/blog/vampireachao/image-20230507145741086.png" alt="image-20230507145741086"></p>
+<p>在<code>streampark-shaded</code>下面的<code>pom.xml</code>右键</p>
+<p><img src="/img/oss/blog/vampireachao/image-20230507122426851.png" alt="image-20230507122426851"></p>
+<p>选择<code>Add as Maven Project</code></p>
+<p>然后选择<code>streampark-shaded</code>执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn -Pscala-2.12,shaded,dist -DskipTests clean install</span><br></pre></td></tr></table></figure>
+
+<p>这里<code>dist</code>其实可以去掉</p>
+<p><img src="/img/oss/blog/vampireachao/image-20230507151048213.png" alt="image-20230507151048213"></p>
+<p>然后再回到项目目录执行</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn -Pscala-2.12,shaded,dist -DskipTests clean package</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/oss/blog/vampireachao/image-20230507151458709.png" alt="image-20230507151458709"></p>
+<p>如果启动时编译报错</p>
+<p><img src="/img/oss/blog/vampireachao/image-20230507123301161.png" alt="image-20230507123301161"></p>
+<p>解决办法：首先右键<code>pom.xml</code>选择<code>Unlink Maven Projects</code></p>
+<p><img src="/img/oss/blog/vampireachao/image-20230507141152824.png" alt="image-20230507141152824"></p>
+<p>然后删除项目下的<code>.idea</code>并重新打开项目</p>
+<p><img src="/img/oss/blog/vampireachao/image-20230507141418402.png" alt="image-20230507141418402"></p>
+<p>重新执行编译命令即可正常启动</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/05/08/%E4%B8%BAstreampark%E6%96%B0%E5%A2%9E%E7%94%A8%E6%88%B7%E8%B5%84%E6%BA%90%E8%BD%AC%E7%A7%BB%E5%8A%9F%E8%83%BD/" title="为streampark新增用户资源转移功能"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">为streampark新增用户资源转移功能</div></div><div class="info-2"><div class="info-item-1"> 凡事一俭，则谋生易足；谋生易足，则求人无争，亦于人无求。——钱泳  相关的pr：https://github.com/apache/incubator-streampark/pull/2734 对应的描述： What changes were proposed in this pull requestIssue Number: close #2712 Brief change log Requirement:   The administrator cancels the user deletion function and replaces it with disabling users.    Detailed logic:   The administrator cancels the user deletion function. When the user account is disabled, it cannot own resources (application and project ownership) Add resource transfer func...</div></div></div></a><a class="pagination-related" href="/2023/05/06/%E5%8D%8E%E4%B8%BA%E4%BA%91%E9%95%9C%E5%83%8F/" title="华为云镜像"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">华为云镜像</div></div><div class="info-2"><div class="info-item-1"> 错误可能有无穷的结合方式，而真理却只能有一种存在的方式。——卢俊  分享maven的华为云镜像 123456&lt;mirror&gt;    &lt;id&gt;huaweicloud&lt;/id&gt;    &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;    &lt;name&gt;huaweicloud&lt;/name&gt;    &lt;url&gt;https://mirrors.huaweicloud.com/repository/maven/&lt;/url&gt;&lt;/mirror&gt;  </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/10/29/exeBuilder/" title="exeBuilder"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-10-29</div><div class="info-item-2">exeBuilder</div></div><div class="info-2"><div class="info-item-1"> 爱惜衣裳要从新的时候起，爱惜名誉要从幼小的时候起——普希金  有些时候我们需要将java应用程序打成exe文件执行，此时可以使用 https://gitee.com/qsyan/ExeBuilder  </div></div></div></a><a class="pagination-related" href="/2020/11/17/Stream%E6%B5%81%E3%81%AE%E4%BA%8C%E7%BB%B4%E6%95%B0%E7%BB%84List-List-%E4%BA%92%E8%BD%AC/" title="Stream流の二维数组List&lt;List&gt;互转"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-17</div><div class="info-item-2">Stream流の二维数组List&lt;List&gt;互转</div></div><div class="info-2"><div class="info-item-1"> 少而好学，如日出之阳；壮而好学，如日中之光；老而好学，如炳烛之明。一一刘向   数组转List&lt;List&lt;Integer&gt;&gt; 1List&lt;List&lt;Integer&gt;&gt; collect = Arrays.stream(array).map(a1 -&gt; Arrays.stream(a1).boxed().collect(Collectors.toList())).collect(Collectors.toList());  List&lt;List&lt;Integer&gt;&gt;转int[][] 1array = collect.stream().map(integers -&gt; integers.stream().mapToInt(value -&gt; value).toArray()).toArray(int[][]::new);  二维数组和List&lt;List&lt;Integer&gt;&gt;之间的转换使用stream的话就非常简单了 12345678910int[][] array = new in...</div></div></div></a><a class="pagination-related" href="/2024/01/26/webclient%E9%85%8D%E7%BD%AEobjectmapper/" title="webclient配置objectmapper"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-01-26</div><div class="info-item-2">webclient配置objectmapper</div></div><div class="info-2"><div class="info-item-1"> 毋以其所不能疑，毋以其所能骄人。——佚名  代码如下，可以通过ExchangeStrategies指定序列化反序列化方式： 1234567891011121314151617181920212223242526272829303132333435import com.namaste.config.JacksonObjectMapper;import org.springframework.cloud.client.loadbalancer.LoadBalanced;import org.springframework.context.annotation.Bean;import org.springframework.context.annotation.Configuration;import org.springframework.http.codec.json.Jackson2JsonDecoder;import org.springframework.http.codec.json.Jackson2JsonEncoder;import org.springframewo...</div></div></div></a><a class="pagination-related" href="/2024/08/24/jdk%E6%9C%AA%E6%9D%A5%E7%89%B9%E6%80%A7%E5%8F%AF%E7%A9%BA%E8%BF%90%E7%AE%97%E7%AC%A6/" title="jdk未来特性可空运算符"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-24</div><div class="info-item-2">jdk未来特性可空运算符</div></div><div class="info-2"><div class="info-item-1"> 人一辈子都在高潮——低潮中浮沉，唯有庸碌的人，生活才如死水一般。——傅雷  主要PR： 8338874: [lw5] add nullable types by vicente-romero-oracle · Pull Request #1219 · openjdk&#x2F;valhalla · GitHub 对应的提交之一如下： https://github.com/openjdk/valhalla/commit/dbf4f49a57e30e0daa14541adc6a66ea51860182 大概如下： 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889909192939495969798991001011021031041051061071081091101111121131141151...</div></div></div></a><a class="pagination-related" href="/2021/09/01/%E8%8E%B7%E5%8F%96%E7%B1%BB%E4%B8%AD%E6%89%80%E6%9C%89%E7%9A%84bean/" title="获取类中所有的bean"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-09-01</div><div class="info-item-2">获取类中所有的bean</div></div><div class="info-2"><div class="info-item-1"> 生命中有很多东西，能忘掉的叫过去，忘不掉的叫记忆。一个人的寂寞，有时候，很难隐藏得太久，时间太久了，人就会变得沉默，那时候，有些往日的情怀，就找不回来了。或许，当一段不知疲倦的旅途结束，只有站在终点的人，才会感觉到累。其实我一直都明白，能一直和一人做伴，实属不易。——海子  使用hutool实现 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748package com.ruben.simplescaffold;import cn.hutool.core.bean.BeanUtil;import cn.hutool.core.util.ClassUtil;import cn.hutool.core.util.ReflectUtil;import cn.hutool.core.util.TypeUtil;import com.ruben.simplescaffold.entity.UserDetail;import org.junit.jupiter.api....</div></div></div></a><a class="pagination-related" href="/2021/06/22/%E9%9A%8F%E6%9C%BA%E7%AB%AF%E5%8F%A3/" title="随机端口"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-22</div><div class="info-item-2">随机端口</div></div><div class="info-2"><div class="info-item-1"> 学习的敌人是自己的满足，要认真学习一点东西，必须从不自满开始。对自己，“学而不厌”，对人家，“诲人不倦”，我们应取这种态度。——毛泽东  我们可以在application.properties中进行配置 12# 应用服务 WEB 访问端口server.port=$&#123;random.int[1024,25535]&#125;  这样我们启动后端口将在1024到25535之间随机  </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>promise转await时小技巧 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="正如自然忌讳真空一样，人类是讨厌平等的。——《我是猫》  又是一个从技术推文找到的小技巧  此处将Promise函数传入，通过解构，获取到响应成功结果以及错误结果两个变量，语法简洁且便利">
+<meta property="og:type" content="article">
+<meta property="og:title" content="promise转await时小技巧">
+<meta property="og:url" content="https://vampireachao.gitee.io/2022/12/14/promise%E8%BD%ACawait%E6%97%B6%E5%B0%8F%E6%8A%80%E5%B7%A7/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="正如自然忌讳真空一样，人类是讨厌平等的。——《我是猫》  又是一个从技术推文找到的小技巧  此处将Promise函数传入，通过解构，获取到响应成功结果以及错误结果两个变量，语法简洁且便利">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2022-12-14T12:05:28.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.250Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="前端">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "promise转await时小技巧",
+  "url": "https://vampireachao.gitee.io/2022/12/14/promise%E8%BD%ACawait%E6%97%B6%E5%B0%8F%E6%8A%80%E5%B7%A7/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2022-12-14T12:05:28.000Z",
+  "dateModified": "2026-02-24T09:48:42.250Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2022/12/14/promise%E8%BD%ACawait%E6%97%B6%E5%B0%8F%E6%8A%80%E5%B7%A7/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'promise转await时小技巧',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">promise转await时小技巧</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">promise转await时小技巧</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-14T12:05:28.000Z" title="发表于 2022-12-14 20:05:28">2022-12-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.250Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>正如自然忌讳真空一样，人类是讨厌平等的。——《我是猫》</p>
+</blockquote>
+<p>又是一个从<a target="_blank" rel="noopener" href="https://twitter.com/wesbos/status/1600186156238442496">技术推文</a>找到的小技巧</p>
+<p><img src="/img/oss/picGo/image-20221214200629978.png" alt="image-20221214200629978"></p>
+<p>此处将<code>Promise</code>函数传入，通过解构，获取到响应成功结果以及错误结果两个变量，语法简洁且便利</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%89%8D%E7%AB%AF/">前端</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/12/15/%E4%BD%8E%E4%BB%BFlusaxweb%E9%BC%A0%E6%A0%87/" title="低仿lusaxweb鼠标"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">低仿lusaxweb鼠标</div></div><div class="info-2"><div class="info-item-1"> 幸福的婚姻生活，往往会被卑鄙的勾当、阴险的猜忌所破坏。——莎士比亚  这是 http://lusaxweb.net/ 它的鼠标很有意思，是一个圈，能够反色，我们低仿一个 代码如下： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;    &lt;style&gt;        * &#123;            margin: 0;            padding: 0;            cursor: none;        &#125;        .img &#123;            height: 80vh;            width: 80vw;            overflow: hidden;        &#125;        .img:ho...</div></div></div></a><a class="pagination-related" href="/2022/12/13/%E5%A6%82%E4%BD%95%E5%85%B3%E6%8E%89Parsed-mapper-file%E6%97%A5%E5%BF%97%E6%89%93%E5%8D%B0/" title="如何关掉Parsed mapper file日志打印"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">如何关掉Parsed mapper file日志打印</div></div><div class="info-2"><div class="info-item-1"> 时间一直走，没有尽头，只有路口。——《摆渡人》  先说结论：  将yml配置里的mybatis-plus配置 1log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  改为 1log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl  在yml配置里新增一条 1234logging:  level:    root: DEBUG    com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean: INFO  完整配置放在最后结尾处 为什么这样配？你是如何找到的？ 首先我们搜索Parsed mapper file(因为这个日志大概率是硬编码存在于源码之中的，除非是做了日志本地化，会在配置文件里)  这里排除掉一个纯依赖模块，一个注解模块，挨个到com包搜索，在最后一个extension模块搜到了  那我们将这个类的日志级别设为INFO应该就搞定了，但是没有生效  我们打个断点，看看什么情况，等断点停到...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/08/14/TinyVue%E7%BB%84%E4%BB%B6%E5%BA%93/" title="TinyVue组件库"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-14</div><div class="info-item-2">TinyVue组件库</div></div><div class="info-2"><div class="info-item-1"> 君子不隐其短，不知则问，不能则学。——董仲舒  文档： TinyVue：一套跨端、跨框架的企业级 UI 组件库，支持 Vue 2 和 Vue 3，支持 PC 端和移动端 代码： https://github.com/opentiny/tiny-vue 在项目的根目录中，打开控制台，执行以下命令，为 Vue 3.0 的项目安装 TinyVue 组件库 ： 123yarn add @opentiny/vue@3# 或者npm install @opentiny/vue@3  或者执行以下命令，为 Vue 2.0 的项目安装 TinyVue 组件库 ： 123yarn add @opentiny/vue@2# 或者npm install @opentiny/vue@2  如果是Vite 工程，安装完依赖后，修改项目的 vite.config.js ，添加以下代码突出显示的部分： 1234567891011// vite.config.jsimport &#123; defineConfig &#125; from &#x27;vite&#x27;import vue from &#x...</div></div></div></a><a class="pagination-related" href="/2022/11/10/parceljs/" title="parceljs"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-11-10</div><div class="info-item-2">parceljs</div></div><div class="info-2"><div class="info-item-1"> 趋炎附势的人，不可与其共患难。——拜伦  分享一个前端打包工具 官方文档：https://parceljs.org/ 中文文档：https://www.parceljs.cn/  非常好用 </div></div></div></a><a class="pagination-related" href="/2024/11/01/typescript-exercises%EF%BC%88%E5%85%AD%EF%BC%89/" title="typescript-exercises（六）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-11-01</div><div class="info-item-2">typescript-exercises（六）</div></div><div class="info-2"><div class="info-item-1"> 请热爱劳动，即使不是靠它吃饭，也可以为了身体的缘故而爱它，它可以增进身心健康，免除怠惰之累。——潘恩  题目： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384/*Intro:    Filtering requirements have grown. We need to be    able to filter any kind of Persons.Exercise:    Fix typing for the filterPersons so that it can filter users    and return User[] when personType=&#x27;user&#x27; and return Admin[]    when personType=&#x27;admin&#x27...</div></div></div></a><a class="pagination-related" href="/2023/09/04/mdit-vue/" title="mdit-vue"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-04</div><div class="info-item-2">mdit-vue</div></div><div class="info-2"><div class="info-item-1"> 睡在哪里都是睡在夜里。  ——贾平凹《废都》  分享一个开源项目： GitHub - mdit-vue&#x2F;mdit-vue: markdown-it plugins for Vue.js 这个项目在这里为 markdown-it 提供一些统一的插件，这是 JS 世界中最受欢迎的 markdown 解析器之一，以使其更好地与 Vue 配合使用  它是markdown-it的vue插件 GitHub - markdown-it&#x2F;markdown-it: Markdown parser, done right. 100% CommonMark support, extensions, syntax plugins &amp; high speed https://markdown-it.github.io/  </div></div></div></a><a class="pagination-related" href="/2023/05/11/Arco-Design-Pro/" title="Arco Design Pro"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-11</div><div class="info-item-2">Arco Design Pro</div></div><div class="info-2"><div class="info-item-1"> 旧书不厌百回读，熟读深思子自知——苏轼  分享一个开箱即用的中后台前端解决方案 https://github.com/arco-design/arco-design-pro-vue   </div></div></div></a><a class="pagination-related" href="/2025/07/03/%E8%87%AA%E5%8A%A8%E4%BB%BF%E7%9C%9F%E4%BA%BA%E7%B1%BB%E6%BB%9A%E5%8A%A8%E8%84%9A%E6%9C%AC/" title="自动仿真人类滚动脚本"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-07-03</div><div class="info-item-2">自动仿真人类滚动脚本</div></div><div class="info-2"><div class="info-item-1"> 周虽旧邦，其命维新。一一《诗经》  自动仿真人类滚动脚本：让你的网页浏览更“像人类”在前端开发、自动化测试或数据采集的过程中，我们经常会遇到“模拟人类操作”的需求。例如，自动滚动页面以加载惰性内容、触发懒加载图片，或者让自动化检测工具误以为是真人在浏览网页。传统的 window.scrollTo() 或 window.scrollBy() 方法虽然可以实现页面滚动，但往往过于机械，容易被反爬虫系统识别。 本文介绍一个简单易用、可持续运行的仿真人类自动滚动脚本，它通过“随机滚动步长+随机停顿”的方式，让页面滚动行为更贴近真实用户操作。  一、脚本源码解析123456789101112131415161718192021222324252627(function autoHumanScroll() &#123;  const minDelay = 5000; // 最小停顿5秒  const maxDelay = 10000; // 最大停顿10秒  const minStep = 20;    // 最小滚动20px  const maxStep = 80;    // 最大滚动...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
