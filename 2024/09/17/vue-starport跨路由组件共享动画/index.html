@@ -1,0 +1,193 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>vue-starport跨路由组件共享动画 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="没有风暴，船帆不过是一块破布。——雨果  vue-starport&#x2F;README.zh-Hans.md at main · antfu&#x2F;vue-starport · GitHub 我们经常会在在不同的路由（页面）上使用同一组件，但他们的位置和大小可以不尽相同。这时你可能会希望在用户进行路由跳转时，想让它们展示流畅的过渡动画。尽管这样的动画在原生应用中较为常见，但要在 Web">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vue-starport跨路由组件共享动画">
+<meta property="og:url" content="https://vampireachao.gitee.io/2024/09/17/vue-starport%E8%B7%A8%E8%B7%AF%E7%94%B1%E7%BB%84%E4%BB%B6%E5%85%B1%E4%BA%AB%E5%8A%A8%E7%94%BB/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="没有风暴，船帆不过是一块破布。——雨果  vue-starport&#x2F;README.zh-Hans.md at main · antfu&#x2F;vue-starport · GitHub 我们经常会在在不同的路由（页面）上使用同一组件，但他们的位置和大小可以不尽相同。这时你可能会希望在用户进行路由跳转时，想让它们展示流畅的过渡动画。尽管这样的动画在原生应用中较为常见，但要在 Web">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2024-09-17T06:00:38.000Z">
+<meta property="article:modified_time" content="2026-02-22T18:55:32.525Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="前端">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "vue-starport跨路由组件共享动画",
+  "url": "https://vampireachao.gitee.io/2024/09/17/vue-starport%E8%B7%A8%E8%B7%AF%E7%94%B1%E7%BB%84%E4%BB%B6%E5%85%B1%E4%BA%AB%E5%8A%A8%E7%94%BB/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2024-09-17T06:00:38.000Z",
+  "dateModified": "2026-02-22T18:55:32.525Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2024/09/17/vue-starport%E8%B7%A8%E8%B7%AF%E7%94%B1%E7%BB%84%E4%BB%B6%E5%85%B1%E4%BA%AB%E5%8A%A8%E7%94%BB/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'vue-starport跨路由组件共享动画',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">vue-starport跨路由组件共享动画</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">vue-starport跨路由组件共享动画</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-17T06:00:38.000Z" title="发表于 2024-09-17 14:00:38">2024-09-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-22T18:55:32.525Z" title="更新于 2026-02-23 02:55:32">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>没有风暴，船帆不过是一块破布。——雨果</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/antfu/vue-starport/blob/main/README.zh-Hans.md">vue-starport&#x2F;README.zh-Hans.md at main · antfu&#x2F;vue-starport · GitHub</a></p>
+<p>我们经常会在在不同的路由（页面）上使用同一组件，但他们的位置和大小可以不尽相同。这时你可能会希望在用户进行路由跳转时，想让它们展示流畅的过渡动画。尽管这样的动画在原生应用中较为常见，但要在 Web 中实现却有一些挑战。</p>
+<p>Vue 的组件结构以 <strong>树</strong> 的形式呈现，在不同分支中的子组件有其各自的实例，这意味着当用户在路由之间跳转时，同样的组件并不会跨路由共享。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/antfu/vue-starport/blob/main/graphs/graph1.zh.png"><img src="https://github.com/antfu/vue-starport/raw/main/graphs/graph1.zh.png"></a></p>
+<p>因为它们是两个不同的实例，这意味着你无法直接为它们的添加补间动画。幸运的是，有一种叫做 <a target="_blank" rel="noopener" href="https://github.com/googlearchive/flipjs">FLIP</a> 的技术可以模拟不同组件之间的过渡动画。</p>
+<p>然而，FLIP 只解决了过渡的问题，我们仍然还是会有两个组件实例。在跳转过程中，组件的内部状态将会丢失。</p>
+<p>因此，我开始实验一个新的解决方案用于满足这一需求，并将其取名为 <strong>Starport</strong>。</p>
+<p>在线<code>Demo</code>：</p>
+<p><a target="_blank" rel="noopener" href="https://vue-starport.netlify.app/">https://vue-starport.netlify.app/</a></p>
+<p>可以看到点击下方的图片后，页面路由发生跳转，但是切换的过渡动画非常自然和炫酷</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%89%8D%E7%AB%AF/">前端</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/09/18/vue2%E4%BD%BF%E7%94%A8vite%E8%BF%87%E6%B8%A1/" title="vue2使用vite过渡"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">vue2使用vite过渡</div></div><div class="info-2"><div class="info-item-1"> 君子藏器与身，待时而动。——佚名   项目介绍  vite-plugin-vue2 是一个 Vite 插件，专门用于在 Vite 项目中支持 Vue 2。Vite 是一个基于 ES Module 的现代构建工具，它以极速启动、模块热替换（HMR）和极快的构建速度而闻名。然而，Vite 最初只支持 Vue 3，而 vite-plugin-vue2 插件使得开发者能够在不升级到 Vue 3 的情况下，继续享受 Vite 的高效开发体验。 通过这个插件，开发者可以在 Vue 2 项目中体验到 Vite 的快速启动、热重载和高效打包，而无需迁移到 Vue 3。这为那些已经深度使用 Vue 2 的项目提供了极大的便利。 主要特点：  Vue 2 支持：在 Vite 项目中使用 Vue 2，无需进行复杂的配置或迁移。 现代开发体验：支持 Vite 的快速启动、热模块替换（HMR）、高效的编译和打包。 兼容性：与现有的 Vue 2 项目无缝集成，不影响现有代码库的运行。   GitHub地址   GitHub 仓库：vitejs&#x2F;vite-plugin-vue2  官方文档提供了详...</div></div></div></a><a class="pagination-related" href="/2024/09/16/vue-vite%E6%A8%A1%E6%9D%BFvitesse/" title="vue+vite模板vitesse"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">vue+vite模板vitesse</div></div><div class="info-2"><div class="info-item-1"> 不用给我爱，不用给我钱，不用给我声誉，给我真理吧。——梭罗《瓦尔登湖》  1   项目介绍  Vitesse 是一个基于 Vite 的快速开发模板，由 antfu 维护和开发，专为 Vue.js 项目设计。Vitesse 提供了完整的前端开发环境和最佳实践，内置了多个常用工具和配置，使得开发者可以快速启动项目，而无需从头配置。 通过 Vitesse，开发者可以专注于业务逻辑的实现，而不必在项目的基础配置上花费太多时间。它内置了 Vue 3、Vite、Pinia、Vue Router、TypeScript 等主流技术栈，适合用于构建现代前端应用。 Vitesse 的主要特点：  基于 Vite：Vitesse 继承了 Vite 的高效、快速打包和热更新特性，能够显著加速开发流程。 Vue 3 支持：Vitesse 完全支持 Vue 3 的 Composition API，提供了现代化的 Vue.js 开发体验。 TypeScript 集成：项目中内置了 TypeScript 支持，帮助开发者编写类型安全的代码。 轻松的状态管理：通过 Pinia 实现简单易用的状态管理方案。 Ta...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2021/04/05/localStorage/" title="localStorage"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-04-05</div><div class="info-item-2">localStorage</div></div><div class="info-2"><div class="info-item-1"> 蚍蜉撼大树，可笑不自量。——韩愈《调张籍》  我们可以使用LocalStorage在页面上存点东西，限制是5MB 1window.localStorage.setItem(&quot;ruben&quot;,&quot;Hello&quot;)  我们再取出来 1window.localStorage.getItem(&quot;ruben&quot;)   如果我们要移除 1window.localStorage.removeItem(&quot;ruben&quot;)  要移除全部 1window.localStorage.clear()   </div></div></div></a><a class="pagination-related" href="/2024/08/13/%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%A1%86%E6%9E%B6vue-mini/" title="小程序框架vue-mini"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-13</div><div class="info-item-2">小程序框架vue-mini</div></div><div class="info-2"><div class="info-item-1"> 即使对于君主，研究学问的道路也是没有捷径的。——阿基米德  分享一个基于 Vue 3 的小程序框架 https://vuemini.org/ https://github.com/vue-mini/vue-mini Vue Mini 是一个基于 Vue 3 的小程序框架，它能让你用组合式 API 写小程序。与某些小程序开发方案不同的是 Vue Mini 核心仅仅是一个轻量的运行时库，它既不依赖任何编译步骤，也不涉及任何 Virtual DOM。并且 Vue Mini 从一开始就被设计为能跟小程序原生语法协同工作，你甚至能在同一个页面或组件内混用原生语法与 Vue Mini，这能让你很轻松的将其整合进既有项目中。当然，你也能完全使用 Vue Mini 开发一个小程序。 Vue Mini 仅聚焦于小程序逻辑部分，也就是 JS 部分，它并不影响小程序的模版、样式及配置。 快速创建 1234npm create vue-mini@latestcd &lt;your-project-name&gt;npm installnpm run dev  然后就可以用微信开发者工具打开 </div></div></div></a><a class="pagination-related" href="/2024/07/21/morjs%E8%BD%AC%E6%8D%A2%E5%B0%8F%E7%A8%8B%E5%BA%8F/" title="morjs转换小程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-21</div><div class="info-item-2">morjs转换小程序</div></div><div class="info-2"><div class="info-item-1"> 健康是一种自由——在一切自由中首屈一指。——亚美路  就是这个项目： https://github.com/eleme/morjs 基于小程序 DSL（微信、支付宝）的，可扩展的多端研发框架，支持一键将微信或支付宝小程序转换为微信、支付宝、百度、字节、QQ、快手、淘宝、钉钉等小程序 或 Web 应用 官网 https://mor.ele.me/ 快速上手 快速上手环境准备​MorJS 项目基于 node，请确保已具备较新的 node 环境（&gt;&#x3D;14），推荐使用 node 版本管理工具 nvm 来管理 node（Windows 下使用 nvm-windows），这样可以很方便地切换 node 版本，全局安装时候也不必再使用 sudo。 1# mac 或 linux 下安装 nvm$ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash$ nvm -v0.39.1# 安装 node$ nvm install 14$ nvm use 14$ node -vv14....</div></div></div></a><a class="pagination-related" href="/2023/01/04/css%E6%B8%90%E5%8F%98%E5%AE%9E%E7%8E%B0%E6%9D%82%E8%89%B2/" title="css渐变实现杂色"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-04</div><div class="info-item-2">css渐变实现杂色</div></div><div class="info-2"><div class="info-item-1"> 团结就是力量——毛泽东  思路出处：https://css-tricks.com/making-static-noise-from-a-weird-css-gradient-bug/ 这是一个通过css渐变产生的锯齿BUG实现的噪点效果 例如我们使用径向渐变画两个圆，这里用的径向渐变函数radial-gradient，其中第一个参数是距离中心点近的渐变样式，第二个是远一些的，每个参数中第一项是颜色，第二项是区域 这里的： 从中心点进行沿半径进行渐变 123456789101112131415&lt;div class=&quot;box&quot;&gt;&lt;/div&gt;&lt;div class=&quot;box&quot;&gt;&lt;/div&gt;&lt;style&gt;    .box &#123;  display: inline-block;  width: 300px;  aspect-ratio: 1;  margin: 10px;  border: 2px solid red;  background: radial-gradient(#000...</div></div></div></a><a class="pagination-related" href="/2021/10/13/uniapp%E6%8B%96%E5%8A%A8%E6%8E%92%E5%BA%8F%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF/" title="uniapp拖动排序实现思路"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-10-13</div><div class="info-item-2">uniapp拖动排序实现思路</div></div><div class="info-2"><div class="info-item-1"> 没有哪一个聪明人会否定痛苦与忧愁的锻炼价值。——赫胥黎  找到下载量最多这个组件 https://ext.dcloud.net.cn/plugin?id=1372  导入，不多说  文档示例：  使用示例页面: 123456789101112131415161718复制代码&lt;template&gt;    &lt;view class=&quot;content&quot;&gt;        &lt;HM-dragSorts :list=&quot;list&quot; :isLongTouch=&quot;true&quot; :rowHeight=&quot;55&quot; @change=&quot;change&quot; @confirm=&quot;confirm&quot; @onclick=&quot;onclick&quot;&gt;            &lt;template slot=&quot;rowContent&quot; slot-scope=&quot;&#123; row &#125;&quot;&gt;            ...</div></div></div></a><a class="pagination-related" href="/2026/02/08/likec4/" title="likec4"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-08</div><div class="info-item-2">likec4</div></div><div class="info-2"><div class="info-item-1"> 光景不待人，须叟发成丝。——李白  LikeC4：把软件架构“写成代码”，让图永远跟着真相走软件架构图经常有一个痛点：画完就过时。新服务上线、依赖变更、部署策略调整，图不更新，团队就错用信息。LikeC4 的思路是“Architecture as Code”——把架构作为模型编写，用工具从模型自动���成“永远最新”的可视化图；并提供 CLI、VS Code 扩展、在线 Playground、模板仓库等配套，让你在本地与云端都能轻松协作与演进。  仓库主页：likec4&#x2F;likec4 官网与文档：likec4.dev · Playground：playground.likec4.dev · Demo：template.likec4.dev&#x2F;view&#x2F;index VS Code 扩展与安装量：Marketplace · Open VSX 许可证：MIT License 项目一句话：Visualize, collaborate on, and evolve your software architecture with always up-to-dat...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

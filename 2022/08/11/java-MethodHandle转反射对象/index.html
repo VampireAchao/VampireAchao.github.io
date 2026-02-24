@@ -1,0 +1,191 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>java MethodHandle转反射对象 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="春雨将半，各梦所欢。——送花的人走了  最近在看MethodHandle相关内容，我们将MethodHandle转反射的Executable对象，可以这么使用： 1final Executable executable &#x3D; MethodHandles.reflectAs(Executable.class, methodHandle);  当然你也可以这么用： 12345final MethodH">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java MethodHandle转反射对象">
+<meta property="og:url" content="https://vampireachao.gitee.io/2022/08/11/java-MethodHandle%E8%BD%AC%E5%8F%8D%E5%B0%84%E5%AF%B9%E8%B1%A1/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="春雨将半，各梦所欢。——送花的人走了  最近在看MethodHandle相关内容，我们将MethodHandle转反射的Executable对象，可以这么使用： 1final Executable executable &#x3D; MethodHandles.reflectAs(Executable.class, methodHandle);  当然你也可以这么用： 12345final MethodH">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2022-08-11T05:45:58.000Z">
+<meta property="article:modified_time" content="2026-02-24T07:30:36.148Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "java MethodHandle转反射对象",
+  "url": "https://vampireachao.gitee.io/2022/08/11/java-MethodHandle%E8%BD%AC%E5%8F%8D%E5%B0%84%E5%AF%B9%E8%B1%A1/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2022-08-11T05:45:58.000Z",
+  "dateModified": "2026-02-24T07:30:36.148Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2022/08/11/java-MethodHandle%E8%BD%AC%E5%8F%8D%E5%B0%84%E5%AF%B9%E8%B1%A1/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'java MethodHandle转反射对象',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">java MethodHandle转反射对象</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">java MethodHandle转反射对象</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-08-11T05:45:58.000Z" title="发表于 2022-08-11 13:45:58">2022-08-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T07:30:36.148Z" title="更新于 2026-02-24 15:30:36">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>春雨将半，各梦所欢。——送花的人走了</p>
+</blockquote>
+<p>最近在看<code>MethodHandle</code>相关内容，我们将<code>MethodHandle</code>转反射的<code>Executable</code>对象，可以这么使用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="type">Executable</span> <span class="variable">executable</span> <span class="operator">=</span> MethodHandles.reflectAs(Executable.class, methodHandle);</span><br></pre></td></tr></table></figure>
+
+<p>当然你也可以这么用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> MethodHandles.<span class="type">Lookup</span> <span class="variable">lookup</span> <span class="operator">=</span> MethodHandles.lookup();</span><br><span class="line">        <span class="type">MethodHandle</span> <span class="variable">methodHandle</span> <span class="operator">=</span> lookup</span><br><span class="line">          .findStatic(Test.class, <span class="string">&quot;myMethod&quot;</span>, MethodType.methodType(resultType, paramerType));</span><br><span class="line">        <span class="type">Method</span> <span class="variable">method</span> <span class="operator">=</span> lookup.revealDirect(methodHandle).reflectAs(Method.class, lookup);</span><br><span class="line">        System.out.println(method);</span><br></pre></td></tr></table></figure>
+
+<p><code>javadoc api</code>：<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/invoke/MethodHandles.html">https://docs.oracle.com/javase/8/docs/api/java/lang/invoke/MethodHandles.html</a></p>
+<p><img src="/img/oss/picGo/image-20220811135138437.png" alt="image-20220811135138437"></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/08/12/fast-request/" title="fast request"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">fast request</div></div><div class="info-2"><div class="info-item-1"> 一个表达别人 &#x2F; 只为表达自己的人，是病人 &#x2F; 一个表达别人 &#x2F; 就像在表达自己的人，是诗人。——张枣《虹》  分享一个idea版postman  Restful Fast Request 是idea版Postman,它是一个强大的restful api工具包插件，可以根据已有的方法帮助您快速生成url和params。Restful Fast Request = API调试工具+API管理工具+API搜索工具。 它有一个漂亮的界面来完成请求、检查服务器响应、存储你的api请求和导出api请求,插件帮助你在IDEA界面内更快更高效得调试你的API。 对比与HTTP Client，Fast Request不仅拥有HTTP Client内置的功能，还提供了友好易懂直观的界面，让使用者调试API的时候能够更加方便、简捷。同时各种类型参数也提供了不同的定制方式，更加灵活。而且集成了搜索、Postman集成，Swagger支持等额外的功能。   官方文档：https://plugins.sheng90.wang/fast-request/ 代码仓库：https...</div></div></div></a><a class="pagination-related" href="/2022/08/10/%E8%A7%84%E5%88%99%E5%BC%95%E6%93%8Eice/" title="规则引擎ice"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">规则引擎ice</div></div><div class="info-2"><div class="info-item-1"> 在人生或者职业的各种事务中，性格的作用比智力大得多，头脑的作用不如心情，天资不如由判断力所节制着的自制，耐心和规律。 —— 海鸣威 《真实的高贵》  分享一个规则引擎ice 官网：http://waitmoon.com/zh/  快速上手：http://waitmoon.com/zh/guide/getting-started.html  </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/03/28/jackson%E8%BD%AC%E8%8C%83%E5%9E%8B/" title="jackson转范型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-28</div><div class="info-item-2">jackson转范型</div></div><div class="info-2"><div class="info-item-1"> 不下决心培养思考习惯的人，便失去了生活中的最大乐趣。——爱迪生  代码很简单 1mapper.readValue(json, mapper.constructType(type))  这里主要是来源com.alibaba.nacos.common.utils.JacksonUtils#toObj(java.lang.String, java.lang.reflect.Type) 主要是这个mapper.constructType(type) 还可以 12TypeFactory typeFactory = mapper.getTypeFactory();JavaType javaType = typeFactory.constructType(MyClass.class); </div></div></div></a><a class="pagination-related" href="/2022/01/14/druid%E7%9B%91%E6%8E%A7%E9%85%8D%E7%BD%AE/" title="druid监控配置"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-14</div><div class="info-item-2">druid监控配置</div></div><div class="info-2"><div class="info-item-1"> 你的道路是什么，老兄？乖孩子的路，疯子的路，五彩的路，浪荡子的路，任何的路。到底在什么地方，给什么人，怎么走呢？——杰克·凯鲁亚克《在路上》  项目地址：https://github.com/alibaba/druid/wiki 这和fastjson一样也是温绍写的 首先引入gav 12345&lt;dependency&gt;    &lt;groupId&gt;com.alibaba&lt;/groupId&gt;    &lt;artifactId&gt;druid-spring-boot-starter&lt;/artifactId&gt;    &lt;version&gt;$&#123;druid-version&#125;&lt;/version&gt;&lt;/dependency&gt;  我当前引入的版本是1.2.8  在配置文件中开启统计监控和可视化面板 123456789101112131415161718# 应用名称spring.application.name=simple-druid# 应用服务 WEB 访问端口server.port=8787# ...</div></div></div></a><a class="pagination-related" href="/2020/11/14/qq%E9%82%AE%E7%AE%B1%E5%8F%91%E9%80%81/" title="qq邮箱发送"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-14</div><div class="info-item-2">qq邮箱发送</div></div><div class="info-2"><div class="info-item-1"> 宁鸣而死，不默而生。——胡适  123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566package com.ruben.utils; /** * @ClassName: SendEmail * @Date: 2020/11/7 0007 19:36 * @Description: */import com.ruben.pojo.EmailDataTransferObject;import javax.mail.*;import javax.mail.internet.InternetAddress;import javax.mail.internet.MimeMessage;import java.util.Properties;/** * @ClassName: SendEmail * @Description: 我还没有写描述 * @Date: 2020/11/7 0007 19:3...</div></div></div></a><a class="pagination-related" href="/2021/01/04/html%E8%BD%ACword%E6%88%96pdf/" title="html转word或pdf"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-01-04</div><div class="info-item-2">html转word或pdf</div></div><div class="info-2"><div class="info-item-1"> 差以毫厘，谬以千里。——班固《汉书》  使用的组件还是Spire.Doc，可以看我这篇博客 如果我们遇到html,需要直接渲染到word或者pdf上，可以使用官方文档给的例子 123456789101112131415161718192021222324252627282930import com.spire.doc.*;import java.io.*;public class htmlStringToWord &#123;    public static void main(String[] args) throws Exception &#123;        String inputHtml = &quot;InputHtml.txt&quot;;        //新建Document对象        Document document = new Document();        //添加section        Section sec = document.addSection();        String htmlText = readText...</div></div></div></a><a class="pagination-related" href="/2021/01/05/Optional%E5%86%8D%E6%89%A9%E5%B1%95/" title="Optional再扩展"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-01-05</div><div class="info-item-2">Optional再扩展</div></div><div class="info-2"><div class="info-item-1"> 他们之所以做得到，就因为他们认为他们能够做到。—— 维吉尔  关于Optional的介绍，之前的博客已经说过了，这里就不再赘述 这里写点常用的例子 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970package com.ruben;import java.util.*;import java.util.concurrent.atomic.AtomicBoolean;import java.util.function.Supplier;import java.util.stream.Stream;/** * @ClassName: OptionalDemo * @Description: 我还没有写描述 * @Date: 2021/1/5 0005 20:47 * * * @author: &lt;achao1441470436@gmail.com&gt; * @ver...</div></div></div></a><a class="pagination-related" href="/2020/07/09/%E5%85%B3%E4%BA%8Enull%E7%9A%84%E5%A4%A7%E5%9D%91/" title="关于null的大坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-07-09</div><div class="info-item-2">关于null的大坑</div></div><div class="info-2"><div class="info-item-1">今天跟前端对接口的时候。。。 有个关键字keyword，前端明明没传入进来，我执行判断的时候，一直进不去那段“如果为空就XXX的逻辑” 123if (StringUtils.isNoneBlank(commonQueryDtoEntity.getKeywords())) &#123;    //debug发现进不来&#125;  最后发现代码里我是这样写的 1commonQueryDtoEntity.getKeywords()+&quot;&quot;  这样其实转换出来并不是空串，而是一个”null”字符串。。。 1&quot;null&quot;  希望引以为戒 </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

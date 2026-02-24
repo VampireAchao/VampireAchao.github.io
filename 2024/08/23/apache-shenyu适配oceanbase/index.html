@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>apache-shenyu适配oceanbase | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="不可乘快而多事，不可因倦而鲜终。——菜根谭  首先docker跑一个实例 123Github-Id-VampireAchao:~ achao$ docker run -p 2881:2881 --name shenyu-oceanbase -e MINI_MODE&#x3D;0 -e ROOT_PASSWORD&#x3D;12345678 -d oceanbase&#x2F;oceanbase-ceed75d5a951daa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="apache-shenyu适配oceanbase">
+<meta property="og:url" content="https://vampireachao.gitee.io/2024/08/23/apache-shenyu%E9%80%82%E9%85%8Doceanbase/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="不可乘快而多事，不可因倦而鲜终。——菜根谭  首先docker跑一个实例 123Github-Id-VampireAchao:~ achao$ docker run -p 2881:2881 --name shenyu-oceanbase -e MINI_MODE&#x3D;0 -e ROOT_PASSWORD&#x3D;12345678 -d oceanbase&#x2F;oceanbase-ceed75d5a951daa">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2024-08-23T07:21:32.000Z">
+<meta property="article:modified_time" content="2026-02-22T18:55:32.420Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "apache-shenyu适配oceanbase",
+  "url": "https://vampireachao.gitee.io/2024/08/23/apache-shenyu%E9%80%82%E9%85%8Doceanbase/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2024-08-23T07:21:32.000Z",
+  "dateModified": "2026-02-22T18:55:32.420Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2024/08/23/apache-shenyu%E9%80%82%E9%85%8Doceanbase/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'apache-shenyu适配oceanbase',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">apache-shenyu适配oceanbase</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">apache-shenyu适配oceanbase</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-08-23T07:21:32.000Z" title="发表于 2024-08-23 15:21:32">2024-08-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-22T18:55:32.420Z" title="更新于 2026-02-23 02:55:32">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>不可乘快而多事，不可因倦而鲜终。——菜根谭</p>
+</blockquote>
+<p>首先<code>docker</code>跑一个实例</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Github-Id-VampireAchao:~ achao$ docker run -p 2881:2881 --name shenyu-oceanbase -e MINI_MODE=0 -e ROOT_PASSWORD=12345678 -d oceanbase/oceanbase-ce</span><br><span class="line">ed75d5a951daa4eaa8173c43bb65b27e1126f3063488ad1deafead941d6f2ff5</span><br><span class="line">Github-Id-VampireAchao:~ achao$ </span><br></pre></td></tr></table></figure>
+
+<p>由于<code>oceanbase</code>本身良好的语法兼容性，<code>mysql</code>模式语法不用修改，因此这里只针对驱动进行兼容</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/apache/shenyu/pull/5617">https://github.com/apache/shenyu/pull/5617</a></p>
+<p>引入依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.oceanbase<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>oceanbase-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;oceanbase.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>版本是<code>&lt;oceanbase.version&gt;2.4.12&lt;/oceanbase.version&gt;</code></p>
+<p>这边主要是需要注册<code>pagehelper</code>的方言：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.github.pagehelper.dialect.helper.MySqlDialect;</span><br><span class="line"><span class="keyword">import</span> com.github.pagehelper.page.PageAutoDialect;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.InitializingBean;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Configuration</span></span><br><span class="line">    <span class="meta">@ConditionalOnProperty(name = &quot;shenyu.database.dialect&quot;, havingValue = &quot;oceanbase&quot;)</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">OceanBaseSQLConfig</span> <span class="keyword">implements</span> <span class="title class_">InitializingBean</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * Register auto dialect alias.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">afterPropertiesSet</span><span class="params">()</span> &#123;</span><br><span class="line">            PageAutoDialect.registerDialectAlias(<span class="string">&quot;oceanbase&quot;</span>, MySqlDialect.class);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里还需要额外配置<code>yml</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">integration:</span></span><br><span class="line">    <span class="attr">jdbc:</span></span><br><span class="line">      <span class="attr">platform:</span> <span class="string">mysql</span></span><br></pre></td></tr></table></figure>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/08/24/jdk%E6%9C%AA%E6%9D%A5%E7%89%B9%E6%80%A7%E5%8F%AF%E7%A9%BA%E8%BF%90%E7%AE%97%E7%AC%A6/" title="jdk未来特性可空运算符"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">jdk未来特性可空运算符</div></div><div class="info-2"><div class="info-item-1"> 人一辈子都在高潮——低潮中浮沉，唯有庸碌的人，生活才如死水一般。——傅雷  主要PR： 8338874: [lw5] add nullable types by vicente-romero-oracle · Pull Request #1219 · openjdk&#x2F;valhalla · GitHub 对应的提交之一如下： https://github.com/openjdk/valhalla/commit/dbf4f49a57e30e0daa14541adc6a66ea51860182 大概如下： 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889909192939495969798991001011021031041051061071081091101111121131141151...</div></div></div></a><a class="pagination-related" href="/2024/08/22/ts%E7%9A%84-%E5%92%8C-%E7%B1%BB%E5%9E%8B/" title="ts的&amp;和|类型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">ts的&和|类型</div></div><div class="info-2"><div class="info-item-1"> 如果结果不如你所愿，就在尘埃落定前奋力一搏。——《夏目友人帐》  文档： https://www.typescriptlang.org/docs/handbook/2/objects.html#intersection-types 让我们用中文来解释这两个例子的区别，并通过几个例子帮助你理解。 交集类型 123type Bar = &#123; x: number &#125;;type Baz = &#123; y: number &#125;;type Foo = Bar &amp; Baz;   结果 Foo 类型: { x: number; y: number } 解释: Foo 是 Bar 和 Baz 的交集类型。它必须同时拥有 x 和 y 两个属性。  示例: 12const obj: Foo = &#123; x: 5, y: 10 &#125;; // 合法const obj2: Foo = &#123; x: 5 &#125;; // 非法，因为缺少 `y`  联合类型 123type Foo = &#123; x: number &#125;;type Ba...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/10/13/mp%E5%88%86%E9%A1%B5%E6%8E%92%E5%BA%8F%E5%AD%97%E6%AE%B5%E8%BD%AC%E6%8D%A2/" title="mp分页排序字段转换"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-10-13</div><div class="info-item-2">mp分页排序字段转换</div></div><div class="info-2"><div class="info-item-1"> 竭诚相助亲密无间，乃友谊之最高境界——瓦鲁瓦尔  经常会遇到这种表格：  后端代码演示：  源码地址： https://gitee.com/VampireAchao/stream-query/blob/master/stream-plugin/stream-plugin-mybatis-plus/src/test/java/io/github/vampireachao/stream/plugin/mybatisplus/DatabaseTest.java </div></div></div></a><a class="pagination-related" href="/2024/04/11/mybatis-plus%E5%90%AF%E5%8A%A8%E6%97%B6%E8%87%AA%E5%8A%A8%E6%89%A7%E8%A1%8Csql%E8%84%9A%E6%9C%AC/" title="mybatis-plus启动时自动执行sql脚本"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-04-11</div><div class="info-item-2">mybatis-plus启动时自动执行sql脚本</div></div><div class="info-2"><div class="info-item-1"> 不劳动，无所得。——富兰克林  源码地址： mybatis-plus-samples&#x2F;mybatis-plus-sample-ddl-mysql&#x2F;src&#x2F;main&#x2F;java&#x2F;com&#x2F;baomidou&#x2F;mybatisplus&#x2F;samples&#x2F;ddl&#x2F;mysql&#x2F;MysqlDdl.java at master · baomidou&#x2F;mybatis-plus-samples · GitHub 代码如下： 1234567891011121314151617181920212223242526272829package com.baomidou.mybatisplus.samples.ddl.mysql;import com.baomidou.mybatisplus.extension.ddl.SimpleDdl;import org.springframework.stereotype.Component;import java.util.Arrays;import ...</div></div></div></a><a class="pagination-related" href="/2020/12/22/springbootTest%E5%9D%91/" title="springbootTest坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-12-22</div><div class="info-item-2">springbootTest坑</div></div><div class="info-2"><div class="info-item-1"> 人一能之，己百之；人十能之，己千之。——《中庸》  今天踩到一个坑，使用springboot单元测试时插入数据回滚了 最后发现原来需要在测试类上面加上@Rollback(false)就可以了  123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960package com.ruben;/** * @ClassName: MybatisPlusDemo * @Date: 2020/11/9 0009 20:51 * @Description: */import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;import com.baomidou.mybatisplus.core.metadata.IPage;import com.baomidou.mybatisplus.core.toolkit.Wrappers;import co...</div></div></div></a><a class="pagination-related" href="/2021/07/22/%E5%88%9B%E5%BB%BA%E5%8F%AA%E8%AF%BB%E9%9B%86%E5%90%88/" title="创建只读集合"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-22</div><div class="info-item-2">创建只读集合</div></div><div class="info-2"><div class="info-item-1"> 真正的人生，只有在经过艰难卓绝的斗争之后才能实现。——塞涅卡  在java8中 我们可以使用下面的函数创建只读集合 12345678Collections.unmodifiableCollection(Arrays.asList(&quot;&quot;));Collections.unmodifiableList(Collections.singletonList(&quot;&quot;));Collections.unmodifiableMap(new HashMap&lt;&gt;(1 &lt;&lt; 4));Collections.unmodifiableSet(new HashSet&lt;&gt;());Collections.unmodifiableNavigableMap(new TreeMap&lt;&gt;());Collections.unmodifiableNavigableSet(new TreeSet&lt;&gt;());Collections.unmodifiableSortedMap(new TreeMap&lt;&gt;());Colle...</div></div></div></a><a class="pagination-related" href="/2020/11/08/%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/" title="建造者模式"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-08</div><div class="info-item-2">建造者模式</div></div><div class="info-2"><div class="info-item-1"> 外观往往和事物的本身完全不符，世人都容易为表面的装饰所欺骗。——《威尼斯商人》  这两天开发中用到了建造者模式，写起来感觉挺爽的 以前我们创建一个javabean 12345678910111213141516171819202122232425262728293031/** * 自定义pojo */public static class Teacher &#123;    private String name;    private Integer age;    @Override    public String toString() &#123;        return &quot;Teacher&#123;&quot; +                &quot;name=&#x27;&quot; + name + &#x27;\&#x27;&#x27; +                &quot;, age=&quot; + age +                &#x27;&#125;&#x27;;    &#125;    public Strin...</div></div></div></a><a class="pagination-related" href="/2021/09/17/mybatis-plus%E5%AD%97%E6%AE%B5%E7%B1%BB%E5%9E%8B%E5%A4%84%E7%90%86%E5%99%A8/" title="mybatis-plus字段类型处理器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-09-17</div><div class="info-item-2">mybatis-plus字段类型处理器</div></div><div class="info-2"><div class="info-item-1"> 人的一切痛苦，本质上都是对自己的无能的愤怒。——王小波  我们clone下来mybatis-plus官方示例项目： 1https://gitee.com/baomidou/mybatis-plus-samples.git  首先看文档：   JSON 字段类型  1234567891011121314151617181920212223@Data@Accessors(chain = true)@TableName(autoResultMap = true)public class User &#123;    private Long id;    ...    /**     * 注意！！ 必须开启映射注解     *     * @TableName(autoResultMap = true)     *     * 以下两种类型处理器，二选一 也可以同时存在     *     * 注意！！选择对应的 JSON 处理器也必须存在对应 JSON 解析依赖包     */    @TableField(typeHandler = JacksonTypeHandler.clas...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

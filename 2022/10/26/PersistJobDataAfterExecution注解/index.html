@@ -1,0 +1,189 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PersistJobDataAfterExecution注解 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="心地善良的人、富于幻想的人比冷酷残忍的人更容易聚合——约翰逊  quartz之前我们也聊过了，今天说下这个注解org.quartz.PersistJobDataAfterExecution 一般和DisallowConcurrentExecution搭配使用 PersistJobDataAfterExecution表示Job执行结束后更新JobDataMap DisallowConcurrent">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PersistJobDataAfterExecution注解">
+<meta property="og:url" content="https://vampireachao.gitee.io/2022/10/26/PersistJobDataAfterExecution%E6%B3%A8%E8%A7%A3/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="心地善良的人、富于幻想的人比冷酷残忍的人更容易聚合——约翰逊  quartz之前我们也聊过了，今天说下这个注解org.quartz.PersistJobDataAfterExecution 一般和DisallowConcurrentExecution搭配使用 PersistJobDataAfterExecution表示Job执行结束后更新JobDataMap DisallowConcurrent">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2022-10-26T05:11:00.000Z">
+<meta property="article:modified_time" content="2026-02-22T18:55:32.405Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PersistJobDataAfterExecution注解",
+  "url": "https://vampireachao.gitee.io/2022/10/26/PersistJobDataAfterExecution%E6%B3%A8%E8%A7%A3/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2022-10-26T05:11:00.000Z",
+  "dateModified": "2026-02-22T18:55:32.405Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2022/10/26/PersistJobDataAfterExecution%E6%B3%A8%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PersistJobDataAfterExecution注解',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">PersistJobDataAfterExecution注解</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PersistJobDataAfterExecution注解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-10-26T05:11:00.000Z" title="发表于 2022-10-26 13:11:00">2022-10-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-22T18:55:32.405Z" title="更新于 2026-02-23 02:55:32">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>心地善良的人、富于幻想的人比冷酷残忍的人更容易聚合——约翰逊</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://vampireachao.github.io/2021/01/24/quartz/"><code>quartz</code>之前我们也聊过了</a>，今天说下这个注解<code>org.quartz.PersistJobDataAfterExecution</code></p>
+<p>一般和<code>DisallowConcurrentExecution</code>搭配使用</p>
+<p><code>PersistJobDataAfterExecution</code>表示<code>Job</code>执行结束后更新<code>JobDataMap</code></p>
+<p><code>DisallowConcurrentExecution</code>表示不允许并发执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@DisallowConcurrentExecution</span></span><br><span class="line"><span class="meta">@PersistJobDataAfterExecution</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SettlementJob</span> <span class="keyword">implements</span> <span class="title class_">Job</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * &lt;p&gt;</span></span><br><span class="line"><span class="comment">     * Called by the &lt;code&gt;&#123;<span class="doctag">@link</span> Scheduler&#125;&lt;/code&gt; when a &lt;code&gt;&#123;<span class="doctag">@link</span> Trigger&#125;&lt;/code&gt;</span></span><br><span class="line"><span class="comment">     * fires that is associated with the &lt;code&gt;Job&lt;/code&gt;.</span></span><br><span class="line"><span class="comment">     * &lt;/p&gt;</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * &lt;p&gt;</span></span><br><span class="line"><span class="comment">     * The implementation may wish to set a</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@link</span> JobExecutionContext#setResult(Object) result&#125; object on the</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@link</span> JobExecutionContext&#125; before this method exits.  The result itself</span></span><br><span class="line"><span class="comment">     * is meaningless to Quartz, but may be informative to</span></span><br><span class="line"><span class="comment">     * &lt;code&gt;&#123;<span class="doctag">@link</span> JobListener&#125;s&lt;/code&gt; or</span></span><br><span class="line"><span class="comment">     * &lt;code&gt;&#123;<span class="doctag">@link</span> TriggerListener&#125;s&lt;/code&gt; that are watching the job&#x27;s</span></span><br><span class="line"><span class="comment">     * execution.</span></span><br><span class="line"><span class="comment">     * &lt;/p&gt;</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> context 上下文</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> JobExecutionException if there is an exception while executing the job.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">(JobExecutionContext context)</span> <span class="keyword">throws</span> JobExecutionException &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">JobDetail</span> <span class="variable">jobDetail</span> <span class="operator">=</span> context.getJobDetail();</span><br><span class="line">        <span class="keyword">final</span> <span class="type">JobDataMap</span> <span class="variable">jobDataMap</span> <span class="operator">=</span> jobDetail.getJobDataMap();</span><br><span class="line">        log.info(jobDetail.getKey().getName() + <span class="string">&quot;执行了&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/10/27/Fastjson%E5%A7%BF%E5%8A%BF%E6%8A%80%E5%B7%A7%E9%9B%86%E5%90%88/" title="Fastjson姿势技巧集合"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Fastjson姿势技巧集合</div></div><div class="info-2"><div class="info-item-1"> 一个人在年轻的时候，没有什么能把他搞垮——奥尼尔  分享一个Fastjson姿势技巧集合： https://github.com/safe6Sec/Fastjson  FastjsonFastjson姿势技巧集合 说明 本项目涉及的一些姿势和payload是从之前的随手记的笔记直接粘进来的，很多找不到出处了所以来源未贴出来，望师傅们见谅。 高版本的很多细节还有待更新。 浅蓝Kcon议题内容由@su18师傅整理 各版本复现payload来自@kezibei师傅，我原项目基础上加了maven依赖，做了一点代码修改。  各版本payload复现https://github.com/safe6Sec/ShiroAndFastJson 判断是否用了fastjson鉴别fastjsonDNSLOG  1&#123;&quot;@type&quot;:&quot;java.net.InetSocketAddress&quot;&#123;&quot;address&quot;:,&quot;val&quot;:&quot;dnslog.com&quot;&#125;&#125;  1&#12...</div></div></div></a><a class="pagination-related" href="/2022/10/25/jackson%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/" title="jackson时区问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">jackson时区问题</div></div><div class="info-2"><div class="info-item-1"> 万两黄金容易得，知心一个也难求——曹雪芹  今天发现日期数据返回后日期错乱 怀疑是时区问题，果然改了全局jackson序列化配置就好了 12ObjectMapper objectMapper = new ObjectMapper();objectMapper.setTimeZone(TimeZone.getTimeZone(&quot;GMT+8&quot;));  完整代码： 12345678910111213141516171819202122232425262728293031323334353637383940/** * web配置类 * * @author &lt;achao1441470436@gmail.com&gt; * @since 2021/5/18 0018 14:52 */@Configuration@EnableWebMvcpublic class WebConfig implements WebMvcConfigurer &#123;        /**     * @param converters 转换器     * @author &lt;a...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2020/06/25/cron%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="cron表达式"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-06-25</div><div class="info-item-2">cron表达式</div></div><div class="info-2"><div class="info-item-1">表达式 1234567891011121314151617每隔5秒执行一次：*/5 * * * * ?           每隔1分钟执行一次：0 */1 * * * ?           每天23点执行一次：0 0 23 * * ?           每天凌晨1点执行一次：0 0 1 * * ?           每月1号凌晨1点执行一次：0 0 1 1 * ?           每月最后一天23点执行一次：0 0 23 L * ?           每周星期天凌晨1点实行一次：0 0 1 ? * L           在26分、29分、33分执行一次：0 26,29,33 * * * ?           每天的0点、13点、18点、21点都执行一次：0 0 0,13,18,21 * * ?  </div></div></div></a><a class="pagination-related" href="/2021/01/16/spire-doc%E6%B8%B2%E6%9F%93pdf%E6%97%B6%E5%AF%8C%E6%96%87%E6%9C%AC%E5%A4%84%E7%90%86/" title="spire.doc渲染pdf时富文本处理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-01-16</div><div class="info-item-2">spire.doc渲染pdf时富文本处理</div></div><div class="info-2"><div class="info-item-1"> 不以一眚掩大德。——《左传》  使用spire.doc渲染富文本的话，可以使用Paragraph中的appendHTML()函数去渲染富文本，例如下面 1234567891011121314151617181920212223242526272829package com.ruben;import com.spire.doc.Document;import com.spire.doc.FileFormat;import com.spire.doc.documents.Paragraph;import java.time.LocalDateTime;import java.time.format.DateTimeFormatter;import java.util.Locale;/** * @ClassName: WordDemo * @Description: 我还没有写描述 * @Date: 2021/1/15 0015 20:31 * * * @author: &lt;achao1441470436@gmail.com&gt; * @version: 1.0 * @sinc...</div></div></div></a><a class="pagination-related" href="/2020/08/29/%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%BD%95/" title="第三方登录"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-29</div><div class="info-item-2">第三方登录</div></div><div class="info-2"><div class="info-item-1">大家经常被注册登录繁琐的步骤击退，经常进几个不同的网站要输入几次用户密码，特别繁琐 所以社交账号登录出现了，也就是说用QQ微信微博等社交账号就可以登录其他网站  OAuth 2.0是用于授权的行业标准协议。OAuth 2.0致力于简化客户端开发人员，同时为Web应用程序，桌面应用程序，移动电话和客厅设备提供特定的授权流程。该规范及其扩展正在IETF OAuth工作组内开发。  Oauth 2.0文档 流程图如下： 1234567891011121314151617+--------+                               +---------------+|        |--(A)- Authorization Request -&gt;|   Resource    ||        |                               |     Owner     ||        |&lt;-(B)-- Authorization Grant ---|               ||        |               ...</div></div></div></a><a class="pagination-related" href="/2022/07/25/%E7%A7%91%E5%A4%A7%E8%AE%AF%E9%A3%9ENLP%E9%BB%91%E7%99%BD%E5%90%8D%E5%8D%95%E4%B8%8A%E4%BC%A0/" title="科大讯飞NLP黑白名单上传"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-25</div><div class="info-item-2">科大讯飞NLP黑白名单上传</div></div><div class="info-2"><div class="info-item-1"> “你喜欢一个人，就像喜欢富士山。你可以看到它，但是不能搬走它。你有什么方法可以移动一座富士山呢？回答是，你自己走过去。爱情也是如此，逛过就已经足够。”——林夕  介绍：对接科大讯飞NLP 贴代码，其中一些常量在上面有： 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758package org.example;import cn.hutool.core.codec.Base64;import cn.hutool.core.lang.Console;import cn.hutool.core.lang.Opt;import cn.hutool.core.map.MapUtil;import cn.hutool.core.text.CharSequenceUtil;import cn.hutool.http.HttpUtil;import cn.hutool.json.JSONObject;import cn.hutool...</div></div></div></a><a class="pagination-related" href="/2024/04/05/org-apache-ibatis-session-AutoMappingUnknownColumnBehavior/" title="org.apache.ibatis.session.AutoMappingUnknownColumnBehavior"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-04-05</div><div class="info-item-2">org.apache.ibatis.session.AutoMappingUnknownColumnBehavior</div></div><div class="info-2"><div class="info-item-1"> 我只说从今往后，不说今日以前。——陈忠实《白鹿原》  在处理数据库和Java对象之间的映射时，MyBatis提供了一种高度灵活的机制来处理那些在结果集中存在但在Java对象中没有相应属性的未知列。这种机制通过AutoMappingUnknownColumnBehavior枚举来实现，它允许开发者定义对这些未知列的处理策略。 AutoMappingUnknownColumnBehavior的三种策略 NONE: 这是默认策略，MyBatis将忽略所有未知的列，不会对其进行任何操作或抛出异常。 WARNING: 当选择这个策略时，MyBatis会在控制台或日志文件中记录一个警告消息，指出存在未知列，但仍然会继续映射已知列。 FAILING: 选择这个策略时，一旦遇到未知列，MyBatis将抛出异常并终止映射过程。这对于需要确保所有列都必须被正确映射的场景非常有用。  应用场景 开发和测试阶段: 你可能会倾向于使用WARNING策略，以便及时发现数据库表结构的任何更改，这些更改可能会影响应用程序的行为。 生产环境: 在生产环境中，FAILING策略可以帮助你确保数据完整性，任何未映射...</div></div></div></a><a class="pagination-related" href="/2021/01/19/removeIf/" title="removeIf"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-01-19</div><div class="info-item-2">removeIf</div></div><div class="info-2"><div class="info-item-1"> 礼貌是最容易做到的事，也是最珍贵的东西。—— 冈察尔  Java中我们可能使用Stream的filter从List去过滤一些数据 但如果我们想要更高的效率，或者我们修改源数据，就需要用到List的removeif了 下面是一个简单的测试 12345678910// 生成从0到20的数字，过滤掉奇数        List&lt;Integer&gt; intList = Stream.iterate(0, e -&gt; ++e).limit(20).collect(Collectors.toList());        long filterStart = System.nanoTime();        intList.stream().filter(a -&gt; a % 2 == 0).collect(Collectors.toList());        long filterEnd = System.nanoTime();        System.out.println(&quot;filter执行了&quot; + ((filterEnd - filte...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>如何判断一段密文用了什么加密算法？实用分析与思路分享 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="万物各得其和以生,各得其养以成。一一《荀子》   如何判断一段密文用了什么加密算法？实用分析与思路分享在安全测试、逆向工程、密码学学习、甚至日常开发中，我们常常会遇到一串“看不懂”的密文字符串。此时很多人会问：这到底用了什么加密算法？我能不能还原出明文？其实，想要“还原密文”，首先你得知道它的加密方式。今天就带大家聊聊——如何通过一段密文的特征、上下文和技术手段，分析它可能用了哪种加密算法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何判断一段密文用了什么加密算法？实用分析与思路分享">
+<meta property="og:url" content="https://vampireachao.gitee.io/2025/09/25/%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E6%AE%B5%E5%AF%86%E6%96%87%E7%94%A8%E4%BA%86%E4%BB%80%E4%B9%88%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%EF%BC%9F%E5%AE%9E%E7%94%A8%E5%88%86%E6%9E%90%E4%B8%8E%E6%80%9D%E8%B7%AF%E5%88%86%E4%BA%AB/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="万物各得其和以生,各得其养以成。一一《荀子》   如何判断一段密文用了什么加密算法？实用分析与思路分享在安全测试、逆向工程、密码学学习、甚至日常开发中，我们常常会遇到一串“看不懂”的密文字符串。此时很多人会问：这到底用了什么加密算法？我能不能还原出明文？其实，想要“还原密文”，首先你得知道它的加密方式。今天就带大家聊聊——如何通过一段密文的特征、上下文和技术手段，分析它可能用了哪种加密算法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2025-09-25T06:24:55.000Z">
+<meta property="article:modified_time" content="2026-02-22T18:55:32.544Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="小技巧">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "如何判断一段密文用了什么加密算法？实用分析与思路分享",
+  "url": "https://vampireachao.gitee.io/2025/09/25/%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E6%AE%B5%E5%AF%86%E6%96%87%E7%94%A8%E4%BA%86%E4%BB%80%E4%B9%88%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%EF%BC%9F%E5%AE%9E%E7%94%A8%E5%88%86%E6%9E%90%E4%B8%8E%E6%80%9D%E8%B7%AF%E5%88%86%E4%BA%AB/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2025-09-25T06:24:55.000Z",
+  "dateModified": "2026-02-22T18:55:32.544Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2025/09/25/%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E6%AE%B5%E5%AF%86%E6%96%87%E7%94%A8%E4%BA%86%E4%BB%80%E4%B9%88%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%EF%BC%9F%E5%AE%9E%E7%94%A8%E5%88%86%E6%9E%90%E4%B8%8E%E6%80%9D%E8%B7%AF%E5%88%86%E4%BA%AB/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '如何判断一段密文用了什么加密算法？实用分析与思路分享',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">如何判断一段密文用了什么加密算法？实用分析与思路分享</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">如何判断一段密文用了什么加密算法？实用分析与思路分享</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-09-25T06:24:55.000Z" title="发表于 2025-09-25 14:24:55">2025-09-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-22T18:55:32.544Z" title="更新于 2026-02-23 02:55:32">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<ul>
+<li>万物各得其和以生,各得其养以成。一一《荀子》</li>
+</ul>
+</blockquote>
+<h1 id="如何判断一段密文用了什么加密算法？实用分析与思路分享"><a href="#如何判断一段密文用了什么加密算法？实用分析与思路分享" class="headerlink" title="如何判断一段密文用了什么加密算法？实用分析与思路分享"></a>如何判断一段密文用了什么加密算法？实用分析与思路分享</h1><p>在安全测试、逆向工程、密码学学习、甚至日常开发中，我们常常会遇到一串“看不懂”的密文字符串。此时很多人会问：这到底用了什么加密算法？我能不能还原出明文？其实，想要“还原密文”，首先你得知道它的加密方式。今天就带大家聊聊——如何通过一段密文的特征、上下文和技术手段，分析它可能用了哪种加密算法。</p>
+<hr>
+<h2 id="一、为什么要识别加密算法？"><a href="#一、为什么要识别加密算法？" class="headerlink" title="一、为什么要识别加密算法？"></a>一、为什么要识别加密算法？</h2><ul>
+<li><strong>漏洞挖掘</strong>：渗透测试时，识别加密算法有助于判断安全性，寻找弱点。</li>
+<li><strong>数据恢复</strong>：系统迁移、数据导入时遇到密文字段，需要还原明文。</li>
+<li><strong>逆向分析</strong>：破解恶意软件、协议逆向时，分析密文有助于还原协议内容。</li>
+<li><strong>学习实践</strong>：加深对各种加密算法原理的理解。</li>
+</ul>
+<hr>
+<h2 id="二、常见密文类型与特征"><a href="#二、常见密文类型与特征" class="headerlink" title="二、常见密文类型与特征"></a>二、常见密文类型与特征</h2><h3 id="1-编码-≠-加密"><a href="#1-编码-≠-加密" class="headerlink" title="1. 编码 ≠ 加密"></a>1. 编码 ≠ 加密</h3><p>先分清Base64、Base32、URL编码等“编码”和真正的加密。编码只是可逆的“信息表达”方式，肉眼可识别字符集、结尾常有 <code>=</code> 填充。</p>
+<p><strong>Base64例子：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TWljcm9zb2Z0Cg==</span><br></pre></td></tr></table></figure>
+
+<p>解码后就是明文“Microsoft”。</p>
+<h3 id="2-对称加密（AES-DES-3DES-SM4等）"><a href="#2-对称加密（AES-DES-3DES-SM4等）" class="headerlink" title="2. 对称加密（AES&#x2F;DES&#x2F;3DES&#x2F;SM4等）"></a>2. 对称加密（AES&#x2F;DES&#x2F;3DES&#x2F;SM4等）</h3><ul>
+<li>密文长度固定（通常8、16、24、32字节倍数）</li>
+<li>字节分布均匀、无明显明文特征</li>
+<li>通常无法直接解码为可见字符串</li>
+</ul>
+<h3 id="3-分组密码-vs-流密码"><a href="#3-分组密码-vs-流密码" class="headerlink" title="3. 分组密码 vs. 流密码"></a>3. 分组密码 vs. 流密码</h3><ul>
+<li>分组密码（如AES）密文长度和明文有固定关系，常见补齐填充。</li>
+<li>流密码（如RC4）密文长度等于明文长度，特征不明显。</li>
+</ul>
+<h3 id="4-非对称加密（RSA-SM2等）"><a href="#4-非对称加密（RSA-SM2等）" class="headerlink" title="4. 非对称加密（RSA&#x2F;SM2等）"></a>4. 非对称加密（RSA&#x2F;SM2等）</h3><ul>
+<li>密文通常较长，长度和密钥长度有关（如RSA-1024密文为128字节）</li>
+<li>常见Base64编码后存储，通常一长串字母数字</li>
+</ul>
+<h3 id="5-哈希算法（MD5-SHA等）"><a href="#5-哈希算法（MD5-SHA等）" class="headerlink" title="5. 哈希算法（MD5&#x2F;SHA等）"></a>5. 哈希算法（MD5&#x2F;SHA等）</h3><ul>
+<li>输出定长（如MD5为32位16进制）</li>
+<li>不可逆，常见于密码摘要场景</li>
+</ul>
+<p><strong>MD5例子：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">098f6bcd4621d373cade4e832627b4f6</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、分析密文的通用流程"><a href="#三、分析密文的通用流程" class="headerlink" title="三、分析密文的通用流程"></a>三、分析密文的通用流程</h2><h3 id="1-观察密文格式"><a href="#1-观察密文格式" class="headerlink" title="1. 观察密文格式"></a>1. 观察密文格式</h3><ul>
+<li>是否只包含可见字符？有无“&#x3D;”、“&#x2F;”、“+”等Base64字符？</li>
+<li>长度是否为8、16、32、128等常见加密块的整数倍？</li>
+<li>是全16进制、全Base64、还是混合？</li>
+</ul>
+<h3 id="2-猜测上下文场景"><a href="#2-猜测上下文场景" class="headerlink" title="2. 猜测上下文场景"></a>2. 猜测上下文场景</h3><ul>
+<li>是用户密码、Token、配置文件、协议流量、还是数据库字段？</li>
+<li>相关业务&#x2F;系统常用哪些加密算法？</li>
+</ul>
+<h3 id="3-利用工具自动识别"><a href="#3-利用工具自动识别" class="headerlink" title="3. 利用工具自动识别"></a>3. 利用工具自动识别</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://gchq.github.io/CyberChef/">CyberChef</a>：万能密文分析工具，支持自动识别、解码、爆破。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/psmarcin/hashID">hashid</a>：可识别常见哈希类型。</li>
+<li><a target="_blank" rel="noopener" href="https://www.cmd5.com/">在线工具</a>、<a target="_blank" rel="noopener" href="https://www.dcode.fr/">dcode.fr</a>等。</li>
+</ul>
+<h3 id="4-编写脚本暴力分析"><a href="#4-编写脚本暴力分析" class="headerlink" title="4. 编写脚本暴力分析"></a>4. 编写脚本暴力分析</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">guess_cipher</span>(<span class="params">text</span>):</span><br><span class="line">    <span class="keyword">if</span> re.fullmatch(<span class="string">r&#x27;[0-9a-fA-F]&#123;32&#125;&#x27;</span>, text):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;可能是MD5哈希&quot;</span></span><br><span class="line">    <span class="keyword">if</span> re.fullmatch(<span class="string">r&#x27;[0-9a-zA-Z+/=]+&#x27;</span>, text) <span class="keyword">and</span> <span class="built_in">len</span>(text) % <span class="number">4</span> == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            base64.b64decode(text)</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;可能是Base64编码（或Base64包裹的密文）&quot;</span></span><br><span class="line">        <span class="keyword">except</span> Exception:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(text) <span class="keyword">in</span> [<span class="number">16</span>, <span class="number">24</span>, <span class="number">32</span>]:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;可能是AES、DES、3DES等对称加密&quot;</span></span><br><span class="line">    <span class="comment"># 更多规则可自定义</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;未识别，建议结合场景和二进制分析&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(guess_cipher(<span class="string">&#x27;098f6bcd4621d373cade4e832627b4f6&#x27;</span>))</span><br><span class="line"><span class="built_in">print</span>(guess_cipher(<span class="string">&#x27;TWljcm9zb2Z0Cg==&#x27;</span>))</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-利用已知明文尝试“爆破”"><a href="#5-利用已知明文尝试“爆破”" class="headerlink" title="5. 利用已知明文尝试“爆破”"></a>5. 利用已知明文尝试“爆破”</h3><ul>
+<li>如果能控制明文（如注册密码、发送已知内容），可比对密文变化规律。</li>
+<li>密文内容随明文变化而变化，通常是加密；完全不同则可能有随机盐或其他保护。</li>
+</ul>
+<h3 id="6-静态逆向或抓包分析"><a href="#6-静态逆向或抓包分析" class="headerlink" title="6. 静态逆向或抓包分析"></a>6. 静态逆向或抓包分析</h3><ul>
+<li>若手头有系统源码、APP逆向、或Fiddler&#x2F;Yakit流量包，可结合调用栈&#x2F;代码追踪加密过程。</li>
+<li>在代码里搜索加密&#x2F;哈希关键字（如<code>AES_encrypt</code>、<code>md5</code>、<code>crypto</code>）直击算法实现。</li>
+</ul>
+<hr>
+<h2 id="四、综合案例分析"><a href="#四、综合案例分析" class="headerlink" title="四、综合案例分析"></a>四、综合案例分析</h2><p><strong>例1：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">U2FsdGVkX1+FvJ6H2wjt9ZQ+u+LONnI5Fh6B5rD7yMM=</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>U2FsdGVkX1</code>开头，通常是OpenSSL的AES加密Base64输出。</li>
+</ul>
+<p><strong>例2：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c4ca4238a0b923820dcc509a6f75849b</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>32位16进制，典型MD5。</li>
+</ul>
+<p><strong>例3：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MIIBIjANBgkq...IDAQAB</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>PEM格式，非对称密钥&#x2F;密文块。</li>
+</ul>
+<hr>
+<h2 id="五、实战技巧锦集"><a href="#五、实战技巧锦集" class="headerlink" title="五、实战技巧锦集"></a>五、实战技巧锦集</h2><ul>
+<li>多用“复制-解码-再分析”策略，先用Base64&#x2F;Hex解码，发现还被包裹可继续分析。</li>
+<li>结合上下文和系统开发语言常用加密库（如Java常用AES、Python常用Fernet等）推断。</li>
+<li>遇到无法还原的密文，别轻易放弃，善用社区、工具和代码审计。</li>
+</ul>
+<hr>
+<h2 id="六、结语"><a href="#六、结语" class="headerlink" title="六、结语"></a>六、结语</h2><p>识别密文加密算法是一项需要经验和技巧的工作。多观察格式，多结合场景，多用工具和脚本，总能找到突破口。即使一开始无法破解，也能为后续逆向、安全测试、协议分析打下基础！</p>
+<p><strong>动手试试吧，下次遇到神秘密文时，别再一脸懵逼啦！</strong></p>
+<hr>
+<p><strong>推荐工具与资源：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://gchq.github.io/CyberChef/">CyberChef</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/psmarcin/hashID">hashid</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.dcode.fr/">dcode.fr</a></li>
+</ul>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/">小技巧</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/09/26/gin/" title="gin"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">gin</div></div><div class="info-2"><div class="info-item-1"> 盛年不重来，一日难再晨。——陶潜  Gin：极致高性能的 Go HTTP Web 框架，打造现代 API 的利器在 Go 生态中，如果你问“哪个 Web 框架最流行？”，Gin 几乎是绕不开的名字。无论是构建高并发 RESTful API、微服务后台，还是快速原型开发，Gin 都以极简 API、极致性能、丰富中间件生态赢得了无数开发者的青睐。今天，我们就来深入聊聊 Gin 的出色之处，并带你用代码快速上手。  一、Gin 是什么？ Gin is a high-performance HTTP web framework written in Go. It provides a Martini-like API but with significantly better performance—up to 40 times faster—thanks to httprouter. Gin is designed for building REST APIs, web applications, and microservices.  简单来说，Gin &#x3D; Go 语言 +...</div></div></div></a><a class="pagination-related" href="/2025/09/24/Chrome-DevTools-%E5%BF%AB%E9%80%9F%E5%AE%9A%E4%BD%8D%E8%AF%B7%E6%B1%82%E8%B0%83%E7%94%A8%E6%A0%88%E5%B9%B6%E8%B0%83%E8%AF%95%E5%89%8D%E7%AB%AF%E9%97%AE%E9%A2%98/" title="Chrome DevTools 快速定位请求调用栈并调试前端问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Chrome DevTools 快速定位请求调用栈并调试前端问题</div></div><div class="info-2"><div class="info-item-1"> 观古今于须臾,抚四海于一瞬 。一一陆机《文赋》  教你用 Chrome DevTools 快速定位请求调用栈并调试前端问题在前端开发和接口联调中，我们经常遇到这样的场景：某个 HTTP 请求发出后，返回异常，或者你想知道是谁在哪一步发起了这个请求？搞清楚「请求的调用来源」，是定位和解决问题的第一步。今天就来详细聊聊，如何用 Chrome DevTools 追踪请求的 JS 调用栈，并配合断点调试，精准掌控前端网络请求的“源头”。  一、为什么要看请求的调用栈？ 定位发起请求的代码片段：前端框架、工具库封装很多，找不到是谁发的请求很常见。 分析异常&#x2F;冗余请求：有时页面多发、重复发请求，光看 Network 面板无法溯源。 Debug 异步流程：配合断点跳转，可以还原异步流转过程，查明数据流动和时序问题。   二、如何用 Chrome DevTools 查看请求的 JS 调用栈？1. 打开 Network 面板，找到目标请求 按 F12 或右键→检查，打开 Chrome DevTools。 切换到【Network】标签页，刷新页面或触发操作，找到你关注的请求（可用 fil...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/01/15/%E5%8D%B3%E6%97%B6%E8%AE%BE%E8%AE%A1js-design/" title="即时设计js.design"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-15</div><div class="info-item-2">即时设计js.design</div></div><div class="info-2"><div class="info-item-1"> 你们一本正经，我万事游戏。——尼采的《尼采诗集》  https://js.design/ 最近体验了一款非常优秀的在线设计工具，叫做 即时设计（JS Design）。作为一款国产设计平台，即时设计不仅功能强大，还完全免费，支持团队协作、资源管理、多平台适配等特性，是 UI&#x2F;UX 设计师和产品团队的理想选择。 即时设计的界面简洁直观，类似于 Figma 等国际化工具，但针对本地用户进行了优化。它支持矢量设计、图层管理、组件复用等常规设计功能，操作流畅且易于上手。同时，它还提供了许多高级功能，比如智能布局、全局样式、版本管理等，能帮助设计师高效完成复杂项目。 一个亮点是即时设计对协作的支持，团队成员可以实时编辑同一个设计文件，查看更改历史，并通过评论功能即时交流，极大地提升了团队的协作效率。对于需要快速迭代的设计团队，这种实时协作能力是非常关键的。 即时设计还提供了丰富的资源管理功能。设计师可以创建和共享自己的组件库，方便团队成员统一设计语言；支持快速导入 Sketch 文件，并与其他工具（如 Axure、蓝湖等）无缝对接，减少了在多个工具之间切换的成本。 性能方面，即时...</div></div></div></a><a class="pagination-related" href="/2021/11/25/%E8%8A%B1%E7%94%9F%E5%A3%B3/" title="花生壳"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-25</div><div class="info-item-2">花生壳</div></div><div class="info-2"><div class="info-item-1"> 有时是恶而不是善，对人的吸引力更大——陀思妥耶夫斯基  今天需要一个https测试，想到了内网穿透，找到了这款付费的软件 花生壳官网 价格也不贵，6元 进入后点击控制台  一系列操作后，找到内网穿透，点击增加映射  选择域名，设置ip和端口  成功  再次用域名访问就可以了，就是有点慢。。。   </div></div></div></a><a class="pagination-related" href="/2022/11/13/%E5%9C%A8%E7%BA%BF%E5%88%B6%E4%BD%9Cgif-icon/" title="在线制作gif icon"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-11-13</div><div class="info-item-2">在线制作gif icon</div></div><div class="info-2"><div class="info-item-1"> 慎重和检点是女孩子最好的才智——夏洛蒂·勃朗特  分享一个在线制作gif icon的网站： https://loading.io/  非常的好用 </div></div></div></a><a class="pagination-related" href="/2021/07/17/%E5%9C%A8%E7%BA%BF%E6%AF%9B%E7%AC%94%E5%AD%97%E7%94%9F%E6%88%90/" title="在线毛笔字生成"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-17</div><div class="info-item-2">在线毛笔字生成</div></div><div class="info-2"><div class="info-item-1"> 草木蔓发,青山可望。一一王维  可用这个网站 https://www.zhenhaotv.com/ 生成毛笔字图片  </div></div></div></a><a class="pagination-related" href="/2025/06/17/macos%E5%92%8Clinux%E6%9F%A5%E7%9C%8B%E6%95%B0%E6%8D%AE%E7%BA%BF%E7%9A%84%E9%80%9F%E7%8E%87/" title="macos和linux查看数据线的速率"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-06-17</div><div class="info-item-2">macos和linux查看数据线的速率</div></div><div class="info-2"><div class="info-item-1"> 所有智力方面的工作都要依赖于兴趣。——皮亚杰  Android Studio Koala 功能更新 | 2024.1.2（2024 年 8 月） &nbsp;|&nbsp; Android Developers 如何查看当前 USB 数据连接线的速率（macOS 和 Linux）在开发 Android 或进行高效数据传输时，了解 USB 线缆和接口的实际速率非常重要。不同的 USB 线缆和接口支持的速度差异很大（如 480Mb&#x2F;s、5Gb&#x2F;s、10Gb&#x2F;s 等），直接影响大文件传输、调试性能等体验。Android 官方文档 USB 连接速度检查 推荐了不同操作系统下查询 USB 速率的方法。  macOS：使用 system_profiler 查询 USB 速率 打开终端 Terminal可以通过聚焦（Command + Space）搜索“Terminal”，或在应用程序-实用工具中找到。  运行命令   1system_profiler SPUSBDataType  查找速率信息在输出中，找到你关心的设备（如手机、U盘、硬盘等），会看到类似如下内...</div></div></div></a><a class="pagination-related" href="/2022/10/15/%E8%8A%82%E5%81%87%E6%97%A5%E8%A1%A5%E7%8F%AD%E6%97%A5%E5%8E%86/" title="节假日补班日历"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-10-15</div><div class="info-item-2">节假日补班日历</div></div><div class="info-2"><div class="info-item-1"> 生存本身是一种徒劳。——《雪国》  地址：https://github.com/lanceliao/china-holiday-calender  ics：https://www.shuyz.com/githubfiles/china-holiday-calender/master/holidayCal.ics  </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E6%AE%B5%E5%AF%86%E6%96%87%E7%94%A8%E4%BA%86%E4%BB%80%E4%B9%88%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%EF%BC%9F%E5%AE%9E%E7%94%A8%E5%88%86%E6%9E%90%E4%B8%8E%E6%80%9D%E8%B7%AF%E5%88%86%E4%BA%AB"><span class="toc-number">1.</span> <span class="toc-text">如何判断一段密文用了什么加密算法？实用分析与思路分享</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E8%AF%86%E5%88%AB%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">一、为什么要识别加密算法？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%B8%B8%E8%A7%81%E5%AF%86%E6%96%87%E7%B1%BB%E5%9E%8B%E4%B8%8E%E7%89%B9%E5%BE%81"><span class="toc-number">1.2.</span> <span class="toc-text">二、常见密文类型与特征</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%BC%96%E7%A0%81-%E2%89%A0-%E5%8A%A0%E5%AF%86"><span class="toc-number">1.2.1.</span> <span class="toc-text">1. 编码 ≠ 加密</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%EF%BC%88AES-DES-3DES-SM4%E7%AD%89%EF%BC%89"><span class="toc-number">1.2.2.</span> <span class="toc-text">2. 对称加密（AES&#x2F;DES&#x2F;3DES&#x2F;SM4等）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81-vs-%E6%B5%81%E5%AF%86%E7%A0%81"><span class="toc-number">1.2.3.</span> <span class="toc-text">3. 分组密码 vs. 流密码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%EF%BC%88RSA-SM2%E7%AD%89%EF%BC%89"><span class="toc-number">1.2.4.</span> <span class="toc-text">4. 非对称加密（RSA&#x2F;SM2等）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95%EF%BC%88MD5-SHA%E7%AD%89%EF%BC%89"><span class="toc-number">1.2.5.</span> <span class="toc-text">5. 哈希算法（MD5&#x2F;SHA等）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%88%86%E6%9E%90%E5%AF%86%E6%96%87%E7%9A%84%E9%80%9A%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.</span> <span class="toc-text">三、分析密文的通用流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%A7%82%E5%AF%9F%E5%AF%86%E6%96%87%E6%A0%BC%E5%BC%8F"><span class="toc-number">1.3.1.</span> <span class="toc-text">1. 观察密文格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%8C%9C%E6%B5%8B%E4%B8%8A%E4%B8%8B%E6%96%87%E5%9C%BA%E6%99%AF"><span class="toc-number">1.3.2.</span> <span class="toc-text">2. 猜测上下文场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%88%A9%E7%94%A8%E5%B7%A5%E5%85%B7%E8%87%AA%E5%8A%A8%E8%AF%86%E5%88%AB"><span class="toc-number">1.3.3.</span> <span class="toc-text">3. 利用工具自动识别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E7%BC%96%E5%86%99%E8%84%9A%E6%9C%AC%E6%9A%B4%E5%8A%9B%E5%88%86%E6%9E%90"><span class="toc-number">1.3.4.</span> <span class="toc-text">4. 编写脚本暴力分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%88%A9%E7%94%A8%E5%B7%B2%E7%9F%A5%E6%98%8E%E6%96%87%E5%B0%9D%E8%AF%95%E2%80%9C%E7%88%86%E7%A0%B4%E2%80%9D"><span class="toc-number">1.3.5.</span> <span class="toc-text">5. 利用已知明文尝试“爆破”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E9%9D%99%E6%80%81%E9%80%86%E5%90%91%E6%88%96%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90"><span class="toc-number">1.3.6.</span> <span class="toc-text">6. 静态逆向或抓包分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%BB%BC%E5%90%88%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90"><span class="toc-number">1.4.</span> <span class="toc-text">四、综合案例分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%9E%E6%88%98%E6%8A%80%E5%B7%A7%E9%94%A6%E9%9B%86"><span class="toc-number">1.5.</span> <span class="toc-text">五、实战技巧锦集</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%BB%93%E8%AF%AD"><span class="toc-number">1.6.</span> <span class="toc-text">六、结语</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

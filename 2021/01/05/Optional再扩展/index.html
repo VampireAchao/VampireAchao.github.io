@@ -1,0 +1,189 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Optional再扩展 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="他们之所以做得到，就因为他们认为他们能够做到。—— 维吉尔  关于Optional的介绍，之前的博客已经说过了，这里就不再赘述 这里写点常用的例子 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Optional再扩展">
+<meta property="og:url" content="https://vampireachao.gitee.io/2021/01/05/Optional%E5%86%8D%E6%89%A9%E5%B1%95/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="他们之所以做得到，就因为他们认为他们能够做到。—— 维吉尔  关于Optional的介绍，之前的博客已经说过了，这里就不再赘述 这里写点常用的例子 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2021-01-05T12:46:58.000Z">
+<meta property="article:modified_time" content="2026-02-24T07:30:35.816Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Optional再扩展",
+  "url": "https://vampireachao.gitee.io/2021/01/05/Optional%E5%86%8D%E6%89%A9%E5%B1%95/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2021-01-05T12:46:58.000Z",
+  "dateModified": "2026-02-24T07:30:35.816Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2021/01/05/Optional%E5%86%8D%E6%89%A9%E5%B1%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Optional再扩展',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">Optional再扩展</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Optional再扩展</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-01-05T12:46:58.000Z" title="发表于 2021-01-05 20:46:58">2021-01-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T07:30:35.816Z" title="更新于 2026-02-24 15:30:35">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>他们之所以做得到，就因为他们认为他们能够做到。—— 维吉尔</p>
+</blockquote>
+<p>关于<code>Optional</code>的介绍，<a target="_blank" rel="noopener" href="https://vampireachao.github.io/2020/06/17/Optional%E8%BF%9B%E8%A1%8C%E4%BC%98%E9%9B%85%E9%9D%9E%E7%A9%BA%E5%88%A4%E6%96%AD/">之前的博客</a>已经说过了，这里就不再赘述</p>
+<p>这里写点常用的例子</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.ruben;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.atomic.AtomicBoolean;</span><br><span class="line"><span class="keyword">import</span> java.util.function.Supplier;</span><br><span class="line"><span class="keyword">import</span> java.util.stream.Stream;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@ClassName</span>: OptionalDemo</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span>: 我还没有写描述</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2021/1/5 0005 20:47</span></span><br><span class="line"><span class="comment"> * *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span>: &lt;achao1441470436@gmail.com&gt;</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@version</span>: 1.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span>: JDK 1.8</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OptionalDemo</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">str</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="comment">// 直接使用Optional.map去调用函数，避免空指针，其中的任意一个函数返回为空的话，则直接调用后面的orElse(String::new)并返回new String()执行的结果</span></span><br><span class="line">        System.out.println(Optional.ofNullable(str).map(<span class="string">&quot;&quot;</span>::equals).map(Boolean::getClass).map(Class::getName).orElseGet(String::<span class="keyword">new</span>));</span><br><span class="line">        <span class="comment">// 上面的方法，每次都需要使用.map去操作，比较繁琐，于是这里定义一个叫 avoidNPE 的函数去处理空指针异常</span></span><br><span class="line">        <span class="comment">// 使用方式如下</span></span><br><span class="line">        System.out.println(avoidNPE(() -&gt; Boolean.valueOf(str.equals(<span class="string">&quot;&quot;</span>)).equals(Boolean.FALSE)).orElse(<span class="literal">false</span>));</span><br><span class="line">        <span class="comment">// 再来一个对比，更明显一点</span></span><br><span class="line">        <span class="comment">// 之前</span></span><br><span class="line">        System.out.println(Optional.ofNullable(Arrays.asList()).map(List::stream).map(Stream::sorted).map(Stream::distinct).flatMap(Stream::findFirst).orElse(<span class="string">&quot;empty&quot;</span>));</span><br><span class="line">        <span class="comment">// 使用自定义的函数后</span></span><br><span class="line">        System.out.println(avoidNPE(() -&gt; Arrays.asList().stream().sorted().distinct().findFirst().orElse(<span class="string">&quot;empty&quot;</span>)).get());</span><br><span class="line">        List&lt;String&gt; list = <span class="literal">null</span>;</span><br><span class="line">        <span class="comment">// 同理，数组越界也可以自定义一个函数做相同处理</span></span><br><span class="line">        avoidNPEOrIOB(list, <span class="number">5</span>).filter(s -&gt; s.length() &gt; <span class="number">2</span>).map(String::hashCode).ifPresent(System.out::println);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@MethodName</span>: avoidNPEOrIOB</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Description</span>: 避免空指针和数组越界</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Date</span>: 2021/1/5 0005 21:14</span></span><br><span class="line"><span class="comment">     * *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@author</span>: &lt;achao1441470436@gmail.com&gt;</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span>: [list, index]</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@returnValue</span>: java.util.Optional&lt;T&gt;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; Optional&lt;T&gt; <span class="title function_">avoidNPEOrIOB</span><span class="params">(List&lt;T&gt; list, <span class="type">int</span> index)</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> Optional.ofNullable(list.get(index));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NullPointerException | ArrayIndexOutOfBoundsException e) &#123;</span><br><span class="line">            <span class="keyword">return</span> Optional.empty();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@MethodName</span>: avoidNPE</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Description</span>: 避免空指针</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@Date</span>: 2021/1/5 0005 21:14</span></span><br><span class="line"><span class="comment">     * *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@author</span>: &lt;achao1441470436@gmail.com&gt;</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span>: [supplier]</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@returnValue</span>: java.util.Optional&lt;T&gt;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; Optional&lt;T&gt; <span class="title function_">avoidNPE</span><span class="params">(Supplier&lt;T&gt; supplier)</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> Optional.ofNullable(supplier.get());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NullPointerException e) &#123;</span><br><span class="line">            <span class="keyword">return</span> Optional.empty();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行结果</p>
+<p><img src="/img/oss/picGo/image-20210105211448887.png" alt="image-20210105211448887"></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2021/01/06/Date%E8%BD%AC%E6%8D%A2/" title="Date转换"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Date转换</div></div><div class="info-2"><div class="info-item-1"> 一个人成为他自己了，那就是达到了快乐的顶点。——德西得乌·伊拉斯谟  相信大家都用过SimpleDateFormat去转换时间，但它是线程不安全的 阿里开发手册也有讲  【强制】SimpleDateFormat 是线程不安全的类，一般不要定义为 static 变量，如果定义为 static， 必须加锁，或者使用 DateUtils 工具类。 正例：注意线程安全，使用 DateUtils。亦推荐如下处理： 123456private static final ThreadLocal&lt;DateFormat&gt; df = new ThreadLocal&lt;DateFormat&gt;() &#123;    @Override    protected DateFormat initialValue() &#123;        return new SimpleDateFormat(&quot;yyyy-MM-dd&quot;);    &#125;&#125;;  说明：如果是 JDK8 的应用，可以使用 Instant 代替 Date，LocalDateTime...</div></div></div></a><a class="pagination-related" href="/2021/01/04/html%E8%BD%ACword%E6%88%96pdf/" title="html转word或pdf"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">html转word或pdf</div></div><div class="info-2"><div class="info-item-1"> 差以毫厘，谬以千里。——班固《汉书》  使用的组件还是Spire.Doc，可以看我这篇博客 如果我们遇到html,需要直接渲染到word或者pdf上，可以使用官方文档给的例子 123456789101112131415161718192021222324252627282930import com.spire.doc.*;import java.io.*;public class htmlStringToWord &#123;    public static void main(String[] args) throws Exception &#123;        String inputHtml = &quot;InputHtml.txt&quot;;        //新建Document对象        Document document = new Document();        //添加section        Section sec = document.addSection();        String htmlText = readText...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2023/04/09/apache-incubator-streampark%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C/" title="apache-incubator-streampark源码编译本地运行"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-04-09</div><div class="info-item-2">apache-incubator-streampark源码编译本地运行</div></div><div class="info-2"><div class="info-item-1"> 吾日三省吾身。——《论语》  1git clone https://github.com/apache/incubator-streampark.git  拉取代码时候如果提示filename-too-long则可以： git拉取代码提示filename too long 然后拉取完成后编译，执行根目录下build.sh  如果执行不了build.sh，则直接使用命令： 1mvn -Pscala-2.12,dist -DskipTests clean package   上面无论是build.sh还是命令执行成功后，都会生成dist目录  我们解压下面的tar.gz到incubator-streampark\streampark-console\streampark-console-service\target 重命名为streampark-console-service-2.1.0  然后配置streampark-console的运行，添加参数 1-Djdk.io.File.enableADS=true -Dapp.home=streampark-console/stream...</div></div></div></a><a class="pagination-related" href="/2025/09/10/Stirling-PDF/" title="Stirling-PDF"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-09-10</div><div class="info-item-2">Stirling-PDF</div></div><div class="info-2"><div class="info-item-1"> 卑鄙是卑鄙者的通行证，高尚是高尚者的墓志铭。——北岛  https://github.com/Stirling-Tools/Stirling-PDF Stirling-PDF：本地部署的全能PDF工具箱，开源PDF神器体验在数字办公和文件处理的世界里，PDF格式可谓无处不在。但你是否曾为PDF拆分、合并、加密、转换等“杂事”头疼？有没有想过，有一款完全本地部署、功能极其丰富且开源免费的PDF管理平台帮你一站式解决所有问题？今天就带你走进 Stirling-PDF —— 这款风靡全球的开源PDF神器。 项目定位：本地部署，安全高效，极致自由Stirling-PDF 的定位非常清晰：本地部署的网页PDF操作平台。你可以在自己的电脑或服务器上，通过Web界面对PDF文件进行各种操作，所有文件只在本地处理，最大程度保障数据安全和隐私。  “#1 Locally hosted web application that allows you to perform various operations on PDF files”  支持 Docker 极速部署，跨平台兼容，无论你是个人、企业...</div></div></div></a><a class="pagination-related" href="/2022/11/18/aop%E8%AE%A1%E6%97%B6%EF%BC%8C%E8%B6%85%E6%97%B6%E8%BE%93%E5%87%BA%E6%97%A5%E5%BF%97/" title="aop计时，超时输出日志"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-11-18</div><div class="info-item-2">aop计时，超时输出日志</div></div><div class="info-2"><div class="info-item-1"> 一个正在顺着生活规律挺近的青年，首先应注意，自己的才能和愿望与事业相衡。——培根  代码如下： 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758package com.ruben.simplestreamquery.aop;import com.alibaba.ttl.TransmittableThreadLocal;import lombok.extern.slf4j.Slf4j;import org.aspectj.lang.ProceedingJoinPoint;import org.aspectj.lang.annotation.Around;import org.aspectj.lang.annotation.Aspect;import org.springframework.stereotype.Component;import org.springframework.web.context.reque...</div></div></div></a><a class="pagination-related" href="/2022/12/12/%E5%BC%80%E6%BA%90ocr%E5%BA%93tesseract/" title="开源ocr库tesseract"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-12</div><div class="info-item-2">开源ocr库tesseract</div></div><div class="info-2"><div class="info-item-1"> 强者容易坚强，正如弱者容易软弱。——爱默生  分享一个开源的OCR库 文档链接：https://tesseract-ocr.github.io/ 源码地址：https://github.com/tesseract-ocr/tesseract 其包含了多种编程语言   </div></div></div></a><a class="pagination-related" href="/2023/03/07/payment-spring-boot/" title="payment-spring-boot"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-03-07</div><div class="info-item-2">payment-spring-boot</div></div><div class="info-2"><div class="info-item-1"> 读书只能供给知识的材料，如果融会贯通，应靠思索之力——洛克  分享一个微信支付的开源项目： dromara &#x2F; payment-spring-boot  微信支付V3支付，支持微信优惠券，代金券、商家券、公众号支付、微信小程序支付、分账、支付分、商家券、合单支付、先享卡、电商收付通等全部微信支付功能API，同时满足服务商、商户开发需求。一键集成，上手快，欢迎star。   号称是最全最好用的微信支付V3 Spring Boot 组件 作者是胖哥：https://felord.cn/ 也是我写博客的启发人  </div></div></div></a><a class="pagination-related" href="/2020/12/01/debug%E3%81%AEChrome%E7%AF%87/" title="debugのChrome篇"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-12-01</div><div class="info-item-2">debugのChrome篇</div></div><div class="info-2"><div class="info-item-1"> 我来到这个世界为的是看太阳和蔚蓝色的田野。——巴尔蒙特  chrome中如何debug？我们可以打开chrome的控制台  找到我们的文件  然后在想要调试的地方打断点  然后执行到此处的时候就会触发调试  我们可以点击右侧的Step into next function call来执行下一步函数调用  可以点击Resume script execution放行到下个断点  然后Step over next function call则可以执行步过，执行到当前函数结尾  Step out of current function步出，则可以跳出我们当前执行的函数  Step和我们第一个Step into next function call差不多，都是执行下一步  Activate breakpoints则是禁用断点  最后一个Pause on exceptions则是在所有异常发生时暂停程序，开始调试  我们也可以直接在代码里右键，点击执行到当前代码  Call Stack区域可以查看我们当前函数以及它的调用者 甚至 调用者的调用者…  下方的Scope区域可以观测我们的参数，...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

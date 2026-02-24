@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>overflow和动态计算高度 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="人们总会找到某种带头人,把他供奉起来,培养成伟人……暴君就是这么来的;暴君最初都是以保护者的形象出现的。——柏拉图,《理想国》  首先是MDN：https:&#x2F;&#x2F;developer.mozilla.org&#x2F;zh-CN&#x2F;docs&#x2F;Web&#x2F;CSS&#x2F;overflow 其中对overflow进行了描述：  CSS 属性 overflow 定义当一个元素的内容太大而无法适应 块级格式化上下文 时候该做什么。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="overflow和动态计算高度">
+<meta property="og:url" content="https://vampireachao.gitee.io/2022/06/23/overflow%E5%92%8C%E5%8A%A8%E6%80%81%E8%AE%A1%E7%AE%97%E9%AB%98%E5%BA%A6/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="人们总会找到某种带头人,把他供奉起来,培养成伟人……暴君就是这么来的;暴君最初都是以保护者的形象出现的。——柏拉图,《理想国》  首先是MDN：https:&#x2F;&#x2F;developer.mozilla.org&#x2F;zh-CN&#x2F;docs&#x2F;Web&#x2F;CSS&#x2F;overflow 其中对overflow进行了描述：  CSS 属性 overflow 定义当一个元素的内容太大而无法适应 块级格式化上下文 时候该做什么。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2022-06-23T05:14:54.000Z">
+<meta property="article:modified_time" content="2026-02-24T07:30:36.183Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="前端">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "overflow和动态计算高度",
+  "url": "https://vampireachao.gitee.io/2022/06/23/overflow%E5%92%8C%E5%8A%A8%E6%80%81%E8%AE%A1%E7%AE%97%E9%AB%98%E5%BA%A6/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2022-06-23T05:14:54.000Z",
+  "dateModified": "2026-02-24T07:30:36.183Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2022/06/23/overflow%E5%92%8C%E5%8A%A8%E6%80%81%E8%AE%A1%E7%AE%97%E9%AB%98%E5%BA%A6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'overflow和动态计算高度',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">overflow和动态计算高度</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">overflow和动态计算高度</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-06-23T05:14:54.000Z" title="发表于 2022-06-23 13:14:54">2022-06-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T07:30:36.183Z" title="更新于 2026-02-24 15:30:36">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>人们总会找到某种带头人,把他供奉起来,培养成伟人……暴君就是这么来的;暴君最初都是以保护者的形象出现的。——柏拉图,《理想国》</p>
+</blockquote>
+<p>首先是<code>MDN</code>：<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/overflow">https://developer.mozilla.org/zh-CN/docs/Web/CSS/overflow</a></p>
+<p>其中对<code>overflow</code>进行了描述：</p>
+<blockquote>
+<p>CSS 属性 <strong>overflow</strong> 定义当一个元素的内容太大而无法适应 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/Guide/CSS/Block_formatting_context">块级格式化上下文</a> 时候该做什么。它是 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/overflow-x"><code>overflow-x</code></a> 和<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/overflow-y"><code>overflow-y</code></a>的 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/Shorthand_properties">简写属性 </a>。</p>
+</blockquote>
+<p>重点在这里：</p>
+<blockquote>
+<p>为使 <code>overflow </code>有效果，块级容器必须有一个指定的高度（<code>height</code>或者<code>max-height</code>）或者将<code>white-space</code>设置为<code>nowrap</code>。</p>
+</blockquote>
+<p>那问题来了，我这里有一个折叠面板</p>
+<p><img src="/img/oss/picGo/image-20220623133429335.png" alt="image-20220623133429335"></p>
+<p>我希望这里多个折叠面板每一项的头部都能显示在页面中，并且其子项能够适应屏幕高度和折叠情况变化</p>
+<p><img src="/img/oss/picGo/1655963038375.gif" alt="1655963038375"></p>
+<p>为了实现上面的效果，我们需要在每一个折叠面板子项中设置<code>overflow-y:auto</code>，然后给其设置<code>height</code>或者<code>max-height</code></p>
+<p>我们知道<code>css</code>中有个计算函数<code>calc</code>可以计算我们的高度，这里的卡片为了保证屏幕自适应，可以用其计算出我们这里所需的高度为<code>100vh</code>(屏幕可视区域高度)-其余占位高度(比如卡片上下的留白，卡片头部的高度等)，最后需要除以这里的折叠面板数量<code>3</code>，但有个问题，这里不一定是<code>3</code>个，有可能是多个，使用<code>vue</code>动态渲染的，这样的话我们就只能在<code>vue</code>标签上指定高度</p>
+<p>例如：</p>
+<p><img src="/img/oss/picGo/image-20220623135829371.png" alt="image-20220623135829371"></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%89%8D%E7%AB%AF/">前端</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/06/24/opencc4j/" title="opencc4j"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">opencc4j</div></div><div class="info-2"><div class="info-item-1"> “不用给我爱，不用给我钱，不用给我声誉，给我真理吧。我们应该有勇气去面对真实的内心，即使前面荆棘满地，也要坚定地走下去。为了不浪费你的这一辈子。”——梭罗《瓦尔登湖》  分享一个java简繁转换的库opencc4j https://github.com/houbb/opencc4j Group ArtifactId Version 12345&lt;dependency&gt;    &lt;groupId&gt;com.github.houbb&lt;/groupId&gt;    &lt;artifactId&gt;opencc4j&lt;/artifactId&gt;    &lt;version&gt;1.7.2&lt;/version&gt;&lt;/dependency&gt;  使用起来：  繁简体转换转为简体123String original = &quot;生命不息，奮鬥不止&quot;;String result = ZhConverterUtil.toSimple(original);Assert.assertEquals(&quot;生命不息，奋斗不止...</div></div></div></a><a class="pagination-related" href="/2022/06/22/htmlToCanvas/" title="htmlToCanvas"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">htmlToCanvas</div></div><div class="info-2"><div class="info-item-1"> 利用时间是一个极其高级的规律。——恩格斯  今天分享一个html转canvas的插件： http://html2canvas.hertzen.com/ 使用方式特别简单： 引入： 12pnpm install --save html2canvas# import html2canvas from &#x27;html2canvas&#x27;;  或者直接上link 1&lt;script src=&quot;http://html2canvas.hertzen.com/dist/html2canvas.min.js&quot;&gt;&lt;/script&gt;  需要转换的html节点 123&lt;div id=&quot;capture&quot; style=&quot;padding: 10px; background: #f5da55&quot;&gt;    &lt;h4 style=&quot;color: #000; &quot;&gt;Hello world!&lt;/h4&gt;&lt;/div&gt;  使用： 123html2canvas(docu...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2020/08/24/%E5%85%BC%E5%AE%B9IE%E6%B5%8F%E8%A7%88%E5%99%A8/" title="兼容IE浏览器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-24</div><div class="info-item-2">兼容IE浏览器</div></div><div class="info-2"><div class="info-item-1">今天客户说他那边网站崩了，让客户截了个图，看到是ie浏览器。。。我瞬间的反应是崩溃的  所以才有了这篇博客 这里分享一个小工具，能把ES6语法转成IE支持的语法 使用方式很简单 解压，用vscode打开  控制台输入cnpm i  然后把你的js文件放到src\js下面  转换前是这样的  我们npm run build一遍 可以看到我们的dist目录下面已经生成了转换好的js了  2020年，竟然还有人用IE。。。 下载链接 </div></div></div></a><a class="pagination-related" href="/2022/08/21/webpack/" title="webpack"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-21</div><div class="info-item-2">webpack</div></div><div class="info-2"><div class="info-item-1"> 细砂般数不尽的星，有颗向我眨眼睛。——芥川龙之介《侏儒的话》  摘自芥川龙之介的《侏儒的话》。   首先是官方文档：https://webpack.docschina.org/  本质上，webpack 是一个用于现代 JavaScript 应用程序的 静态模块打包工具。当 webpack 处理应用程序时，它会在内部从一个或多个入口点构建一个 依赖图(dependency graph)，然后将你项目中所需的每一个模块组合成一个或多个 bundles，它们均为静态资源，用于展示你的内容。  接下来我们跟着快速上手一下，将一个普通的html文件使用webpack改造 https://webpack.docschina.org/guides/getting-started 创建目录，安装依赖 1234mkdir webpack-democd webpack-demonpm init -ynpm install webpack webpack-cli --save-dev  新建index.html 1234567891011&lt;!DOCTYPE html&gt;&lt;html&...</div></div></div></a><a class="pagination-related" href="/2022/10/24/%E7%80%91%E5%B8%83%E6%B5%81%E7%BB%84%E4%BB%B6vue-waterfall/" title="瀑布流组件vue-waterfall"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-10-24</div><div class="info-item-2">瀑布流组件vue-waterfall</div></div><div class="info-2"><div class="info-item-1"> 坦白直率的言语，最容易打动悲哀的耳朵——莎士比亚  分享一个vue瀑布流组件 vue-waterfall git地址：https://github.com/MopTym/vue-waterfall.git 竖向排列demo：http://app.moptym.com/vue-waterfall/demo/vertical-line.html  横向排列：http://app.moptym.com/vue-waterfall/demo/horizontal-line.html 竖向+变大：http://app.moptym.com/vue-waterfall/demo/vertical-line-with-grow.html </div></div></div></a><a class="pagination-related" href="/2024/03/09/%E8%AE%A2%E5%8D%95%E7%A1%AE%E8%AE%A4%E6%8C%89%E9%92%AE%E5%8A%A8%E7%94%BB/" title="订单确认按钮动画"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-09</div><div class="info-item-2">订单确认按钮动画</div></div><div class="info-2"><div class="info-item-1"> 志向不过是记忆的奴隶，生气勃勃地降生，但却很难成长。——莎士比亚  源码地址 https://codepen.io/aaroniker/details/eYOVrNa 非常炫酷的按钮效果，让人眼前一亮 主要都是靠css实现的 pug代码: 12345678910111213button(class=&#x27;order&#x27;)  span(class=&#x27;default&#x27;) Complete Order  span(class=&#x27;success&#x27;) Order Placed    svg(viewbox=&#x27;0 0 12 10&#x27;)      polyline(points=&#x27;1.5 6 4.5 9 10.5 1&#x27;)  div(class=&#x27;box&#x27;)  div(class=&#x27;truck&#x27;)    div(class=&#x27;back&#x27;)    div(class=&#x27;front&#x27;)      div(class=&#x27;...</div></div></div></a><a class="pagination-related" href="/2025/03/31/pakku-js/" title="pakku.js"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-31</div><div class="info-item-2">pakku.js</div></div><div class="info-2"><div class="info-item-1"> 不同孕育仇恨。——司汤达《红与黑》  介绍 pakku.js：拯救 B 站的弹幕体验最近，我发现了一个非常有趣的开源项目——pakku.js。这个项目由 xmcp 开发，旨在提升 B 站（Bilibili）的弹幕体验。今天，我将为大家详细介绍一下这个项目的特点和使用方法。 项目概述pakku.js 是一个用于优化 B 站弹幕体验的浏览器扩展。项目自 2017 年 2 月 28 日创建以来，已经获得了 2243 个星标和 78 个 forks，显示了其在社区中的受欢迎程度。项目使用 TypeScript 编写，并且遵循 GNU General Public License v3.0，确保其免费和开源。 项目特点 提升弹幕体验：pakku.js 提供了丰富的弹幕过滤和优化功能，帮助用户屏蔽无意义的弹幕，提升观看体验。 开源项目：作为一个开源项目，pakku.js 拥有庞大的社区支持，用户可以在 GitHub 上交流经验、分享心得。 多平台支持：pakku.js 作为浏览器扩展，可以在多个平台上使用，包括 Chrome 和 Firefox。 简单易用：pakku.js 提供了简单易用...</div></div></div></a><a class="pagination-related" href="/2021/11/13/%E7%AE%AD%E5%A4%B4%E5%87%BD%E6%95%B0%E4%B8%8Ethis%E6%8C%87%E5%90%91%E6%8E%A2%E7%A9%B6/" title="箭头函数与this指向探究"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-13</div><div class="info-item-2">箭头函数与this指向探究</div></div><div class="info-2"><div class="info-item-1"> 我有明珠一颗，久被尘劳关锁，一朝尘净光生，照破山河万朵。——柴陵郁禅师  今天研究了下箭头函数与this，发现了一些挺好玩的特性 首先，我们在控制台输入上这段js 123456789101112131415161718192021var handler = &#123;    name :&#x27;handler&#x27;,    init: function() &#123;    let init1 = function(event) &#123;        console.log(&quot;init1: &quot;, this);        let init5 = function()&#123;            console.log(&quot;init5: &quot;, this);        &#125;        init5();    // init5:  Window &#123;window: Window, self: Window, document: document, name: &#x27;&#x27;, loca...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

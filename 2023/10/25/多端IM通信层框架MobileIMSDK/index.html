@@ -1,0 +1,204 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>多端IM通信层框架MobileIMSDK | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="对可耻行为的追悔是对生命的拯救。——德谟克里特  今天看了这篇文章： 万字长文：手把手教你实现一套高效的IM长连接自适应心跳保活机制 其中理论对应实践的开源项目： https:&#x2F;&#x2F;github.com&#x2F;JackJiang2011&#x2F;MobileIMSDK  MobileIMSDK是一套专为移动端开发的原创IM通信层框架：  历经10年、久经考验； 超轻量级、高度提炼，lib包50KB以内； 精心封">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多端IM通信层框架MobileIMSDK">
+<meta property="og:url" content="https://vampireachao.gitee.io/2023/10/25/%E5%A4%9A%E7%AB%AFIM%E9%80%9A%E4%BF%A1%E5%B1%82%E6%A1%86%E6%9E%B6MobileIMSDK/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="对可耻行为的追悔是对生命的拯救。——德谟克里特  今天看了这篇文章： 万字长文：手把手教你实现一套高效的IM长连接自适应心跳保活机制 其中理论对应实践的开源项目： https:&#x2F;&#x2F;github.com&#x2F;JackJiang2011&#x2F;MobileIMSDK  MobileIMSDK是一套专为移动端开发的原创IM通信层框架：  历经10年、久经考验； 超轻量级、高度提炼，lib包50KB以内； 精心封">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2023-10-25T11:40:45.000Z">
+<meta property="article:modified_time" content="2026-02-22T18:55:32.543Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "多端IM通信层框架MobileIMSDK",
+  "url": "https://vampireachao.gitee.io/2023/10/25/%E5%A4%9A%E7%AB%AFIM%E9%80%9A%E4%BF%A1%E5%B1%82%E6%A1%86%E6%9E%B6MobileIMSDK/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2023-10-25T11:40:45.000Z",
+  "dateModified": "2026-02-22T18:55:32.543Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2023/10/25/%E5%A4%9A%E7%AB%AFIM%E9%80%9A%E4%BF%A1%E5%B1%82%E6%A1%86%E6%9E%B6MobileIMSDK/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '多端IM通信层框架MobileIMSDK',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">多端IM通信层框架MobileIMSDK</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">多端IM通信层框架MobileIMSDK</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-10-25T11:40:45.000Z" title="发表于 2023-10-25 19:40:45">2023-10-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-22T18:55:32.543Z" title="更新于 2026-02-23 02:55:32">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>对可耻行为的追悔是对生命的拯救。——德谟克里特</p>
+</blockquote>
+<p>今天看了这篇文章：</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/516209139">万字长文：手把手教你实现一套高效的IM长连接自适应心跳保活机制</a></p>
+<p>其中理论对应实践的开源项目：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/JackJiang2011/MobileIMSDK">https://github.com/JackJiang2011/MobileIMSDK</a></p>
+<blockquote>
+<p><strong>MobileIMSDK是一套专为移动端开发的原创IM通信层框架：</strong></p>
+<ul>
+<li>历经10年、久经考验；</li>
+<li>超轻量级、高度提炼，lib包50KB以内；</li>
+<li>精心封装，一套API优雅支持<strong>UDP</strong> 、<strong>TCP</strong> 、<strong>WebSocket</strong> 三种协议（可能是全网唯一开源的）；</li>
+<li>客户端支持iOS、Android、标准Java、H5(<a target="_blank" rel="noopener" href="http://www.52im.net/thread-3682-1-1.html">暂未开源</a>)、小程序(<a target="_blank" rel="noopener" href="http://www.52im.net/thread-4169-1-1.html">暂未开源</a>)、Uniapp(<a target="_blank" rel="noopener" href="http://www.52im.net/thread-4225-1-1.html">暂未开源</a>)；</li>
+<li>服务端基于Netty，性能卓越、易于扩展；👈</li>
+<li>可与姊妹工程 <a target="_blank" rel="noopener" href="http://www.52im.net/thread-959-1-1.html">MobileIMSDK-Web</a> 无缝互通实现网页端聊天或推送等；👈</li>
+<li>可应用于跨设备、跨网络的聊天APP、企业OA、消息推送等各种场景。</li>
+</ul>
+<blockquote>
+<p>MobileIMSDK工程自2013年10月起持续升级至今（当前最新版是v6.4，<a target="_blank" rel="noopener" href="http://www.52im.net/thread-1270-1-1.html">版本更新日志点此查看</a> ），历经10年，起初用作某自用产品的即时通讯底层，完全从零开发。<br>2023年5月10日，最新<a target="_blank" rel="noopener" href="http://www.52im.net/thread-4225-1-1.html">Uniapp端</a>已开发完成，希望对需要的人有所启发和帮助。</p>
+</blockquote>
+<p>👉 您可能需要：<a target="_blank" rel="noopener" href="http://www.52im.net/thread-60-1-1.html">查看更多关于MobileIMSDK的疑问及解答</a>。</p>
+<p>👉 另一姊妹工程：<a target="_blank" rel="noopener" href="http://www.52im.net/thread-959-1-1.html">轻量级Web端即时通讯框架：MobileIMSDK-Web</a> 也在持续更新中，专用于手机或PC端的网页聊天和消息推送等。</p>
+</blockquote>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/10/26/CocoaPods-Xcode%E4%BE%9D%E8%B5%96%E7%AE%A1%E7%90%86/" title="CocoaPods-Xcode依赖管理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">CocoaPods-Xcode依赖管理</div></div><div class="info-2"><div class="info-item-1"> 飞着的鸟总会捕到什么。——佚名  在ios开发中会用到XCode，以及CocoaPods来进行依赖管理 https://github.com/CocoaPods/CocoaPods  https://cocoapods.org/  </div></div></div></a><a class="pagination-related" href="/2023/10/24/%E5%AF%B9%E6%8E%A5%E9%98%BF%E9%87%8C%E4%BA%91RTC/" title="对接阿里云RTC"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">对接阿里云RTC</div></div><div class="info-2"><div class="info-item-1"> 财产的极端悬殊是许多灾难和犯罪的根源。——罗伯斯庇尔  今天对接阿里云RTC，文档： 根据RTCSDK实现音视频通话的流程_音视频通信-阿里云帮助中心 然后下载Demo： RTCSDK的下载方式_音视频通信-阿里云帮助中心 https://github.com/aliyun/AliRTCSample 将获取到的appId和appKey改到代码里：   运行Demo：  </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/01/26/webclient%E9%85%8D%E7%BD%AEobjectmapper/" title="webclient配置objectmapper"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-01-26</div><div class="info-item-2">webclient配置objectmapper</div></div><div class="info-2"><div class="info-item-1"> 毋以其所不能疑，毋以其所能骄人。——佚名  代码如下，可以通过ExchangeStrategies指定序列化反序列化方式： 1234567891011121314151617181920212223242526272829303132333435import com.namaste.config.JacksonObjectMapper;import org.springframework.cloud.client.loadbalancer.LoadBalanced;import org.springframework.context.annotation.Bean;import org.springframework.context.annotation.Configuration;import org.springframework.http.codec.json.Jackson2JsonDecoder;import org.springframework.http.codec.json.Jackson2JsonEncoder;import org.springframewo...</div></div></div></a><a class="pagination-related" href="/2022/02/11/%E5%A4%A7%E9%A2%9D%E6%95%B0%E5%AD%97%E8%BD%AC%E8%8A%82%E6%9D%83%E4%BD%8D/" title="大额数字转节权位"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-11</div><div class="info-item-2">大额数字转节权位</div></div><div class="info-2"><div class="info-item-1"> 一花凋零，荒芜不了整个春天。——巴尔扎克  今天在hutool提交了个PR https://gitee.com/dromara/hutool/pulls/536 NumberChineseFormatter.formatSimple，用于将阿拉伯数字（支持正负整数）四舍五入后转换成中文节权位简洁计数单位，例如 -5_5555 =》 -5.56万 代码如下： 1234567891011121314151617181920/** * 阿拉伯数字（支持正负整数）四舍五入后转换成中文节权位简洁计数单位，例如 -5_5555 =》 -5.56万 * * @param amount 数字 * @return 中文 */public static String formatSimple(long amount) &#123;	if (amount &lt; 1_0000 &amp;&amp; amount &gt; -1_0000) &#123;		return String.valueOf(amount);	&#125;	String res;	if (amount &lt; 1_0000...</div></div></div></a><a class="pagination-related" href="/2023/05/04/hutool-excel%E8%AE%BE%E7%BD%AE%E5%8D%95%E5%85%83%E6%A0%BC%E5%88%97%E5%AE%BD/" title="hutool-excel设置单元格列宽"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-04</div><div class="info-item-2">hutool-excel设置单元格列宽</div></div><div class="info-2"><div class="info-item-1"> 保持沉默，别人将以为你是一位哲学家。——佚名  hutool里excel可以如下使用，设置自动列宽： 12val writer = ExcelUtil.getWriter()writer.autoSizeColumnAll()  但也可以单独设置： 1writer.getSheet().setColumnWidth(1, 5000)  这里的1是列下标，5000是宽度 还可以设置冻结首行 1writer.setFreezePane(1)  </div></div></div></a><a class="pagination-related" href="/2023/04/24/%E9%80%9A%E8%BF%87getter%E8%8E%B7%E5%8F%96setter%E5%87%BD%E6%95%B0/" title="通过getter获取setter函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-04-24</div><div class="info-item-2">通过getter获取setter函数</div></div><div class="info-2"><div class="info-item-1"> 勤劳的家庭，饥饿过其门而不入。——富兰克林  分享一个通过getter获取setter函数 放在：https://gitee.com/dromara/stream-query 1234567891011121314151617181920212223242526/** * 通过getter获取setter * * @param getter getter对应的lambda * @param &lt;T&gt;    getter参数类型 * @param &lt;R&gt;    property类型 * @return 返回setter对应的lambda */public static &lt;T, R&gt; SerBiCons&lt;T, R&gt; getSetter(SerFunc&lt;T, R&gt; getter) &#123;  return getSetter(getter, SerBiCons.class);&#125;/** * 通过getter获取setter * * @param getter     getter对应的lambda * @param...</div></div></div></a><a class="pagination-related" href="/2023/11/09/spring-state-machine%E5%AE%88%E5%8D%AB%E8%B8%A9%E5%9D%91/" title="spring-state-machine守卫踩坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-09</div><div class="info-item-2">spring-state-machine守卫踩坑</div></div><div class="info-2"><div class="info-item-1"> 真正的艺术家绝不顾虑作品的前途。——罗曼·罗兰  今天发现一个问题，如果我们是动态构建状态机，在传入指定守卫为null时，代码不会报错，且事件不会过渡到下一个状态 解决方式： 1234567builder.configureTransitions().withExternal()       .name(transition.getName())       .source(transition.getSourceState())       .event(transition.getEvent())       .target(transition.getTargetState())       .action(Opp.of(transition.getAction()).orElse(SerCons.nothing()::accept))       .guard(Opp.of(transition.getGuard()).orElseGet(() -&gt; c -&gt; true))  提供默认值 引入的是import org.dromara.streamquery....</div></div></div></a><a class="pagination-related" href="/2020/11/06/stream%E6%B5%81%E5%88%86%E7%BB%84/" title="stream流分组"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-06</div><div class="info-item-2">stream流分组</div></div><div class="info-2"><div class="info-item-1">  前两天补充了博客中写的java8的stream的用法 今天再写个分组的 例如我们下面需要根据奇数偶数分组 可以先新建一个list 1List&lt;Integer&gt; integerList = new ArrayList&lt;&gt;(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 0));  然后进行分组 1234567Map&lt;Boolean, List&lt;Integer&gt;&gt; collect = integerList.stream().collect(Collectors.groupingBy(data -&gt; data % 2 == 0));List&lt;Integer&gt; evenNumbers = collect.get(true);List&lt;Integer&gt; oddNumber = collect.get(false);System.out.println(&quot;data % 2 == 0-----------&quot;);evenNumbers.forEach(Syst...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

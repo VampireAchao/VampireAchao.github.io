@@ -1,0 +1,288 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>MP批插优化 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="我虽不富甲天下，却拥有无数个艳阳天和夏日。——梭罗  看到这篇文章 https:&#x2F;&#x2F;mp.weixin.qq.com&#x2F;s&#x2F;NkP6kND6wQZqTd_gIuaYAw MyBatisPlus 高并发场景下的ID生成优化：分布式序列号服务实践突破分布式ID的性能瓶颈某电商平台在促销活动期间面临订单创建峰值压力，使用MyBatisPlus默认的雪花算法生成ID时，出现以下问题：  时间戳精度不足导致">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MP批插优化">
+<meta property="og:url" content="https://vampireachao.gitee.io/2025/03/04/MP%E6%89%B9%E6%8F%92%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="我虽不富甲天下，却拥有无数个艳阳天和夏日。——梭罗  看到这篇文章 https:&#x2F;&#x2F;mp.weixin.qq.com&#x2F;s&#x2F;NkP6kND6wQZqTd_gIuaYAw MyBatisPlus 高并发场景下的ID生成优化：分布式序列号服务实践突破分布式ID的性能瓶颈某电商平台在促销活动期间面临订单创建峰值压力，使用MyBatisPlus默认的雪花算法生成ID时，出现以下问题：  时间戳精度不足导致">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2025-03-04T10:27:56.000Z">
+<meta property="article:modified_time" content="2026-02-22T18:55:32.400Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MP批插优化",
+  "url": "https://vampireachao.gitee.io/2025/03/04/MP%E6%89%B9%E6%8F%92%E4%BC%98%E5%8C%96/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2025-03-04T10:27:56.000Z",
+  "dateModified": "2026-02-22T18:55:32.400Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2025/03/04/MP%E6%89%B9%E6%8F%92%E4%BC%98%E5%8C%96/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MP批插优化',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">MP批插优化</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">MP批插优化</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-03-04T10:27:56.000Z" title="发表于 2025-03-04 18:27:56">2025-03-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-22T18:55:32.400Z" title="更新于 2026-02-23 02:55:32">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>我虽不富甲天下，却拥有无数个艳阳天和夏日。——梭罗</p>
+</blockquote>
+<p>看到这篇文章</p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/NkP6kND6wQZqTd_gIuaYAw">https://mp.weixin.qq.com/s/NkP6kND6wQZqTd_gIuaYAw</a></p>
+<h1 id="MyBatisPlus-高并发场景下的ID生成优化：分布式序列号服务实践"><a href="#MyBatisPlus-高并发场景下的ID生成优化：分布式序列号服务实践" class="headerlink" title="MyBatisPlus 高并发场景下的ID生成优化：分布式序列号服务实践"></a>MyBatisPlus 高并发场景下的ID生成优化：分布式序列号服务实践</h1><h2 id="突破分布式ID的性能瓶颈"><a href="#突破分布式ID的性能瓶颈" class="headerlink" title="突破分布式ID的性能瓶颈"></a>突破分布式ID的性能瓶颈</h2><p>某电商平台在促销活动期间面临订单创建峰值压力，使用MyBatisPlus默认的雪花算法生成ID时，出现以下问题：</p>
+<ol>
+<li>时间戳精度不足导致ID碰撞率升高（单机QPS超5000时）</li>
+<li>服务器时钟回拨引发的批量插入失败</li>
+<li>长ID对存储空间的额外消耗（18位 vs 传统13位）</li>
+</ol>
+<p>压力测试显示，在高并发场景下单节点生成ID的吞吐量上限为1.2万&#x2F;秒，成为系统瓶颈。通过改造ID生成机制，我们实现了单机5万&#x2F;秒的ID生成速度，同时将存储空间压缩40%。</p>
+<h2 id="混合式ID生成架构设计"><a href="#混合式ID生成架构设计" class="headerlink" title="混合式ID生成架构设计"></a>混合式ID生成架构设计</h2><h3 id="技术方案对比"><a href="#技术方案对比" class="headerlink" title="技术方案对比"></a>技术方案对比</h3><table>
+<thead>
+<tr>
+<th>方案类型</th>
+<th>吞吐量</th>
+<th>碰撞概率</th>
+<th>时钟依赖</th>
+<th>实现复杂度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>原生雪花算法</td>
+<td>1.2万&#x2F;s</td>
+<td>0.01%</td>
+<td>强依赖</td>
+<td>低</td>
+</tr>
+<tr>
+<td>UUIDv4</td>
+<td>无限</td>
+<td>理论无碰撞</td>
+<td>无依赖</td>
+<td>低</td>
+</tr>
+<tr>
+<td>数据库序列</td>
+<td>800&#x2F;s</td>
+<td>无</td>
+<td>无</td>
+<td>中</td>
+</tr>
+<tr>
+<td><strong>混合分段式</strong></td>
+<td><strong>5万+&#x2F;s</strong></td>
+<td><strong>无</strong></td>
+<td><strong>弱依赖</strong></td>
+<td><strong>高</strong></td>
+</tr>
+</tbody></table>
+<h2 id="核心实现模块"><a href="#核心实现模块" class="headerlink" title="核心实现模块"></a>核心实现模块</h2><h3 id="分布式号段服务端"><a href="#分布式号段服务端" class="headerlink" title="分布式号段服务端"></a>分布式号段服务端</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SegmentController</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, AtomicLong&gt; segmentPool = </span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostMapping(&quot;/segment/apply&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> SegmentResponse <span class="title function_">applySegment</span><span class="params">(</span></span><br><span class="line"><span class="params">        <span class="meta">@RequestParam</span> String bizTag, </span></span><br><span class="line"><span class="params">        <span class="meta">@RequestParam</span> <span class="type">int</span> step)</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">long</span> <span class="variable">currentMax</span> <span class="operator">=</span> segmentPool.compute(bizTag, (k, v) -&gt; </span><br><span class="line">            v == <span class="literal">null</span> ? <span class="keyword">new</span> <span class="title class_">AtomicLong</span>(<span class="number">0</span>) : v</span><br><span class="line">        ).addAndGet(step);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">SegmentResponse</span>(</span><br><span class="line">            currentMax - step + <span class="number">1</span>, </span><br><span class="line">            currentMax</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="客户端本地缓冲管理器"><a href="#客户端本地缓冲管理器" class="headerlink" title="客户端本地缓冲管理器"></a>客户端本地缓冲管理器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SegmentBuffer</span> <span class="keyword">implements</span> <span class="title class_">InitializingBean</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> Segment currentSegment;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> Segment nextSegment;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ExecutorService</span> <span class="variable">loader</span> <span class="operator">=</span> </span><br><span class="line">        Executors.newSingleThreadExecutor();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> Long <span class="title function_">nextId</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (currentSegment.getCurrent() &gt; currentSegment.getMax()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (nextSegment == <span class="literal">null</span> || nextSegment.getCurrent() &gt; nextSegment.getMax()) &#123;</span><br><span class="line">                loadSegments();</span><br><span class="line">            &#125;</span><br><span class="line">            currentSegment = nextSegment;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> currentSegment.incrementAndGet();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">loadSegments</span><span class="params">()</span> &#123;</span><br><span class="line">        loader.submit(() -&gt; &#123;</span><br><span class="line">            nextSegment = fetchNewSegment();</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略容错机制</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="MyBatisPlus-自定义ID生成器"><a href="#MyBatisPlus-自定义ID生成器" class="headerlink" title="MyBatisPlus 自定义ID生成器"></a>MyBatisPlus 自定义ID生成器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HybridIdGenerator</span> <span class="keyword">implements</span> <span class="title class_">IdentifierGenerator</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> SegmentBuffer buffer;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Number <span class="title function_">nextId</span><span class="params">(Object entity)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> buffer.nextId();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="性能对比测试"><a href="#性能对比测试" class="headerlink" title="性能对比测试"></a>性能对比测试</h2><h3 id="压力测试结果（单节点）"><a href="#压力测试结果（单节点）" class="headerlink" title="压力测试结果（单节点）"></a>压力测试结果（单节点）</h3><table>
+<thead>
+<tr>
+<th>并发线程数</th>
+<th>雪花算法吞吐量</th>
+<th>混合方案吞吐量</th>
+<th>内存占用对比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>100</td>
+<td>9,800&#x2F;s</td>
+<td>48,200&#x2F;s</td>
+<td>+15%</td>
+</tr>
+<tr>
+<td>500</td>
+<td>12,400&#x2F;s</td>
+<td>51,300&#x2F;s</td>
+<td>+18%</td>
+</tr>
+<tr>
+<td>1000</td>
+<td>11,900&#x2F;s</td>
+<td>49,800&#x2F;s</td>
+<td>+22%</td>
+</tr>
+</tbody></table>
+<h3 id="故障模拟场景"><a href="#故障模拟场景" class="headerlink" title="故障模拟场景"></a>故障模拟场景</h3><ol>
+<li><strong>时钟回拨5秒</strong>：原生方案产生1300个异常，混合方案零异常</li>
+<li><strong>服务端宕机</strong>：客户端缓存支持15分钟正常运作</li>
+<li><strong>网络抖动</strong>：自动降级为本地随机数补充模式</li>
+</ol>
+<h2 id="工程化实践要点"><a href="#工程化实践要点" class="headerlink" title="工程化实践要点"></a>工程化实践要点</h2><ol>
+<li><p><strong>双缓冲预热机制</strong>：提前加载下一个号段避免等待</p>
+</li>
+<li><p><strong>动态步长调整</strong>：根据吞吐量自动计算最佳号段长度</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 动态步长算法示例</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">calculateStep</span><span class="params">(<span class="type">int</span> currentQPS)</span> &#123;</span><br><span class="line"> <span class="type">int</span> <span class="variable">baseStep</span> <span class="operator">=</span> <span class="number">1000</span>;</span><br><span class="line"> <span class="type">double</span> <span class="variable">factor</span> <span class="operator">=</span> Math.log10(currentQPS / <span class="number">1000.0</span>);</span><br><span class="line"> <span class="keyword">return</span> (<span class="type">int</span>) (baseStep * Math.pow(<span class="number">2</span>, factor));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>异常熔断策略</strong>：在服务中心不可用时切换降级模式</p>
+</li>
+<li><p><strong>ID压缩存储</strong>：采用Base62编码缩短长度</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">原始长整型：135790246813579 (15位)</span><br><span class="line">Base62编码：2Cst5WJ (7位)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="实施效果"><a href="#实施效果" class="headerlink" title="实施效果"></a>实施效果</h2><p>在某物流系统订单模块的应用数据：</p>
+<ul>
+<li>日均处理订单量从360万提升至2100万</li>
+<li>数据库插入耗时降低58%</li>
+<li>ID字段存储空间减少41.7%</li>
+<li>时钟回拨导致的异常工单减少100%</li>
+</ul>
+<p>该方案已在多个金融级系统中验证稳定性，支持春节期间每秒8.4万笔交易记录的创建需求。不同于传统的优化思路，通过将ID生成与数据持久化分离，实现了真正意义上的水平扩展能力。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/03/05/tauri%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B%E8%B8%A9%E5%9D%91/" title="tauri快速开始踩坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">tauri快速开始踩坑</div></div><div class="info-2"><div class="info-item-1"> 现在我不那么困惑了，因为我幸运地变得比以前麻木了。——梭罗的《瓦尔登湖》  这里我的Rust版本太低了，所以更新了下 终端如下： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106(base) 2023:~ achao$ cd ~/IdeaProjects/(base) 2023:IdeaProjects achao$ sh &lt;(curl https://create.tauri.app/sh)  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current                              ...</div></div></div></a><a class="pagination-related" href="/2025/03/03/vue-loading-overlay/" title="vue-loading-overlay"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">vue-loading-overlay</div></div><div class="info-2"><div class="info-item-1"> 只要有一双真诚的眼睛陪我哭泣，就值得我为生命受苦。——罗曼·罗兰的《欣悦的灵魂》  https://github.com/ankurk91/vue-loading-overlay demo： https://ankurk91.github.io/vue-loading-overlay/ Vue Loading Overlay：简洁高效的加载指示器组件介绍在现代Web应用中，为了提升用户体验，加载指示器是一个必不可少的组件。尤其在处理异步请求或其他耗时操作时，加载指示器可以有效地告知用户当前的状态。Vue Loading Overlay 是一个为 Vue.js 应用提供全屏加载指示器的组件，简洁高效，易于集成和使用。 本文将介绍什么是 Vue Loading Overlay、其主要功能及其使用方法，并展示如何在项目中集成和使用这个组件。 什么是 Vue Loading Overlay？Vue Loading Overlay 是一个 Vue.js 组件，用于在页面加载时显示全屏或局部加载指示器。它可以轻松集成到 Vue.js 项目中，通过简单的配置和调用即可实现加载指示器的显示和隐...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/06/01/RequiredArgsConstructor/" title="RequiredArgsConstructor"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-06-01</div><div class="info-item-2">RequiredArgsConstructor</div></div><div class="info-2"><div class="info-item-1"> “世间事，除了生死，哪一件不是闲事。”——仓央嘉措《地空》。  分享一个lombok注解@RequiredArgsConstructor 同样和@AllArgsConstructor支持onConstructor参数 区别在于，@RequiredArgsConstructor只针对final的字段生成带参构造器 例如： 1234567891011121314151617181920212223242526272829303132333435363738package com.ruben.simplescaffold.service.impl;import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;import com.ruben.simplescaffold.entity.UserDetail;import com.ruben.simplescaffold.manager.JsonManager;import com.ruben.simplescaffold.mapper.UserDetailMapp...</div></div></div></a><a class="pagination-related" href="/2021/03/29/groupingBy/" title="groupingBy"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-03-29</div><div class="info-item-2">groupingBy</div></div><div class="info-2"><div class="info-item-1"> 老老实实最能打动人心。——莎士比亚  你们可能知道Collectors.groupingBy是干嘛的了，没错分组 例如我们需要把用户根据age分组 1234SecureRandom random = new SecureRandom();List&lt;User&gt; users = random.ints(20,25).parallel().mapToObj(r -&gt; User.builder().name(Faker.instance(Locale.CHINA).name().username()).age(r).build()).limit(20).collect(Collectors.toList());Map&lt;Integer, List&lt;User&gt;&gt; listMap = users.stream().collect(Collectors.groupingBy(User::getAge));listMap.forEach((k, v) -&gt; System.out.println(k + &quot;:&quot; + v));   ...</div></div></div></a><a class="pagination-related" href="/2021/01/23/DTO%E3%80%81TO%E3%80%81VO%E3%80%81PO%E3%80%81DO%E3%80%81BO%E3%80%81AO%E3%80%81DAO%E3%80%81POJO/" title="DTO、TO、VO、PO、DO、BO、AO、DAO、POJO"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-01-23</div><div class="info-item-2">DTO、TO、VO、PO、DO、BO、AO、DAO、POJO</div></div><div class="info-2"><div class="info-item-1"> 人的一生，应当像这美丽的花，自己无所求，而却给人间以美。——杨沫  之前一直有朋友问我Java中DTO、TO、VO、PO、DO、BO、AO、DAO、POJO这么多O到底是什么意思，看博客看不懂，有没有实际的例子 当然，这些O是出自《阿里Java开发手册》   POJO（Plain Ordinary Java Object）: 在本规约中，POJO 专指只有 setter&#x2F;getter&#x2F;toString 的  简单类，包括 DO&#x2F;DTO&#x2F;BO&#x2F;VO 等。  AO（Application Object）: 阿里巴巴专指 Application Object，即在 Service 层上，极为贴近  业务的复用代码。  我就说说我的理解吧，顺带写点例子 这里就写个根据用户名、分页参数查询用户列表的例子吧 DTO(Data Transfer Object)数据传输对象 首先我们接口接参可以使用DTO，简单来说就是Controller中函数的参数,例如下面的PageDTO 12345678910111213141516171819@Data...</div></div></div></a><a class="pagination-related" href="/2023/11/25/feign%E4%BD%BF%E7%94%A8url%E5%8F%82%E6%95%B0%E4%BC%A0%E5%8F%82-SpringQueryMap%E4%BD%BF%E7%94%A8/" title="feign使用url参数传参@SpringQueryMap使用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-25</div><div class="info-item-2">feign使用url参数传参@SpringQueryMap使用</div></div><div class="info-2"><div class="info-item-1"> 与人沟通，最重要的事情是听取没有说出来的话。——德拉克  今天使用open-feign发起请求时发现个问题，我特别喜欢的url参数传参不好使了： 12345@FeignClient(&quot;another-service&quot;)public interface MyFeignClient &#123;    @GetMapping(&quot;/foo/bar&quot;)    Foo&lt;Bar&gt; get(Foo bar);&#125;  对应我们的controller 12345@GetMapping(&quot;foo/bar&quot;)public Foo&lt;Bar&gt; get(Foo bar) &#123;    // ...    return foo;&#125;  然后发起了请求发现根本没收到参数。。。 但如果我们添加了注解@RequestParam 12345@FeignClient(&quot;another-service&quot;)public interface MyFeignClient &#123;    @Get...</div></div></div></a><a class="pagination-related" href="/2020/08/13/fastjson%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/" title="fastjson基本使用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-13</div><div class="info-item-2">fastjson基本使用</div></div><div class="info-2"><div class="info-item-1">alibaba的fastjson真香啊 首先是依赖 123456&lt;!-- https://mvnrepository.com/artifact/com.alibaba/fastjson --&gt;&lt;dependency&gt;    &lt;groupId&gt;com.alibaba&lt;/groupId&gt;    &lt;artifactId&gt;fastjson&lt;/artifactId&gt;    &lt;version&gt;1.2.73&lt;/version&gt;&lt;/dependency&gt;  这里列举点简单的应用 首先是对象转JSON 1234567Map&lt;String, Object&gt; map = new HashMap&lt;&gt;(1 &lt;&lt; 3);map.put(&quot;data&quot;, &quot;操作成功！&quot;);map.put(&quot;code&quot;, 200);map.put(&quot;success&quot;, true);map.put(&quot;...</div></div></div></a><a class="pagination-related" href="/2021/08/13/jquery%E5%92%8CspringBoot%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" title="jquery和springBoot文件上传"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-08-13</div><div class="info-item-2">jquery和springBoot文件上传</div></div><div class="info-2"><div class="info-item-1"> 友情在过去的生活里，就像一盏明灯，照彻了我的灵魂，使我的生存有了一点点光彩。——巴金  首先是后端代码： 写入文件工具类 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253package com.ruben.simplescaffold.utils;import lombok.extern.slf4j.Slf4j;import java.io.File;import java.io.FileOutputStream;import java.io.IOException;import java.util.Collections;import java.util.Optional;import java.util.Spliterator;import java.util.function.Predicate;import java.util.stream.Stream;/** * 文件工具类 * * @author &lt;achao144...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#MyBatisPlus-%E9%AB%98%E5%B9%B6%E5%8F%91%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84ID%E7%94%9F%E6%88%90%E4%BC%98%E5%8C%96%EF%BC%9A%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%8F%E5%88%97%E5%8F%B7%E6%9C%8D%E5%8A%A1%E5%AE%9E%E8%B7%B5"><span class="toc-number">1.</span> <span class="toc-text">MyBatisPlus 高并发场景下的ID生成优化：分布式序列号服务实践</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AA%81%E7%A0%B4%E5%88%86%E5%B8%83%E5%BC%8FID%E7%9A%84%E6%80%A7%E8%83%BD%E7%93%B6%E9%A2%88"><span class="toc-number">1.1.</span> <span class="toc-text">突破分布式ID的性能瓶颈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B7%E5%90%88%E5%BC%8FID%E7%94%9F%E6%88%90%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">1.2.</span> <span class="toc-text">混合式ID生成架构设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.1.</span> <span class="toc-text">技术方案对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0%E6%A8%A1%E5%9D%97"><span class="toc-number">1.3.</span> <span class="toc-text">核心实现模块</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%8F%B7%E6%AE%B5%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="toc-number">1.3.1.</span> <span class="toc-text">分布式号段服务端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%9C%AC%E5%9C%B0%E7%BC%93%E5%86%B2%E7%AE%A1%E7%90%86%E5%99%A8"><span class="toc-number">1.3.2.</span> <span class="toc-text">客户端本地缓冲管理器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MyBatisPlus-%E8%87%AA%E5%AE%9A%E4%B9%89ID%E7%94%9F%E6%88%90%E5%99%A8"><span class="toc-number">1.3.3.</span> <span class="toc-text">MyBatisPlus 自定义ID生成器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%95"><span class="toc-number">1.4.</span> <span class="toc-text">性能对比测试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%8B%E5%8A%9B%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C%EF%BC%88%E5%8D%95%E8%8A%82%E7%82%B9%EF%BC%89"><span class="toc-number">1.4.1.</span> <span class="toc-text">压力测试结果（单节点）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%85%E9%9A%9C%E6%A8%A1%E6%8B%9F%E5%9C%BA%E6%99%AF"><span class="toc-number">1.4.2.</span> <span class="toc-text">故障模拟场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E5%8C%96%E5%AE%9E%E8%B7%B5%E8%A6%81%E7%82%B9"><span class="toc-number">1.5.</span> <span class="toc-text">工程化实践要点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%96%BD%E6%95%88%E6%9E%9C"><span class="toc-number">1.6.</span> <span class="toc-text">实施效果</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

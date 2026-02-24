@@ -1,0 +1,237 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>docker实现mysql主从复制 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="有了钱，在这个世界上可以做很多事，就是无法用钱来买青春。 ——雷蒙德  1.安装主库 1.1 先准备mysql配置文件，my.cnf 123456789101112131415161718192021222324252627282930313233# Copyright (c) 2017, Oracle and&#x2F;or its affiliates. All rights reserved.##">
+<meta property="og:type" content="article">
+<meta property="og:title" content="docker实现mysql主从复制">
+<meta property="og:url" content="https://vampireachao.gitee.io/2020/12/12/docker%E5%AE%9E%E7%8E%B0mysql%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="有了钱，在这个世界上可以做很多事，就是无法用钱来买青春。 ——雷蒙德  1.安装主库 1.1 先准备mysql配置文件，my.cnf 123456789101112131415161718192021222324252627282930313233# Copyright (c) 2017, Oracle and&#x2F;or its affiliates. All rights reserved.##">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2020-12-12T12:04:58.000Z">
+<meta property="article:modified_time" content="2026-02-24T07:30:36.036Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="运维">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "docker实现mysql主从复制",
+  "url": "https://vampireachao.gitee.io/2020/12/12/docker%E5%AE%9E%E7%8E%B0mysql%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2020-12-12T12:04:58.000Z",
+  "dateModified": "2026-02-24T07:30:36.036Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2020/12/12/docker%E5%AE%9E%E7%8E%B0mysql%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'docker实现mysql主从复制',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">docker实现mysql主从复制</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">docker实现mysql主从复制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-12-12T12:04:58.000Z" title="发表于 2020-12-12 20:04:58">2020-12-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T07:30:36.036Z" title="更新于 2026-02-24 15:30:36">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>有了钱，在这个世界上可以做很多事，就是无法用钱来买青春。 ——雷蒙德</p>
+</blockquote>
+<p>1.安装主库</p>
+<p>1.1 先准备<code>mysql</code>配置文件，<code>my.cnf</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"># Copyright (c) <span class="number">2017</span>, Oracle and/or its affiliates. All rights reserved.</span><br><span class="line">#</span><br><span class="line"># This program is free software; you can redistribute it and/or modify</span><br><span class="line"># it under the terms of the GNU General Public License as published by</span><br><span class="line"># the Free Software Foundation; version <span class="number">2</span> of the License.</span><br><span class="line">#</span><br><span class="line"># This program is distributed in the hope that it will be useful,</span><br><span class="line"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span><br><span class="line"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span><br><span class="line"># GNU General Public License <span class="keyword">for</span> more details.</span><br><span class="line">#</span><br><span class="line"># You should have received a copy of the GNU General Public License</span><br><span class="line"># along with <span class="built_in">this</span> program; <span class="keyword">if</span> not, write to the Free Software</span><br><span class="line"># Foundation, Inc., <span class="number">51</span> Franklin St, Fifth Floor, Boston, MA  <span class="number">02110</span>-<span class="number">1301</span> USA</span><br><span class="line"></span><br><span class="line">#</span><br><span class="line"># The MySQL  Server configuration file.</span><br><span class="line">#</span><br><span class="line"># For explanations see</span><br><span class="line"># http:<span class="comment">//dev.mysql.com/doc/mysql/en/server-system-variables.html</span></span><br><span class="line"></span><br><span class="line">[mysqld]</span><br><span class="line">pid-file        = /<span class="keyword">var</span>/run/mysqld/mysqld.<span class="type">pid</span></span><br><span class="line"><span class="variable">socket</span>          <span class="operator">=</span> /<span class="keyword">var</span>/run/mysqld/mysqld.<span class="type">sock</span></span><br><span class="line"><span class="variable">datadir</span>         <span class="operator">=</span> /<span class="keyword">var</span>/lib/mysql</span><br><span class="line">secure-file-priv= NULL</span><br><span class="line"></span><br><span class="line"># Custom config should go here</span><br><span class="line">!includedir /etc/mysql/conf.d/</span><br><span class="line">## 同一局域网内注意要唯一</span><br><span class="line">server-id=<span class="number">100</span>  </span><br><span class="line">## 开启二进制日志功能，可以随便取（关键）</span><br><span class="line">log-bin=mysql-bin</span><br></pre></td></tr></table></figure>
+
+<p>1.2 下载镜像，制作容器</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker pull mysql</span><br><span class="line">docker run -p 3306:3306 --name mysql8 -v $PWD/conf:/etc/mysql/conf.d -v $PWD/logs:/logs -v $PWD/data:/var/lib/mysql -v $PWD/my.cnf:/etc/mysql/my.cnf -e MYSQL_ROOT_PASSWORD=123456  -d mysql --lower_case_table_names=1</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">把配置文件挂载到容器中，因为容器内部不能使用vi</span></span><br><span class="line">-v $PWD/my.cnf:/etc/mysql/my.cnf</span><br></pre></td></tr></table></figure>
+
+<p>1.3允许root 远程登录</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it mysql8 /bin/bash</span><br><span class="line">mysql -uroot -p</span><br><span class="line">mysql&gt; GRANT ALL ON *.* TO <span class="string">&#x27;root&#x27;</span>@<span class="string">&#x27;%&#x27;</span>;</span><br><span class="line">mysql&gt; flush privileges;</span><br><span class="line">mysql&gt; ALTER USER <span class="string">&#x27;root&#x27;</span>@<span class="string">&#x27;localhost&#x27;</span> IDENTIFIED BY <span class="string">&#x27;123456&#x27;</span> PASSWORD EXPIRE NEVER;</span><br><span class="line">mysql&gt; ALTER USER <span class="string">&#x27;root&#x27;</span>@<span class="string">&#x27;%&#x27;</span> IDENTIFIED WITH mysql_native_password BY <span class="string">&#x27;123456&#x27;</span>;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+
+<p>1.4 创建数据同步用户</p>
+<p>在<code>Master</code>数据库创建数据同步用户，授予用户<code> slave REPLICATION SLAVE</code>权限和<code>REPLICATION CLIENT</code>权限，用于在主从库之间同步数据。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CREATE USER <span class="string">&#x27;slave&#x27;</span>@<span class="string">&#x27;%&#x27;</span> IDENTIFIED WITH mysql_native_password BY <span class="string">&#x27;123456&#x27;</span>;</span><br><span class="line"></span><br><span class="line">GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO <span class="string">&#x27;slave&#x27;</span>@<span class="string">&#x27;%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>安装从库</li>
+</ol>
+<p>2.1 准备配置文件，<code>my2.cnf</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"># Copyright (c) <span class="number">2017</span>, Oracle and/or its affiliates. All rights reserved.</span><br><span class="line">#</span><br><span class="line"># This program is free software; you can redistribute it and/or modify</span><br><span class="line"># it under the terms of the GNU General Public License as published by</span><br><span class="line"># the Free Software Foundation; version <span class="number">2</span> of the License.</span><br><span class="line">#</span><br><span class="line"># This program is distributed in the hope that it will be useful,</span><br><span class="line"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span><br><span class="line"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span><br><span class="line"># GNU General Public License <span class="keyword">for</span> more details.</span><br><span class="line">#</span><br><span class="line"># You should have received a copy of the GNU General Public License</span><br><span class="line"># along with <span class="built_in">this</span> program; <span class="keyword">if</span> not, write to the Free Software</span><br><span class="line"># Foundation, Inc., <span class="number">51</span> Franklin St, Fifth Floor, Boston, MA  <span class="number">02110</span>-<span class="number">1301</span> USA</span><br><span class="line"></span><br><span class="line">#</span><br><span class="line"># The MySQL  Server configuration file.</span><br><span class="line">#</span><br><span class="line"># For explanations see</span><br><span class="line"># http:<span class="comment">//dev.mysql.com/doc/mysql/en/server-system-variables.html</span></span><br><span class="line"></span><br><span class="line">[mysqld]</span><br><span class="line">pid-file        = /<span class="keyword">var</span>/run/mysqld/mysqld.<span class="type">pid</span></span><br><span class="line"><span class="variable">socket</span>          <span class="operator">=</span> /<span class="keyword">var</span>/run/mysqld/mysqld.<span class="type">sock</span></span><br><span class="line"><span class="variable">datadir</span>         <span class="operator">=</span> /<span class="keyword">var</span>/lib/mysql</span><br><span class="line">secure-file-priv= NULL</span><br><span class="line"></span><br><span class="line"># Custom config should go here</span><br><span class="line">!includedir /etc/mysql/conf.d/</span><br><span class="line">## 设置server_id,注意要唯一</span><br><span class="line">server-id=<span class="number">101</span>  </span><br><span class="line">## 开启二进制日志功能，以备Slave作为其它Slave的Master时使用</span><br><span class="line">log-bin=mysql-slave-bin   </span><br><span class="line">## relay_log配置中继日志</span><br><span class="line">relay_log=edu-mysql-relay-bin  </span><br></pre></td></tr></table></figure>
+
+<p>2.1 制作容器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -p <span class="number">3307</span>:<span class="number">3306</span> --name mysql8-<span class="number">2</span> -v $PWD/conf2:/etc/mysql/conf.d -v $PWD/logs2:/logs -v $PWD/data2:/<span class="keyword">var</span>/lib/mysql -v $PWD/my2.cnf:/etc/mysql/my.cnf -e MYSQL_ROOT_PASSWORD=<span class="number">123456</span>  -d mysql --lower_case_table_names=<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>然后重复1.3</p>
+<p>2.2 链接Master(主)和Slave(从)</p>
+<p>在主库中进入<code>mysql</code>，执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flush logs;</span><br><span class="line">show master status;</span><br></pre></td></tr></table></figure>
+
+<p>记住<code>file</code>和<code>position</code></p>
+<p>期间主库不要进行任何操作，然后在从库中执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">change master to master_host=<span class="string">&#x27;172.17.0.3&#x27;</span>, master_user=<span class="string">&#x27;slave&#x27;</span>, master_password=<span class="string">&#x27;123456&#x27;</span>, master_port=<span class="number">3306</span>, master_log_file=<span class="string">&#x27;mysql-bin.000004&#x27;</span>, master_log_pos= <span class="number">156</span>, master_connect_retry=<span class="number">30</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>master_host</strong> ：Master的地址，指的是容器的独立ip,可以通过<code>docker inspect --format=&#39;{ {.NetworkSettings.IPAddress} }&#39; 容器名称|容器id</code> 查询容器的ip</p>
+<p><strong>master_port</strong>：Master的端口号，指的是容器的端口号</p>
+<p><strong>master_user</strong>：用于数据同步的用户</p>
+<p><strong>master_password</strong>：用于同步的用户的密码</p>
+<p><strong>master_log_file</strong>：指定 Slave 从哪个日志文件开始复制数据，即上文中提到的 File 字段的值</p>
+<p><strong>master_log_pos</strong>：从哪个 Position 开始读，即上文中提到的 Position 字段的值</p>
+<p><strong>master_connect_retry</strong>：如果连接失败，重试的时间间隔，单位是秒，默认是60秒</p>
+<p>2.3 在Slave 中的mysql终端执行<code>show slave status \G</code>;用于查看主从同步状态。</p>
+<p><img src="/img/oss/picGo/blogmysql.png" alt="blogmysql"></p>
+<p>正常情况下，<code>Slave_IO_Running </code>和<code> Slave_SQL_Running</code> 都是No，因为我们还没有开启主从复制过程。使用<code>start slave</code>开启主从复制过程，然后再次查询主从同步状态 <code>show slave status \G;</code>。</p>
+<p><img src="/img/oss/picGo/blogmysql2.png" alt="blogmysql2"></p>
+<p>看到两个yes就成功了。</p>
+<p>2.4 验证</p>
+<p>测试主从复制方式就十分多了，最简单的是在Master创建一个数据库，然后检查Slave是否存在此数据库。</p>
+<ol start="3">
+<li>再配置一个从数据库</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -p <span class="number">3308</span>:<span class="number">3306</span> --name mysql8-<span class="number">3</span> -v $PWD/conf3:/etc/mysql/conf.d -v $PWD/logs3:/logs -v $PWD/data3:/<span class="keyword">var</span>/lib/mysql -v $PWD/my2.cnf:/etc/mysql/my.cnf -e MYSQL_ROOT_PASSWORD=<span class="number">123456</span>  -d mysql --lower_case_table_names=<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>然后重复步骤2.2,2.3就行了</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%BF%90%E7%BB%B4/">运维</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2020/12/13/%E4%BD%BF%E7%94%A8java%E6%93%8D%E4%BD%9Cword/" title="使用java操作word"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">使用java操作word</div></div><div class="info-2"><div class="info-item-1"> 真正的美德不可没有实用的智慧，而实用的智慧也不可没有美德。——亚里士多德  可以使用Spire操作word Spire.Doc for Java 是一款专业的 Java Word 组件，开发人员使用它可以轻松地将 Word 文档创建、读取、编辑、转换和打印等功能集成到自己的 Java 应用程序中。作为一款完全独立的组件，Spire.Doc for Java 的运行环境无需安装 Microsoft Office。 Spire.Doc for Java 能执行多种 Word 文档处理任务，包括生成、读取、转换和打印 Word 文档，插入图片，添加页眉和页脚，创建表格，添加表单域和邮件合并域，添加书签，添加文本和图片水印，设置背景颜色和背景图片，添加脚注和尾注，添加超链接，加密和解密 Word 文档，添加批注，添加形状等。 官方文档 依赖 12345&lt;dependency&gt;    &lt;groupId&gt;e-iceblue&lt;/groupId&gt;    &lt;artifactId&gt;spire.doc.free&lt;/artifactId&gt;  ...</div></div></div></a><a class="pagination-related" href="/2020/12/11/jackson%E5%A4%84%E7%90%86json/" title="jackson处理json"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">jackson处理json</div></div><div class="info-2"><div class="info-item-1"> 君子成人之美，不成人之恶。小人反是。——《论语》  转载，原文 介绍Jackson 的核心模块由三部分组成  jackson-core，核心包，提供基于”流模式”解析的相关 API，它包括 JsonPaser 和 JsonGenerator。 Jackson 内部实现正是通过高性能的流模式 API 的 JsonGenerator 和 JsonParser 来生成和解析 json。 jackson-annotations，注解包，提供标准注解功能。 jackson-databind ，数据绑定包， 提供基于”对象绑定” 解析的相关 API （ ObjectMapper ） 和”树模型” 解析的相关 API （JsonNode）；基于”对象绑定” 解析的 API 和”树模型”解析的 API 依赖基于”流模式”解析的 API。  用法引入依赖 123456&lt;dependency&gt;    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;    &lt;artifactId&gt;jackson-databin...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2021/06/25/%E9%A1%B9%E7%9B%AE%E9%83%A8%E7%BD%B2%E5%8F%8A%E7%89%88%E6%9C%AC%E5%8F%91%E5%B8%83/" title="项目部署及版本发布"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-25</div><div class="info-item-2">项目部署及版本发布</div></div><div class="info-2"><div class="info-item-1">  莫扎特从不为永恒作曲，但是正因为这个理由，所以他的许多作品均是永恒的——爱因斯坦  之前我们购买了服务器，今天来进行项目部署吧 进行项目部署首先我们打包我们的项目生成我们的jar包上传到服务器上 12安装`java`yum -y install java-1.8.0-openjdk-devel.x86_64 安装好了后可以输入 1cd /usr/lib/jvm 进入jdk目录查看配置环境变量 12# 编辑/etc/profilevim /etc/profile 按下I输入 12345678JAVA_HOME=/usr/lib/jvm/javaJRE_HOME=$JAVA_HOME/jrePATH=$PATH:$JAVA_HOME/binCLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jarexport JAVA_HOMEexport JRE_HOMEexport PATHexport CLASSPATH 然后按下:输入wq再回车确认刷新环境变量 1source /etc/profile 运行 12345678910...</div></div></div></a><a class="pagination-related" href="/2022/04/20/jenkins%E9%83%A8%E7%BD%B2jar%E5%B9%B6%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC/" title="jenkins部署jar并启动脚本"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-04-20</div><div class="info-item-2">jenkins部署jar并启动脚本</div></div><div class="info-2"><div class="info-item-1"> 等到看你银色满际，等到分不清季节更替，才敢说沉溺。——《水星记》  首先是shell命令 123456789101112# 打包mvn -DskipTests=true -Ptest clean package# 结束进程ps -ef | grep translate_server | awk &#x27;&#123;print $2&#125;&#x27; | xargs kill -9 || true# 移动mv &#x27;./target/ruben.jar&#x27; &#x27;/server/ruben.jar&#x27;# 删除日志rm -f &#x27;/test/ruben_log.txt&#x27; || true# 创建日志touch &#x27;/test/ruben_log.txt&#x27;# 静默启动nohup sh /server/ruben.sh   这里启动的ruben.sh如下： 12345678#!/bin/bashBUILD_ID=DONTKILLMEfunction start()&#123;nohup java -jar &#x2...</div></div></div></a><a class="pagination-related" href="/2024/03/10/github-action/" title="github action"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-10</div><div class="info-item-2">github action</div></div><div class="info-2"><div class="info-item-1"> 人一辈子都在高潮——低潮中浮沉，唯有庸碌的人，生活才如死水一般。——傅雷  分享一下Github Action的文档： GitHub Actions 快速入门 - GitHub 文档 GitHub Actions 快速入门在 5 分钟或更短的时间内尝试 GitHub Actions 的功能。 Introduction  介绍You only need a GitHub repository to create and run a GitHub Actions workflow. In this guide, you’ll add a workflow that demonstrates some of the essential features of GitHub Actions.您只需要 GitHub 存储库即可创建和运行 GitHub Actions 工作流程。在本指南中，您将添加一个工作流程来演示 GitHub Actions 的一些基本功能。 The following example shows you how GitHub Actions jobs can be ...</div></div></div></a><a class="pagination-related" href="/2025/07/30/healthchecks/" title="healthchecks"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-07-30</div><div class="info-item-2">healthchecks</div></div><div class="info-2"><div class="info-item-1"> 楼下一个男人病的要死，隔壁的一家唱着留音机。对面是哄孩子，楼上有两个人狂笑，还有打牌声。河边的船上有女人哭着她死去的母亲。人类的悲喜并不相通，我只觉得他们吵闹。——鲁迅《小杂感》  Healthchecks.io：让你的服务健康状况“一目了然”，轻松守护线上稳定！ 想象一下，你的项目部署上线，一切运行得飞快，但突然某个定时任务、API服务或爬虫脚本默默“失联”了，等发现时已经过去好几个小时，数据丢失、业务异常、客户投诉……简直噩梦！有没有一种办法，让这些后台关键任务一旦“掉线”立刻提醒你，让运维、开发、产品都安心？Healthchecks.io，就是这样一款简洁高效、超好用的定时任务健康监控神器！  Healthchecks.io 是什么？Healthchecks.io 是一款专为“定时任务”设计的在线健康监控服务。你可以用它监控各种定时脚本、自动化任务、API接口、第三方服务等——只需简单集成，一旦你的任务没有按预期“报平安”，Healthchecks.io 就会第一时间通知你，确保业务始终在线！  官网体验：https://healthchecks.io/   怎么工作？一...</div></div></div></a><a class="pagination-related" href="/2025/06/24/ubuntu%E4%BF%AE%E6%94%B9%E4%B8%BA%E4%B8%80%E4%B8%AA%E5%AD%97%E7%AC%A6%E7%9A%84%E5%AF%86%E7%A0%81/" title="ubuntu修改为一个字符的密码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-06-24</div><div class="info-item-2">ubuntu修改为一个字符的密码</div></div><div class="info-2"><div class="info-item-1"> 节约好比燕衔泥，浪费好比河决堤。——佚名  123456789101112131415161718192021222324252627282930ac@a3090:~$ sudo vim /etc/pam.d/common-password# 这条命令使用 Vim 编辑器以超级用户权限打开 Linux 密码策略配置文件 /etc/pam.d/common-password。# 该文件用于配置 Linux 系统的密码复杂度要求，包括最小长度、字符类别等。# 选择 Vim 是因为它是 Linux 系统上常见、功能强大的终端文本编辑器，能够灵活编辑系统配置文件。# 用 sudo 是因为只有管理员才有权限修改安全相关的系统文件。# -- 进入 vim 后操作说明 --# 按 /pam_pwquality.so 回车：在 Vim 里用 / 搜索字符串可以快速定位到包含 pam_pwquality.so 的那一行。# 这样做的目的是为了方便和准确地找到负责密码强度校验的那条配置，而不必手动一行行查找，提高效率。# 按 i 进入插入模式：在 Vim 中，只有进入插入模式才能编辑文本内容，否则...</div></div></div></a><a class="pagination-related" href="/2020/06/09/tomcat%E9%83%A8%E7%BD%B2%E9%A1%B9%E7%9B%AE%E5%88%B0%E6%A0%B9%E7%9B%AE%E5%BD%95/" title="tomcat部署项目到根目录"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-06-09</div><div class="info-item-2">tomcat部署项目到根目录</div></div><div class="info-2"><div class="info-item-1">在tomcat的conf目录下的server.xml 1&lt;Context path=&quot;/&quot; docBase=&quot;路径&quot; debug=&quot;true&quot; reloadable=&quot;false&quot;&gt;&lt;/Context&gt;  哦对了，是放在Host标签里 </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

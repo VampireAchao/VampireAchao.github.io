@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>rewriteBatchedStatements | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从前的日色变得慢，车，马，邮件都慢，一生只够爱一个人。——木心  我们在使用mybatis进行批量更新时，可以在mysql的链接url处添加rewriteBatchedStatements&#x3D;true提升效率. 文档：https:&#x2F;&#x2F;dev.mysql.com&#x2F;doc&#x2F;connector-j&#x2F;8.0&#x2F;en&#x2F;connector-j-connp-props-performance-extensions">
+<meta property="og:type" content="article">
+<meta property="og:title" content="rewriteBatchedStatements">
+<meta property="og:url" content="https://vampireachao.gitee.io/2023/02/04/rewriteBatchedStatements/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="从前的日色变得慢，车，马，邮件都慢，一生只够爱一个人。——木心  我们在使用mybatis进行批量更新时，可以在mysql的链接url处添加rewriteBatchedStatements&#x3D;true提升效率. 文档：https:&#x2F;&#x2F;dev.mysql.com&#x2F;doc&#x2F;connector-j&#x2F;8.0&#x2F;en&#x2F;connector-j-connp-props-performance-extensions">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2023-02-04T08:51:22.000Z">
+<meta property="article:modified_time" content="2026-02-22T18:55:32.502Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "rewriteBatchedStatements",
+  "url": "https://vampireachao.gitee.io/2023/02/04/rewriteBatchedStatements/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2023-02-04T08:51:22.000Z",
+  "dateModified": "2026-02-22T18:55:32.502Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2023/02/04/rewriteBatchedStatements/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'rewriteBatchedStatements',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">rewriteBatchedStatements</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">rewriteBatchedStatements</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-02-04T08:51:22.000Z" title="发表于 2023-02-04 16:51:22">2023-02-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-22T18:55:32.502Z" title="更新于 2026-02-23 02:55:32">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>从前的日色变得慢，车，马，邮件都慢，一生只够爱一个人。——木心</p>
+</blockquote>
+<p>我们在使用<code>mybatis</code>进行批量更新时，可以在<code>mysql</code>的链接<code>url</code>处添加<code>rewriteBatchedStatements=true</code>提升效率.</p>
+<p>文档：<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-connp-props-performance-extensions.html">https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-connp-props-performance-extensions.html</a></p>
+<blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rewriteBatchedStatements</span><br></pre></td></tr></table></figure>
+
+<p>Should the driver use multi-queries, regardless of the setting of ‘allowMultiQueries’, as well as rewriting of prepared statements for INSERT and REPLACE queries into multi-values clause statements when ‘executeBatch()’ is called?</p>
+<p>Notice that this might allow SQL injection when using plain statements and the provided input is not properly sanitized. Also notice that for prepared statements, if the stream length is not specified when using ‘PreparedStatement.set*Stream()’, the driver would not be able to determine the optimum number of parameters per batch and might return an error saying that the resultant packet is too large.</p>
+<p>‘Statement.getGeneratedKeys()’, for statements that are rewritten only works when the entire batch consists of INSERT or REPLACE statements.</p>
+<p>Be aware that when using “rewriteBatchedStatements&#x3D;true” with “INSERT … ON DUPLICATE KEY UPDATE” for rewritten statements, the server returns only one value for all affected (or found) rows in the batch, and it is not possible to map it correctly to the initial statements; in this case the driver returns “0” as the result for each batch statement if total count was zero, and ‘Statement.SUCCESS_NO_INFO’ if total count was above zero.</p>
+<table>
+<thead>
+<tr>
+<th align="left">Default Value</th>
+<th>false</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Since Version</td>
+<td>3.1.13</td>
+</tr>
+</tbody></table>
+</blockquote>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/02/05/pinia/" title="pinia"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">pinia</div></div><div class="info-2"><div class="info-item-1"> 天时不如地利，地利不如人和——孟子  分享一个Vuex的同类型vue状态管理框架：Pinia 中文文档：https://pinia.web3doc.top/  它的Demo：https://stackblitz.com/github/piniajs/example-vue-3-vite?file=README.md 相比于Vuex:https://pinia.web3doc.top/introduction.html#%E4%B8%8E-vuex-%E7%9A%84%E6%AF%94%E8%BE%83  Pinia 提供了一个更简单的 API，具有更少的规范，提供了 Composition-API 风格的 API，最重要的是，在与 TypeScript 一起使用时具有可靠的类型推断支持。    </div></div></div></a><a class="pagination-related" href="/2023/02/03/kotlin%E6%B3%9B%E5%9E%8B%E5%A4%9A%E4%B8%AA%E4%B8%8A%E7%95%8C/" title="kotlin泛型多个上界"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">kotlin泛型多个上界</div></div><div class="info-2"><div class="info-item-1"> 善气迎人，亲如兄弟；恶气迎人，害于戈兵。——管子  java中，我们可以使用&lt;T extends Comparable&lt;? super T&gt;, Serializable&gt;来指定多个接口的泛型限制 kotlin中 对应的是上界  上界最常见的约束类型是与 Java 的 extends 关键字对应的 上界： 1fun &lt;T : Comparable&lt;T&gt;&gt; sort(list: List&lt;T&gt;) &#123;  …… &#125;  冒号之后指定的类型是上界：只有 Comparable&lt;T&gt; 的子类型可以替代 T。 例如： 12sort(listOf(1, 2, 3)) // OK。Int 是 Comparable&lt;Int&gt; 的子类型sort(listOf(HashMap&lt;Int, String&gt;())) // 错误：HashMap&lt;Int, String&gt; 不是 Comparable&lt;HashMap&lt;Int, String&gt;&gt; 的子类型  默认的上界...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2021/08/10/mybatis-plus%E9%9A%8F%E6%9C%BA%E6%9F%A5%E8%AF%A2%E5%B7%A5%E5%85%B7%E7%B1%BB-%E4%BA%8C/" title="mybatis-plus随机查询工具类(二)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-08-10</div><div class="info-item-2">mybatis-plus随机查询工具类(二)</div></div><div class="info-2"><div class="info-item-1"> 当真理还正在穿鞋的时候，谎言就能走遍半个世界。——马克吐温  之前写过一个，最近感觉不好用 然后写了一个更优雅的 12345678910111213141516171819/** * 随机查询 * * @param mapper 持久层DAO * @param limit  随机条数 * @return java.util.List&lt;T&gt; * @author &lt;achao1441470436@gmail.com&gt; * @since 2021/8/10 15:30 */public static &lt;T&gt; List&lt;T&gt; getAny(BaseMapper&lt;T&gt; mapper, T condition, Integer limit) &#123;    LambdaQueryWrapper&lt;T&gt; wrapper = Wrappers.lambdaQuery(condition);    Integer total = mapper.selectCount(wrapper);    if (limit == nu...</div></div></div></a><a class="pagination-related" href="/2022/07/05/List-Map-%E8%81%9A%E5%90%88%E4%B8%BA%E5%8D%95%E4%B8%AAMap-List/" title="List&lt;Map&gt;聚合为单个Map&lt;List&gt;"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-05</div><div class="info-item-2">List&lt;Map&gt;聚合为单个Map&lt;List&gt;</div></div><div class="info-2"><div class="info-item-1"> 科学是到处为家的，不过，在任何不播种的地方，是决不会得到丰收的。——赫尔岑  前两天有人给我的项目stream-query提交了PR，新增了一个Collector实现 我稍微研究了一下，发现与Collectors原生命名风格不统一，且不具备Collectors包下面的对象通用性，于是就移除了 但这个功能是可以保留的 我的实现如下： 1234567891011121314151617181920212223242526@Testvoid testReducing() &#123;    Set&lt;Map&lt;String, Integer&gt;&gt; nameScoreMapList = Stream.of(            new HashMap&lt;String, Integer&gt;() &#123;&#123;                put(&quot;苏格拉底&quot;, 1);                put(&quot;特拉叙马霍斯&quot;, 3);            &#125;&#125;,            Co...</div></div></div></a><a class="pagination-related" href="/2021/06/08/isPrimitive/" title="isPrimitive"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-08</div><div class="info-item-2">isPrimitive</div></div><div class="info-2"><div class="info-item-1"> 常制不可以待变化,一涂不可以应万方,刻船不以索遗剑。一一东晋·葛洪《抱朴子》   常制不可以待变化,一涂不可以应万方,刻船不以索遗剑。一一东晋·葛洪《抱朴子》  在Class中有这样一个函数isPrimitive 可以判断我们的class是否为基本类型  1234567891011121314151617181920212223242526package com.ruben;/** * @author &lt;achao1441470436@gmail.com&gt; * @since 2021/6/8 0008 22:00 */public class ClassDemo &#123;    public static void main(String[] args) &#123;        Class&lt;Integer&gt; integerClass = int.class;        System.out.println(&quot;int.class是否为基本类型：&quot; + integerClass.isPrimitive());        C...</div></div></div></a><a class="pagination-related" href="/2021/08/13/jquery%E5%92%8CspringBoot%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" title="jquery和springBoot文件上传"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-08-13</div><div class="info-item-2">jquery和springBoot文件上传</div></div><div class="info-2"><div class="info-item-1"> 友情在过去的生活里，就像一盏明灯，照彻了我的灵魂，使我的生存有了一点点光彩。——巴金  首先是后端代码： 写入文件工具类 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253package com.ruben.simplescaffold.utils;import lombok.extern.slf4j.Slf4j;import java.io.File;import java.io.FileOutputStream;import java.io.IOException;import java.util.Collections;import java.util.Optional;import java.util.Spliterator;import java.util.function.Predicate;import java.util.stream.Stream;/** * 文件工具类 * * @author &lt;achao144...</div></div></div></a><a class="pagination-related" href="/2020/06/16/%E6%8B%A6%E6%88%AA%E5%99%A8%E8%A7%A3%E5%86%B3%E8%B7%A8%E5%9F%9F%E9%97%AE%E9%A2%98/" title="拦截器解决跨域问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-06-16</div><div class="info-item-2">拦截器解决跨域问题</div></div><div class="info-2"><div class="info-item-1">大家平时在项目开发中遇到跨域问题是怎么解决的呢？ 我相信有很多小伙伴就会回答：在Controller加上@CrossOrigin就可以啦！ 但我们知道，在企业开发中，会有很多个controller，controller数量多也便于维护和查找控制层代码 那有没有一种方式能解决这种繁琐的问题呢？答案是肯定的！ 下面介绍如何用JSONP解决跨域问题，哦不是用拦截器解决hh 12345678910111213141516171819202122232425262728293031323334353637package com.ruben.controller.interceptor;import org.springframework.http.HttpStatus;import org.springframework.web.bind.annotation.RequestMethod;import org.springframework.web.servlet.HandlerInterceptor;import org.springframework.web.servlet.Model...</div></div></div></a><a class="pagination-related" href="/2024/08/29/jps%E3%80%81jstack%E6%9F%A5%E7%9C%8Bjava%E5%A0%86%E6%A0%88%E4%BF%A1%E6%81%AF/" title="jps、jstack查看java堆栈信息"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-29</div><div class="info-item-2">jps、jstack查看java堆栈信息</div></div><div class="info-2"><div class="info-item-1"> 宿命论是那些缺乏意志力的弱者的借口。——罗曼·罗兰  jps查看进程信息命令如下： 12345678Github-Id-VampireAchao:shenyu achao$ jps -l27312 jdk.jcmd/sun.tools.jps.Jps88929 27268 org.jetbrains.jps.cmdline.Launcher27269 org.apache.shenyu.examples.http.ShenyuTestSwaggerApplication19815 com.intellij.idea.Main27175 org.jetbrains.idea.maven.server.RemoteMavenServer3624237 org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli  然后用jstack查看堆栈信息： 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

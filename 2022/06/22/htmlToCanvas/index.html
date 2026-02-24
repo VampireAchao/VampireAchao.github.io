@@ -1,0 +1,212 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>htmlToCanvas | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="利用时间是一个极其高级的规律。——恩格斯  今天分享一个html转canvas的插件： http:&#x2F;&#x2F;html2canvas.hertzen.com&#x2F; 使用方式特别简单： 引入： 12pnpm install --save html2canvas# import html2canvas from &#x27;html2canvas&#x27;;  或者直接上link 1&lt;script sr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="htmlToCanvas">
+<meta property="og:url" content="https://vampireachao.gitee.io/2022/06/22/htmlToCanvas/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="利用时间是一个极其高级的规律。——恩格斯  今天分享一个html转canvas的插件： http:&#x2F;&#x2F;html2canvas.hertzen.com&#x2F; 使用方式特别简单： 引入： 12pnpm install --save html2canvas# import html2canvas from &#x27;html2canvas&#x27;;  或者直接上link 1&lt;script sr">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2022-06-22T05:17:45.000Z">
+<meta property="article:modified_time" content="2026-02-22T18:55:32.454Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="前端">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "htmlToCanvas",
+  "url": "https://vampireachao.gitee.io/2022/06/22/htmlToCanvas/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2022-06-22T05:17:45.000Z",
+  "dateModified": "2026-02-22T18:55:32.454Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2022/06/22/htmlToCanvas/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'htmlToCanvas',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">htmlToCanvas</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">htmlToCanvas</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-06-22T05:17:45.000Z" title="发表于 2022-06-22 13:17:45">2022-06-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-22T18:55:32.454Z" title="更新于 2026-02-23 02:55:32">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>利用时间是一个极其高级的规律。——恩格斯</p>
+</blockquote>
+<p>今天分享一个<code>html</code>转<code>canvas</code>的插件：</p>
+<p><a target="_blank" rel="noopener" href="http://html2canvas.hertzen.com/">http://html2canvas.hertzen.com/</a></p>
+<p>使用方式特别简单：</p>
+<p>引入：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pnpm install --save html2canvas</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">import html2canvas from <span class="string">&#x27;html2canvas&#x27;</span>;</span></span><br></pre></td></tr></table></figure>
+
+<p>或者直接上<code>link</code></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;http://html2canvas.hertzen.com/dist/html2canvas.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>需要转换的<code>html</code>节点</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;capture&quot;</span> <span class="attr">style</span>=<span class="string">&quot;padding: 10px; background: #f5da55&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">h4</span> <span class="attr">style</span>=<span class="string">&quot;color: #000; &quot;</span>&gt;</span>Hello world!<span class="tag">&lt;/<span class="name">h4</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">html2canvas</span>(<span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&quot;#capture&quot;</span>)).<span class="title function_">then</span>(<span class="function"><span class="params">canvas</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">appendChild</span>(canvas)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>效果：</p>
+<script src="http://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<div id="capture"></div>
+
+<p><button onclick="btnclick()">点我，然后往下翻</button></p>
+<script>
+   function btnclick(){
+       html2canvas(document.querySelector("body")).then(canvas => {
+    document.querySelector("body").appendChild(canvas)
+});
+   } 
+</script>
+
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%89%8D%E7%AB%AF/">前端</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/06/23/overflow%E5%92%8C%E5%8A%A8%E6%80%81%E8%AE%A1%E7%AE%97%E9%AB%98%E5%BA%A6/" title="overflow和动态计算高度"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">overflow和动态计算高度</div></div><div class="info-2"><div class="info-item-1"> 人们总会找到某种带头人,把他供奉起来,培养成伟人……暴君就是这么来的;暴君最初都是以保护者的形象出现的。——柏拉图,《理想国》  首先是MDN：https://developer.mozilla.org/zh-CN/docs/Web/CSS/overflow 其中对overflow进行了描述：  CSS 属性 overflow 定义当一个元素的内容太大而无法适应 块级格式化上下文 时候该做什么。它是 overflow-x 和overflow-y的 简写属性 。  重点在这里：  为使 overflow 有效果，块级容器必须有一个指定的高度（height或者max-height）或者将white-space设置为nowrap。  那问题来了，我这里有一个折叠面板  我希望这里多个折叠面板每一项的头部都能显示在页面中，并且其子项能够适应屏幕高度和折叠情况变化  为了实现上面的效果，我们需要在每一个折叠面板子项中设置overflow-y:auto，然后给其设置height或者max-height 我们知道css中有个计算函数calc可以计算我们的高度，这里的卡片为了保证屏幕自适应，可...</div></div></div></a><a class="pagination-related" href="/2022/06/21/ts%E8%A3%85%E9%A5%B0%E5%99%A8-%E6%B3%A8%E8%A7%A3/" title="ts装饰器(注解)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">ts装饰器(注解)</div></div><div class="info-2"><div class="info-item-1"> 书，能保持我们的童心；书能保持我们的青春。——严文井  官方文档：https://www.typescriptlang.org/docs/handbook/decorators.html 这个东西在java里叫注解，不过在ts中，一个装饰器对应一个方法 首先执行命令： 1tsc --target ES5 --experimentalDecorators  然后配置一下tsconfig.json就可以使用了 123456&#123;    &quot;compilerOptions&quot;: &#123;        &quot;target&quot;: &quot;ES5&quot;,        &quot;experimentalDecorators&quot;: true    &#125;&#125;  首先我们定义一个class 1234class User &#123;  private id: Number | undefined;  private name: string | undefined;&#125;  我们编写一个装饰器对应的逻辑，实现ja...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2023/05/22/officegen/" title="officegen"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-22</div><div class="info-item-2">officegen</div></div><div class="info-2"><div class="info-item-1"> 以权利合者，权利尽而交疏。——《史记》  如果我们需要使用js来编辑word、excel、powerpoint 可以使用这个开源项目：https://github.com/Ziv-Barber/officegen  可以让我们在html中进行编辑 安装使用： 1$ npm install officegen  ppt例子： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354const officegen = require(&#x27;officegen&#x27;)const fs = require(&#x27;fs&#x27;)// Create an empty PowerPoint object:let pptx = officegen(&#x27;pptx&#x27;)// Let&#x27;s add a title slide:let slide = pptx.makeTitleSlide(&#x27;Officeg...</div></div></div></a><a class="pagination-related" href="/2023/05/26/json-server/" title="json-server"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-26</div><div class="info-item-2">json-server</div></div><div class="info-2"><div class="info-item-1"> 错误同真理的关系，就像睡梦中同清醒的关系一样。一个人从促物中醒来，就会以新的力量走向其真理。——歌德  在前端与后端开发的时候，偶尔会有在后端接口没有开发完毕时进行一些接口的mock，这里有一款开源框架做了类似的事情，让你可以“不到30秒得到一个零编码的假REST API” https://github.com/typicode/json-server  我们只需要安装： 1npm install -g json-server  然后配置数据格式：db.json 123456789&#123;  &quot;posts&quot;: [    &#123; &quot;id&quot;: 1, &quot;title&quot;: &quot;json-server&quot;, &quot;author&quot;: &quot;typicode&quot; &#125;  ],  &quot;comments&quot;: [    &#123; &quot;id&quot;: 1, &quot;body&quot;: &quot;some comment&quot;, &...</div></div></div></a><a class="pagination-related" href="/2020/06/26/id%E9%95%BF%E5%BA%A6%E5%A4%AA%E9%95%BF%E7%9A%84%E5%9D%91/" title="id长度太长的坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-06-26</div><div class="info-item-2">id长度太长的坑</div></div><div class="info-2"><div class="info-item-1">今天写代码发现返回给前端的id，前端拿到后最后两位归零了。。。 11275821421230030848  本来是这么一串id，到了前端那边变成了 11275821421230030800  最后，只好用toString，然后把对象转换成map，返回给前端… </div></div></div></a><a class="pagination-related" href="/2021/12/22/truthy/" title="truthy"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-12-22</div><div class="info-item-2">truthy</div></div><div class="info-2"><div class="info-item-1"> 每天务必做一点你所不愿意做的事情，这是一条宝贵的准则，它可以使你养成认真尽责而不以为苦的习惯。——马克.吐温  我们知道js中如果使用： 123if(2)&#123;    console.log(&quot;2&quot;)&#125;   可以看到if中代码块执行了 这是因为JavaScript 在布尔值上下文中使用强制类型转换（coercion） 而我们if括号中表达式2，由于为truthy，也就是真值 所以被转换为了true  JavaScript 中的真值示例如下（将被转换为 true，if 后的代码段将被执行）： 1234567891011if (true)if (&#123;&#125;)if ([])if (42)if (&quot;foo&quot;)if (new Date())if (-42)if (3.14)if (-3.14)if (Infinity)if (-Infinity) 反之，我们也有Falsy  在 JavaScript 中只有 8 个 falsy 值。 这意味着当 JavaScript 期望一个布尔值，并被给与下面值中的一个时，它总是会被...</div></div></div></a><a class="pagination-related" href="/2020/08/22/%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9A%84split%E5%92%8Cjoin/" title="字符串的split和join"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-22</div><div class="info-item-2">字符串的split和join</div></div><div class="info-2"><div class="info-item-1"> split()	将字符串拆分成数组 join()	将数组合并 参数为分隔符  两套代码 123456#JavaScriptvar str = &quot;ruben&quot;;var array = str.split(&#x27;&#x27;);array.forEach(s =&gt; console.log(s));str = array.join(&#x27;&#x27;);console.log(str);  以及 12345678//javaString str = &quot;ruben&quot;;String[] array = str.split(&quot;&quot;);for (String s : array) &#123;    System.out.println(s);&#125;str = String.join(&quot;&quot;, array);System.out.println(str);  </div></div></div></a><a class="pagination-related" href="/2024/06/01/dialog%E6%A0%87%E7%AD%BE/" title="dialog标签"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-01</div><div class="info-item-2">dialog标签</div></div><div class="info-2"><div class="info-item-1"> 懂得兜圈子，绕道而行的人，往往是第一个登上山峰的人。——佚名  今天分享一个html标签dialog &lt;dialog&gt;：对话框元素 - HTML（超文本标记语言） | MDN 这是一个2022年新增的新标签 说白了就是一个弹框 简单示例： 123456&lt;dialog open&gt;  &lt;p&gt;Greetings, one and all!&lt;/p&gt;  &lt;form method=&quot;dialog&quot;&gt;    &lt;button&gt;OK&lt;/button&gt;  &lt;/form&gt;&lt;/dialog&gt;  我们可以对齐增加一个动画： 代码出处： Animating &lt;dialog&gt; 123456789101112131415161718192021222324&lt;!--   Transition or Animate a &lt;dialog&gt; Modal Open + closed state  Problem: The browser display:none;...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

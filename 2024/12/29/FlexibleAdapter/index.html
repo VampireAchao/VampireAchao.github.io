@@ -1,0 +1,225 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>FlexibleAdapter | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="没有不可治愈的伤痛，没有不能结束的沉沦，所有失去的，会以另一种方式归来。——约翰·肖尔斯  Github: https:&#x2F;&#x2F;github.com&#x2F;davideas&#x2F;FlexibleAdapter 最近我在开发一个Android应用时，遇到了一些关于RecyclerView的挑战。RecyclerView是Android中展示列表数据的一个非常强大的控件，但在处理复杂列表，尤其是需要支持不同类型的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FlexibleAdapter">
+<meta property="og:url" content="https://vampireachao.gitee.io/2024/12/29/FlexibleAdapter/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="没有不可治愈的伤痛，没有不能结束的沉沦，所有失去的，会以另一种方式归来。——约翰·肖尔斯  Github: https:&#x2F;&#x2F;github.com&#x2F;davideas&#x2F;FlexibleAdapter 最近我在开发一个Android应用时，遇到了一些关于RecyclerView的挑战。RecyclerView是Android中展示列表数据的一个非常强大的控件，但在处理复杂列表，尤其是需要支持不同类型的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2024-12-29T04:15:37.000Z">
+<meta property="article:modified_time" content="2026-02-22T18:55:32.393Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "FlexibleAdapter",
+  "url": "https://vampireachao.gitee.io/2024/12/29/FlexibleAdapter/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2024-12-29T04:15:37.000Z",
+  "dateModified": "2026-02-22T18:55:32.393Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2024/12/29/FlexibleAdapter/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'FlexibleAdapter',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">FlexibleAdapter</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">FlexibleAdapter</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-12-29T04:15:37.000Z" title="发表于 2024-12-29 12:15:37">2024-12-29</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-22T18:55:32.393Z" title="更新于 2026-02-23 02:55:32">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>没有不可治愈的伤痛，没有不能结束的沉沦，所有失去的，会以另一种方式归来。——约翰·肖尔斯</p>
+</blockquote>
+<p>Github: <a target="_blank" rel="noopener" href="https://github.com/davideas/FlexibleAdapter">https://github.com/davideas/FlexibleAdapter</a></p>
+<p>最近我在开发一个Android应用时，遇到了一些关于RecyclerView的挑战。RecyclerView是Android中展示列表数据的一个非常强大的控件，但在处理复杂列表，尤其是需要支持不同类型的视图、拖拽、排序等操作时，RecyclerView的实现就变得比较复杂。这时，我发现了一个很有用的开源库——FlexibleAdapter，它提供了一个更灵活和简化的方式来处理这些复杂的需求。</p>
+<p>FlexibleAdapter是一个为RecyclerView提供更加灵活的适配器，它支持动态的多类型视图、拖拽、滑动删除等功能。它的设计理念是让开发者能更快速地实现复杂的RecyclerView布局，而不需要大量的冗余代码。</p>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>FlexibleAdapter的安装方式非常简单。你只需要在你的<code>build.gradle</code>文件中添加以下依赖：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">implementation <span class="string">&#x27;eu.davidea:flexible-adapter:5.0.0&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>确保你的项目已经配置了合适的<code>minSdkVersion</code>（至少为16），然后同步你的Gradle文件，依赖就会被正确添加。</p>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>FlexibleAdapter的使用比起传统的RecyclerView要简单许多。以下是一个基本的使用示例：</p>
+<ol>
+<li><p><strong>定义数据模型</strong><br>和传统的RecyclerView一样，你需要定义一个数据模型。FlexibleAdapter支持多种数据类型，并且可以非常方便地在同一个RecyclerView中显示多个类型的视图。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyItem</span> <span class="keyword">extends</span> <span class="title class_">AbstractFlexibleItem</span>&lt;MyItem.MyViewHolder&gt; &#123;</span><br><span class="line">   <span class="comment">// 数据和视图的绑定</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>创建适配器并设置给RecyclerView</strong><br>创建一个FlexibleAdapter的实例，并将数据源传递给它。你可以通过<code>setItems()</code>方法传递数据集。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">FlexibleAdapter&lt;MyItem&gt; adapter = <span class="keyword">new</span> <span class="title class_">FlexibleAdapter</span>&lt;&gt;(items);</span><br><span class="line">recyclerView.setAdapter(adapter);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>配置ViewHolder</strong><br><code>AbstractFlexibleItem</code>是FlexibleAdapter的基础类，每个自定义的item都需要继承它并实现<code>bindViewHolder()</code>方法来绑定数据。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyViewHolder</span> <span class="keyword">extends</span> <span class="title class_">FlexibleViewHolder</span> &#123;</span><br><span class="line">   <span class="keyword">public</span> <span class="title function_">MyViewHolder</span><span class="params">(View view, FlexibleAdapter adapter)</span> &#123;</span><br><span class="line">       <span class="built_in">super</span>(view, adapter);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">bindViewHolder</span><span class="params">(Context context, MyItem item, List payloads)</span> &#123;</span><br><span class="line">       <span class="comment">// 绑定数据到视图</span></span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>设置布局管理器</strong><br>FlexibleAdapter并不强制要求特定的布局管理器，开发者依然可以根据需要选择<code>LinearLayoutManager</code>、<code>GridLayoutManager</code>等布局管理器。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">recyclerView.setLayoutManager(<span class="keyword">new</span> <span class="title class_">LinearLayoutManager</span>(<span class="built_in">this</span>));</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>启用其他功能</strong><br>FlexibleAdapter支持很多附加功能，比如拖动排序、滑动删除、选择功能等。启用这些功能非常简单。例如，要启用拖拽排序功能，只需：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ItemTouchHelper.<span class="type">Callback</span> <span class="variable">callback</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ItemTouchHelper</span>.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN,</span><br><span class="line">       ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) &#123;</span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">onMove</span><span class="params">(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target)</span> &#123;</span><br><span class="line">       adapter.onItemMove(viewHolder.getAdapterPosition(), target.getAdapterPosition());</span><br><span class="line">       <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onSwiped</span><span class="params">(RecyclerView.ViewHolder viewHolder, <span class="type">int</span> direction)</span> &#123;</span><br><span class="line">       adapter.onItemDismiss(viewHolder.getAdapterPosition());</span><br><span class="line">   &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="type">ItemTouchHelper</span> <span class="variable">itemTouchHelper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ItemTouchHelper</span>(callback);</span><br><span class="line">itemTouchHelper.attachToRecyclerView(recyclerView);</span><br></pre></td></tr></table></figure>
+
+<p>这样就启用了拖动排序和滑动删除功能。</p>
+</li>
+</ol>
+<h3 id="高级用法"><a href="#高级用法" class="headerlink" title="高级用法"></a>高级用法</h3><p>FlexibleAdapter的强大之处不仅仅在于基础功能，它还提供了许多高级特性，帮助开发者在复杂场景下简化RecyclerView的使用。</p>
+<ul>
+<li><p><strong>多种视图类型</strong><br>FlexibleAdapter允许你在一个RecyclerView中展示多种不同的视图类型，支持通过不同的数据模型来绑定不同的布局，极大地提高了开发效率。</p>
+</li>
+<li><p><strong>选择模式</strong><br>FlexibleAdapter内置了选择功能，支持单选、多选和批量操作模式。你可以轻松地在RecyclerView中实现选择操作，并对选择的项进行相应的操作。</p>
+</li>
+<li><p><strong>动画效果</strong><br>FlexibleAdapter支持条目的增、删、更新时的动画效果，能够平滑地处理列表数据的变化，提升用户体验。</p>
+</li>
+<li><p><strong>数据变更通知</strong><br>和传统的RecyclerView.Adapter一样，FlexibleAdapter支持数据源的变化通知。你可以使用<code>notifyItemInserted()</code>、<code>notifyItemRemoved()</code>等方法来刷新数据。</p>
+</li>
+<li><p><strong>视图绑定</strong><br>FlexibleAdapter为你提供了更方便的视图绑定方式，减少了代码量，提升了代码的可读性。你可以通过简单的API来绑定视图、更新UI。</p>
+</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>FlexibleAdapter极大地简化了RecyclerView的实现，提供了多种便利的功能，尤其适合需要复杂操作和灵活布局的场景。如果你在开发中需要使用RecyclerView，并且想要一个更方便、灵活的解决方案，FlexibleAdapter无疑是一个非常值得尝试的工具。</p>
+<p>它不仅可以帮助你减少大量样板代码，还能提供更高效的开发体验。无论是简单的列表，还是复杂的多类型视图和交互功能，FlexibleAdapter都能帮助你轻松应对，是RecyclerView开发者的一个好帮手。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/12/30/DeepSeek-V3/" title="DeepSeek-V3"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">DeepSeek-V3</div></div><div class="info-2"><div class="info-item-1"> 希望你可以记住我，记住我这样活过，这样在你身边呆过。——《挪威的森林》  Github: https://github.com/deepseek-ai/DeepSeek-V3 最近在研究AI驱动的搜索引擎时，发现了一个非常有潜力的开源项目——DeepSeek-V3。它是由DeepSeek团队开发的一款基于深度学习的下一代智能搜索框架，旨在为多模态搜索（文本、图像、音频等）提供高效、精准的解决方案。DeepSeek-V3不仅支持传统的文本检索，还能通过深度学习模型实现跨模态搜索，广泛应用于企业知识库、内容推荐和数据挖掘等领域。 项目特点 多模态搜索DeepSeek-V3 能够处理文本、图像、音频等多种数据类型，实现跨模态检索。比如，你可以用一张图片查询相关的文本，或者用一个音频文件搜索相关的图像。  深度学习驱动项目采用了最先进的深度学习模型，支持Transformer架构（如BERT、ViT、CLIP等），在检索精度和速度上有显著提升。  可扩展性DeepSeek-V3 提供了模块化设计，方便用户根据自己的需求添加或替换模型。同时支持分布式部署，可以扩展到海量数据场景。  开源...</div></div></div></a><a class="pagination-related" href="/2024/12/28/n8n/" title="n8n"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">n8n</div></div><div class="info-2"><div class="info-item-1"> 人活一生，值得爱的东西很多，不要因为一个不满意，就灰心。——路遥  Github: https://github.com/n8n-io/n8n官网: https://n8n.io/ 最近在探索工作流自动化时，我发现了一个非常有趣的开源工具——n8n。它是一个低代码（Low-Code）工作流自动化平台，可以帮助开发者和业务人员以非常简单的方式创建自动化流程，连接不同的应用程序和服务。n8n的设计理念是为了让复杂的工作流变得简单易用，同时也支持高度的自定义，非常适合需要快速集成多个系统的场景。 n8n的特点非常突出。首先，它是完全开源的，你可以自由地修改和扩展它的功能。其次，n8n支持几乎所有主流的API和服务，比如Google Sheets、Slack、GitHub、AWS、Twitter等。对于每个服务，n8n都有一个内置的节点（Node），用户只需要简单地配置这些节点，就可以实现系统间的数据交换和自动化操作。 n8n的界面非常直观，提供了一个可视化的工作流编辑器，可以通过拖拽的方式连接不同的节点来定义工作流。对于不熟悉编程的用户来说，这种方式非常友好；而对于开发者，n8n也提...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2023/01/12/jackson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E8%8E%B7%E5%8F%96%E7%B1%BB%E5%9E%8B/" title="jackson反序列化器获取类型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-12</div><div class="info-item-2">jackson反序列化器获取类型</div></div><div class="info-2"><div class="info-item-1"> 不要用陌生人的目光来看你所爱的人，也不要认为自己做出了牺牲——贝·列昂尼多娃  例如这里使用hutool的EnumUtil.getEnumAt传入枚举的ordinal，以及枚举类型，获取到具体的枚举常量值 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106import cn.hutool.core.util.EnumUtil;import com.fasterxml.jackson.core.JsonParser;import com.fasterxml.jackson.databind.*;import com.fasterxml.jackson.databind.deser.ContextualDeserial...</div></div></div></a><a class="pagination-related" href="/2023/11/22/spring-bean%E9%94%80%E6%AF%81/" title="spring bean销毁"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-22</div><div class="info-item-2">spring bean销毁</div></div><div class="info-2"><div class="info-item-1"> 天才只可以体会，但绝不能模仿。——狄德罗  对于spring bean销毁，可以使用两种方式： 1.实现org.springframework.beans.factory.DisposableBean接口，重写destroy方法 2.添加jakarta.annotation.PreDestroy注解 但是要注意，例如我这里的代码： 123456789101112131415161718192021222324252627282930313233343536import io.agora.rtm.RtmClient;import jakarta.annotation.PreDestroy;import jakarta.annotation.Resource;import lombok.extern.slf4j.Slf4j;import org.springframework.boot.context.properties.EnableConfigurationProperties;import org.springframework.context.annotation.Bean...</div></div></div></a><a class="pagination-related" href="/2021/06/16/%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E7%B1%BB%E6%98%AF%E5%90%A6%E5%8F%A6%E4%B8%80%E4%B8%AA%E7%B1%BB%E7%9A%84%E7%88%B6%E7%B1%BB/" title="判断一个类是否另一个类的父类"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-16</div><div class="info-item-2">判断一个类是否另一个类的父类</div></div><div class="info-2"><div class="info-item-1"> 任何教育都比不上灾难的教育。——英狄斯雷利  代码很简单 我们调用Class中isAssignableFrom函数来判断左边的类是否参数中这个类的超类（父类） 123456System.out.println(Collection.class.isAssignableFrom(List.class));System.out.println(Collection.class.isAssignableFrom(ArrayList.class));System.out.println(Collection.class.isAssignableFrom(Set.class));System.out.println(Collection.class.isAssignableFrom(HashSet.class));System.out.println(Collection.class.isAssignableFrom(Map.class));System.out.println(Collection.class.isAssignableFrom(HashMap.class));  打印结...</div></div></div></a><a class="pagination-related" href="/2022/09/28/springboot%E5%8A%A8%E6%80%81%E9%85%8D%E7%BD%AE/" title="springboot动态配置"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-28</div><div class="info-item-2">springboot动态配置</div></div><div class="info-2"><div class="info-item-1"> 耐心和持久胜过激烈和狂热——拉封丹  分享一个springboot动态配置框架：https://github.com/Code2Life/spring-boot-dynamic-config  在一些场景下可以用到热更新配置 轻量方便，简单好用 GAV 12345&lt;dependency&gt;    &lt;groupId&gt;top.code2life&lt;/groupId&gt;   &lt;artifactId&gt;spring-boot-dynamic-config&lt;/artifactId&gt;   &lt;version&gt;1.0.9&lt;/version&gt;&lt;/dependency&gt;  添加注解：@DynamicConfig 以及@Value 1234567891011121314151617181920212223242526272829303132333435import lombok.Data;import org.springframework.beans.factory.annotation.Value;impor...</div></div></div></a><a class="pagination-related" href="/2023/02/21/lombok%E7%9A%84val/" title="lombok的val"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-21</div><div class="info-item-2">lombok的val</div></div><div class="info-2"><div class="info-item-1"> 满足是发明创造的窒息物——佚名  kt中的val让我用的爱不释手，不用重复定义一个又一个类型，编译器会自动推导 今天遇到一个情况，我们知道把java代码粘贴到kt文件里，idea会自动转换java为kt 但反过来将kt代码粘贴到java文件里则不会，原来的val，现在还是val 这时候可以使用lombok的val：https://projectlombok.org/features/val  例如下面的代码会被编译为合适的类型： 12345678910111213141516171819202122import java.util.ArrayList;import java.util.HashMap;import lombok.val;public class ValExample &#123;  public String example() &#123;    val example = new ArrayList&lt;String&gt;();    example.add(&quot;Hello, World!&quot;);    val foo = example...</div></div></div></a><a class="pagination-related" href="/2020/08/08/%E8%BF%81%E7%A7%BBspring%E9%A1%B9%E7%9B%AE%E5%88%B0springboot/" title="迁移spring项目到springboot"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-08</div><div class="info-item-2">迁移spring项目到springboot</div></div><div class="info-2"><div class="info-item-1">嗨呀！今天是周六没上班，来把我们的spring+springmvc项目迁移到springboot吧！ 首先创建springboot项目   然后一直下一步，复制我的pom 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85"><span class="toc-number">1.</span> <span class="toc-text">安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95"><span class="toc-number">3.</span> <span class="toc-text">高级用法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

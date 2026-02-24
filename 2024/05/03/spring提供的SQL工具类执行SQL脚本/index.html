@@ -1,0 +1,188 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>spring提供的SQL工具类执行SQL脚本 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="方向是比速度更重要的追求。——白岩松  这里主要是用到了org.springframework.jdbc.datasource.init.ScriptUtils#executeSqlScript(java.sql.Connection, org.springframework.core.io.Resource)方法 例如 123456    @BeforeAllstatic void setup">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring提供的SQL工具类执行SQL脚本">
+<meta property="og:url" content="https://vampireachao.gitee.io/2024/05/03/spring%E6%8F%90%E4%BE%9B%E7%9A%84SQL%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%89%A7%E8%A1%8CSQL%E8%84%9A%E6%9C%AC/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="方向是比速度更重要的追求。——白岩松  这里主要是用到了org.springframework.jdbc.datasource.init.ScriptUtils#executeSqlScript(java.sql.Connection, org.springframework.core.io.Resource)方法 例如 123456    @BeforeAllstatic void setup">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.gitee.io/img/head.png">
+<meta property="article:published_time" content="2024-05-03T13:54:53.000Z">
+<meta property="article:modified_time" content="2026-02-22T18:55:32.511Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.gitee.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "spring提供的SQL工具类执行SQL脚本",
+  "url": "https://vampireachao.gitee.io/2024/05/03/spring%E6%8F%90%E4%BE%9B%E7%9A%84SQL%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%89%A7%E8%A1%8CSQL%E8%84%9A%E6%9C%AC/",
+  "image": "https://vampireachao.gitee.io/img/head.png",
+  "datePublished": "2024-05-03T13:54:53.000Z",
+  "dateModified": "2026-02-22T18:55:32.511Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.gitee.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.gitee.io/2024/05/03/spring%E6%8F%90%E4%BE%9B%E7%9A%84SQL%E5%B7%A5%E5%85%B7%E7%B1%BB%E6%89%A7%E8%A1%8CSQL%E8%84%9A%E6%9C%AC/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'spring提供的SQL工具类执行SQL脚本',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">spring提供的SQL工具类执行SQL脚本</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">spring提供的SQL工具类执行SQL脚本</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-05-03T13:54:53.000Z" title="发表于 2024-05-03 21:54:53">2024-05-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-22T18:55:32.511Z" title="更新于 2026-02-23 02:55:32">2026-02-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>方向是比速度更重要的追求。——白岩松</p>
+</blockquote>
+<p>这里主要是用到了<code>org.springframework.jdbc.datasource.init.ScriptUtils#executeSqlScript(java.sql.Connection, org.springframework.core.io.Resource)</code>方法</p>
+<p>例如</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">    <span class="meta">@BeforeAll</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">setup</span><span class="params">(<span class="meta">@Autowired</span> DataSource dataSource)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">    <span class="type">JdbcTemplate</span> <span class="variable">jdbcTemplate</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JdbcTemplate</span>(dataSource);</span><br><span class="line">    assertNotNull(jdbcTemplate.getDataSource());</span><br><span class="line">    ScriptUtils.executeSqlScript(jdbcTemplate.getDataSource().getConnection(), <span class="keyword">new</span> <span class="title class_">ClassPathResource</span>(<span class="string">&quot;init.sql&quot;</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样的话就可以使用<code>resources</code>目录下的<code>init.sql</code></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/05/04/%E6%9C%AA%E6%9D%A5%E6%88%96%E5%B0%86%E7%94%A8Markdown%E5%86%99JavaDoc/" title="未来或将用Markdown写JavaDoc"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">未来或将用Markdown写JavaDoc</div></div><div class="info-2"><div class="info-item-1"> 当囊空如洗时才开始节约的话，那就为时太晚了。——塞内加  提案链接：JEP 467: Markdown Documentation Comments 1995 年的 HTML 写 JavaDoc 到现在已经快过时啦，于是 Jonathan Gibbons 提议用 Markdown 写 JavaDoc。目前这个提议在“Proposed to Target”状态，根据社区反响，这个提议很大概率能在 Java SE 23 版本中发布。 新的文档注释将使用 /// 而不是传统的 /** ... */。这样做的好处是：  避免了在文档注释中使用传统注释（如 /*...*/）可能引发的问题。 消除了使用星号的传统注释可能带来的 Markdown 语法冲突。  下面的 JavaDoc 和 Markdown 版本的文档注释对比。 JavaDoc 版本: 1234567/** * Returns a hash code value for the object. This method is * supported for the benefit of hash tables such as t...</div></div></div></a><a class="pagination-related" href="/2024/05/02/android%E4%B8%ADUseCompoundDrawables%E8%AD%A6%E5%91%8A/" title="android中UseCompoundDrawables警告"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">android中UseCompoundDrawables警告</div></div><div class="info-2"><div class="info-item-1"> 促使一个人值得信任的唯一方式就是信任他。——史汀生  在Android开发中，如果你看到 UseCompoundDrawables 这类的提示或警告，它通常来自于Android Lint工具，这是一种代码质量检测工具，用于指出可以优化的代码实践。UseCompoundDrawables 警告提示你可以使用 TextView 的 compound drawables 功能，而不是在布局中单独使用一个 ImageView 和 TextView。 TextView 提供了一种方式来直接在文本周围放置图标（上、下、左、右），这可以通过在TextView中使用 android:drawableLeft、android:drawableRight、android:drawableTop 或 android:drawableBottom 属性来实现。使用这种方式比起分别放置 ImageView 和 TextView 更有效率，因为它减少了布局层次结构的复杂性，并且可以提升渲染性能。 假设你有一个 TextView 和一个图标显示性别，而你当前是这样布置的： 12345678910111213...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2021/04/27/SneakyThrows/" title="@SneakyThrows"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-04-27</div><div class="info-item-2">@SneakyThrows</div></div><div class="info-2"><div class="info-item-1"> 好的木材并不在顺境中生长；风越强，树越壮。——（英）马里欧特  我们有时候会把一些受检异常try catch掉 例如   但我们每次都这么写 12345try &#123;    String encode = URLEncoder.encode(&quot;阿巴阿巴阿巴阿巴&quot;, &quot;UTF-8&quot;);&#125; catch (UnsupportedEncodingException e) &#123;    e.printStackTrace();&#125;  会导致代码很臃肿 如果我们使用了lombok 可以直接在方法上加个@SneakyThrows注解  简洁多了 </div></div></div></a><a class="pagination-related" href="/2023/03/10/mybatis%E4%B8%AD-MapKey/" title="mybatis中@MapKey"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-03-10</div><div class="info-item-2">mybatis中@MapKey</div></div><div class="info-2"><div class="info-item-1"> 和睦的家庭空气是世上的一种花朵，没有东西比它更温柔，没有东西比它更适宜于把一家人的天性培养得坚强正直。——德莱塞  继续分享mybatis的知识点： @MapKey注解：org.apache.ibatis.annotations.MapKey 123@MapKey(&quot;id&quot;)@Select(&quot;SELECT * FROM user_info&quot;)Map&lt;Long, UserInfo&gt; selectIdUserMap();  得到：Map&lt;ID, 用户&gt;  非常的简单 </div></div></div></a><a class="pagination-related" href="/2022/09/13/mysql%E5%8D%95%E6%9D%A1sql%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E5%B0%81%E8%A3%85/" title="mysql单条sql批量更新封装"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-13</div><div class="info-item-2">mysql单条sql批量更新封装</div></div><div class="info-2"><div class="info-item-1"> 要成就大事业，就要趁青年时代——歌德  之前写了：mysql单条sql批量新增封装 现在写个批量更新的，源码地址 目前还不支持乐观锁，主要代码如下： 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586package io.github.vampireachao.stream.plugin.mybatisplus.engine.methods;import com.baomidou.mybatisplus.core.injector.AbstractMethod;import com.baomidou.mybatisplus.core.metadata.TableInfo;import com.baomidou.mybatisplus.core.toolkit.sql.SqlScriptUtils;impor...</div></div></div></a><a class="pagination-related" href="/2023/08/01/windows%E6%96%87%E4%BB%B6%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86%E5%99%A8%E6%8E%92%E5%BA%8F/" title="windows文件资源管理器排序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-01</div><div class="info-item-2">windows文件资源管理器排序</div></div><div class="info-2"><div class="info-item-1"> 单独一个人可以灭亡的地方，两个人在一起可能得救。——巴尔扎克  今天做一个需求：按照windows文件资源管理器的排序规则进行文件排序 但我在研究过程中，发现了一丝不妙，这玩意儿的规则比我想的复杂 自己之前写了一版 js文件名排序 | 阿超 但是感觉不特别满意，于是到处去搜了搜 发现微软的vscode的一个相关的issue，指出文件资源管理器和vscode中的排序发生了不一致 https://github.com/microsoft/vscode/issues/27759 然后我大概找到了vscode里的文件名排序js源码： https://github.com/microsoft/vscode/blob/main/src/vs/base/common/comparers.ts#L157 感觉还行，但我又发现一位朋友曾经写过的java版本的，就直接拿来用了 https://github.com/kookob/windows-filename-sort 效果还不错，勉强满足了需求hh </div></div></div></a><a class="pagination-related" href="/2024/08/29/jps%E3%80%81jstack%E6%9F%A5%E7%9C%8Bjava%E5%A0%86%E6%A0%88%E4%BF%A1%E6%81%AF/" title="jps、jstack查看java堆栈信息"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-29</div><div class="info-item-2">jps、jstack查看java堆栈信息</div></div><div class="info-2"><div class="info-item-1"> 宿命论是那些缺乏意志力的弱者的借口。——罗曼·罗兰  jps查看进程信息命令如下： 12345678Github-Id-VampireAchao:shenyu achao$ jps -l27312 jdk.jcmd/sun.tools.jps.Jps88929 27268 org.jetbrains.jps.cmdline.Launcher27269 org.apache.shenyu.examples.http.ShenyuTestSwaggerApplication19815 com.intellij.idea.Main27175 org.jetbrains.idea.maven.server.RemoteMavenServer3624237 org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli  然后用jstack查看堆栈信息： 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484...</div></div></div></a><a class="pagination-related" href="/2024/02/27/%E5%8D%81%E4%BA%8C%E6%97%B6%E8%BE%B0%E4%B8%8E%E7%8E%B0%E4%BB%A3%E6%97%B6%E9%97%B4%E7%9A%84%E4%BA%92%E8%BD%AC%EF%BC%88%E7%B2%BE%E7%A1%AE%E7%89%88%EF%BC%89/" title="十二时辰与现代时间的互转（精确版）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-27</div><div class="info-item-2">十二时辰与现代时间的互转（精确版）</div></div><div class="info-2"><div class="info-item-1"> 内抑怒气，外制愠色，处世待人，心平气和。——圣德太子  最新版优化了一版，支持了  宋以后把十二时辰中每个时辰平分为初、正两部分，这样，子初、子正、丑初、丑正……依次下去，恰为二十四时辰，同现在一天二十四小时时间一致  hutool-core&#x2F;src&#x2F;main&#x2F;java&#x2F;org&#x2F;dromara&#x2F;hutool&#x2F;core&#x2F;date&#x2F;chinese&#x2F;ShiChen.java · dromara&#x2F;hutool - Gitee.com 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889909192939495969798991001011021031041051061071081091101111...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2098</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/24/ggml/" title="ggml">ggml</a><time datetime="2026-02-24T02:45:21.000Z" title="发表于 2026-02-24 10:45:21">2026-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/23/FossFLOW/" title="FossFLOW">FossFLOW</a><time datetime="2026-02-22T19:21:55.000Z" title="发表于 2026-02-23 03:21:55">2026-02-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/22/pentagi/" title="pentagi">pentagi</a><time datetime="2026-02-22T15:33:21.000Z" title="发表于 2026-02-22 23:33:21">2026-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/21/seerr/" title="seerr">seerr</a><time datetime="2026-02-21T11:11:52.000Z" title="发表于 2026-02-21 19:11:52">2026-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/02/20/wifi-densepose/" title="wifi-densepose">wifi-densepose</a><time datetime="2026-02-19T16:10:14.000Z" title="发表于 2026-02-20 00:10:14">2026-02-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
