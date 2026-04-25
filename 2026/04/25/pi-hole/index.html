@@ -1,0 +1,305 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>pi-hole | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="读书是学习，摘抄是整理，写作是创造。——吴晗  Pi-hole：一位把广告“吸进黑洞”的网络守门人 A black hole for Internet advertisements——Pi-hole 的自我介绍（repo description）  如果你的网络是一座城市，那么 DNS 就是城市里的“问路台”：每一次打开网页、每一次 App 刷新、每一次智能电视想偷偷连上广告服务器，都会跑去问它">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pi-hole">
+<meta property="og:url" content="https://vampireachao.github.io/2026/04/25/pi-hole/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="读书是学习，摘抄是整理，写作是创造。——吴晗  Pi-hole：一位把广告“吸进黑洞”的网络守门人 A black hole for Internet advertisements——Pi-hole 的自我介绍（repo description）  如果你的网络是一座城市，那么 DNS 就是城市里的“问路台”：每一次打开网页、每一次 App 刷新、每一次智能电视想偷偷连上广告服务器，都会跑去问它">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.github.io/img/head.png">
+<meta property="article:published_time" content="2026-04-25T14:58:43.000Z">
+<meta property="article:modified_time" content="2026-04-25T14:59:39.456Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="软件及插件">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.github.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "pi-hole",
+  "url": "https://vampireachao.github.io/2026/04/25/pi-hole/",
+  "image": "https://vampireachao.github.io/img/head.png",
+  "datePublished": "2026-04-25T14:58:43.000Z",
+  "dateModified": "2026-04-25T14:59:39.456Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.github.io/2026/04/25/pi-hole/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'pi-hole',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2158</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top_img.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">pi-hole</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">pi-hole</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-25T14:58:43.000Z" title="发表于 2026-04-25 22:58:43">2026-04-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-25T14:59:39.456Z" title="更新于 2026-04-25 22:59:39">2026-04-25</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>读书是学习，摘抄是整理，写作是创造。——吴晗</p>
+</blockquote>
+<h1 id="Pi-hole：一位把广告“吸进黑洞”的网络守门人"><a href="#Pi-hole：一位把广告“吸进黑洞”的网络守门人" class="headerlink" title="Pi-hole：一位把广告“吸进黑洞”的网络守门人"></a>Pi-hole：一位把广告“吸进黑洞”的网络守门人</h1><blockquote>
+<p><strong>A black hole for Internet advertisements</strong><br>——Pi-hole 的自我介绍（repo description）</p>
+</blockquote>
+<p>如果你的网络是一座城市，那么 DNS 就是城市里的“问路台”：每一次打开网页、每一次 App 刷新、每一次智能电视想偷偷连上广告服务器，都会跑去问它一句：<br>“这个域名在哪里？”</p>
+<p>而 <strong>Pi-hole®</strong> 更像一位站在问路台旁边、披着斗篷的“城市守门人”。它不是装在某个浏览器里的小插件，也不靠挨个设备安装客户端软件——它直接守在网络入口，用一个简单却坚决的动作把不受欢迎的内容拦下：<br><strong>“你，别进来。”</strong></p>
+<p>Pi-hole® 是一个 <strong>DNS sinkhole</strong>：<br>它把那些讨厌的广告、追踪、乱七八糟的请求，像丢进深井一样丢进“黑洞”里，让它们再也到不了你家的任何设备。</p>
+<hr>
+<h2 id="它是谁？它怎么保护你？"><a href="#它是谁？它怎么保护你？" class="headerlink" title="它是谁？它怎么保护你？"></a>它是谁？它怎么保护你？</h2><p>Pi-hole® 有点像一位性格极其靠谱的“管家”，而且还是那种不爱废话、做事麻利的类型：</p>
+<ul>
+<li><strong>Easy-to-install</strong>：它会用一套对话式的安装流程带你走，<strong>十分钟以内</strong>就能安好  </li>
+<li><strong>Resolute</strong>：它不只盯浏览器——<strong>移动 App、智能电视</strong>这些“广告藏身处”，它也管  </li>
+<li><strong>Responsive</strong>：它会缓存 DNS 查询，让日常浏览的体感更顺滑  </li>
+<li><strong>Lightweight</strong>：对硬件和软件要求克制，跑起来很轻  </li>
+<li><strong>Robust</strong>：它的命令行工具经过质量保证，讲究互操作性  </li>
+<li><strong>Insightful</strong>：它的 Web 仪表盘像一面镜子，把网络里发生的一切展示给你  </li>
+<li><strong>Versatile</strong>：必要时它还能当 <strong>DHCP server</strong>，让更多设备自动听它的话  </li>
+<li><strong>Scalable</strong>：在合适的硬件上，它甚至能扛住<strong>数以亿计</strong>的查询  </li>
+<li><strong>Modern</strong>：IPv4、IPv6 都照顾到  </li>
+<li><strong>Free</strong>：开源、免费，并且强调——<strong>由你掌控隐私</strong></li>
+</ul>
+<p>它的姿态很明确：<br><strong>你才是你家网络的主人。</strong></p>
+<hr>
+<h2 id="一键召唤：One-Step-Automated-Install"><a href="#一键召唤：One-Step-Automated-Install" class="headerlink" title="一键召唤：One-Step Automated Install"></a>一键召唤：One-Step Automated Install</h2><p>Pi-hole 对“快速上手”这件事很上心。它会把斗篷一甩，说：<br>“给我一条命令，我就到你家网络门口站岗。”</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -sSL https://install.pi-hole.net | bash</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="另一种更“谨慎”的相处方式：Alternative-Install-Methods"><a href="#另一种更“谨慎”的相处方式：Alternative-Install-Methods" class="headerlink" title="另一种更“谨慎”的相处方式：Alternative Install Methods"></a>另一种更“谨慎”的相处方式：Alternative Install Methods</h2><p>Pi-hole 也很坦诚：把脚本直接 pipe 给 <code>bash</code> 这件事，在江湖上是有争议的——因为你在运行之前，可能没来得及仔细读将要执行的代码。</p>
+<p>所以它贴心地准备了几种替代方案，让你用更踏实的方式把它请进家里。</p>
+<h3 id="Method-1：Clone-仓库并运行"><a href="#Method-1：Clone-仓库并运行" class="headerlink" title="Method 1：Clone 仓库并运行"></a>Method 1：Clone 仓库并运行</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --depth 1 https://github.com/pi-hole/pi-hole.git Pi-hole</span><br><span class="line"><span class="built_in">cd</span> <span class="string">&quot;Pi-hole/automated install/&quot;</span></span><br><span class="line"><span class="built_in">sudo</span> bash basic-install.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="Method-2：手动下载安装脚本并运行"><a href="#Method-2：手动下载安装脚本并运行" class="headerlink" title="Method 2：手动下载安装脚本并运行"></a>Method 2：手动下载安装脚本并运行</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget -O basic-install.sh https://install.pi-hole.net</span><br><span class="line"><span class="built_in">sudo</span> bash basic-install.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="Method-3：Docker-部署"><a href="#Method-3：Docker-部署" class="headerlink" title="Method 3：Docker 部署"></a>Method 3：Docker 部署</h3><p>Pi-hole 也懂现代人的生活节奏：如果你更喜欢容器化的边界感，请去官方 Docker 镜像仓库：<br><a target="_blank" rel="noopener" href="https://github.com/pi-hole/docker-pi-hole">https://github.com/pi-hole/docker-pi-hole</a></p>
+<hr>
+<h2 id="装好之后：让整个网络都听它的"><a href="#装好之后：让整个网络都听它的" class="headerlink" title="装好之后：让整个网络都听它的"></a>装好之后：让整个网络都听它的</h2><p>Pi-hole 安装完成，并不等于它立刻能“护全家周全”。它站在那儿会提醒你接下来关键的一步：</p>
+<p>你需要让网络里的设备在“问路（DNS）”时来找 Pi-hole。</p>
+<ul>
+<li>最推荐：<strong>配置路由器</strong>，让 <strong>DHCP clients 使用 Pi-hole 作为 DNS server</strong></li>
+<li>如果路由器不支持设置 DNS：你可以启��� Pi-hole 内置的 <strong>DHCP server</strong></li>
+<li>最后的最后：手动在每台设备上设置 DNS 指向 Pi-hole</li>
+</ul>
+<p>它不是强迫你，它只是很认真地说：<br>“把门钥匙交给我，我才能守得住。”</p>
+<hr>
+<h2 id="它不只是黑洞：它还是一台“更快-than-light”的引擎"><a href="#它不只是黑洞：它还是一台“更快-than-light”的引擎" class="headerlink" title="它不只是黑洞：它还是一台“更快-than-light”的引擎"></a>它不只是黑洞：它还是一台“更快-than-light”的引擎</h2><p>Pi-hole 的内心里藏着一颗引擎——<strong>Faster-than-light Engine</strong>。<br>那是 <strong>FTLDNS &#x2F; FTL</strong>：一个轻量、专用的守护进程，为 Web 界面提供统计信息；同时，它的 API 也能让你把这些能力整合进你自己的项目里。</p>
+<p>它能告诉你很多“网络日常小秘密”，比如：</p>
+<ul>
+<li>被拦截的域名总数  </li>
+<li>今天一共来了多少 DNS 查询  </li>
+<li>今天挡下了多少广告  </li>
+<li>广告拦截占比  </li>
+<li>唯一域名、唯一客户端  </li>
+<li>查询是转发给上游 DNS 的，还是命中了缓存  </li>
+<li>……等等</li>
+</ul>
+<h3 id="API-怎么看？"><a href="#API-怎么看？" class="headerlink" title="API 怎么看？"></a>API 怎么看？</h3><p>它很大方，直接把门牌号写出来：</p>
+<ul>
+<li>浏览器：<code>http://pi.hole/api/docs</code></li>
+</ul>
+<p>也可以用 <code>curl</code> 去敲门（它会很快给你回应）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl --connect-timeout 2 -ks <span class="string">&quot;https://pi.hole/api/stats/summary&quot;</span> -H <span class="string">&quot;Accept: application/json&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>它甚至还把 API 接入到命令行里，让你像和一位助手对话一样去管理它：</p>
+<ul>
+<li><code>pihole api config/webserver/port</code>  </li>
+<li><code>pihole api stats/summary</code></li>
+</ul>
+<hr>
+<h2 id="命令行：它的“工作态度”写在每一个指令里"><a href="#命令行：它的“工作态度”写在每一个指令里" class="headerlink" title="命令行：它的“工作态度”写在每一个指令里"></a>命令行：它的“工作态度”写在每一个指令里</h2><p>Pi-hole 不爱花哨，它的 <strong>Command-Line Interface</strong> 就像一位穿着工装、袖口卷起的管理员：<br>不需要打开 Web 界面，也能把一切安排得明明白白。</p>
+<p><code>pihole</code> 命令可以完成完整管理操作，且快、对用户友好。</p>
+<p>它手里常用的工具箱里包括：</p>
+<ul>
+<li>Allowlisting &#x2F; Denylisting（以及 Regex）  </li>
+<li>Debugging utility（排障工具）  </li>
+<li>直播式看日志（tail live log）  </li>
+<li>更新广告列表（Updating Ad Lists &#x2F; gravity）  </li>
+<li>查询广告列表里哪些域名会被拦（Querying Ad Lists for blocked domains）  </li>
+<li>启用&#x2F;禁用 Pi-hole（Enable &#x2F; Disable）  </li>
+<li>……还有更多</li>
+</ul>
+<p>它像在说：<br>“你给我命令，我就给你秩序。”</p>
+<hr>
+<h2 id="Web-Interface-Dashboard：把网络“看得见”"><a href="#Web-Interface-Dashboard：把网络“看得见”" class="headerlink" title="Web Interface Dashboard：把网络“看得见”"></a>Web Interface Dashboard：把网络“看得见”</h2><p>如果说命令行是 Pi-hole 的工作台，那 <strong>Web Interface Dashboard</strong> 就是它的会客厅——可选，但一旦用上就很难回去。</p>
+<p>这个仪表盘能让你：</p>
+<ul>
+<li>在手机上也看得舒服（Mobile-friendly）  </li>
+<li>加上密码保护  </li>
+<li>看到详细图表、甜甜圈统计  </li>
+<li>看 Top 域名、Top 客户端  </li>
+<li>过滤、排序 DNS 查询日志  </li>
+<li>查看你定义时间范围内的长期统计  </li>
+<li>管理并配置 Pi-hole 的各种功能  </li>
+<li>而且它几乎拥有命令行的全部主功能，却没那么“硬核”</li>
+</ul>
+<h3 id="仪表盘怎么进？"><a href="#仪表盘怎么进？" class="headerlink" title="仪表盘怎么进？"></a>仪表盘怎么进？</h3><p>Pi-hole 把两条路都给你铺好了：</p>
+<ol>
+<li><code>http://pi.hole/admin/</code>（当你已经在用 Pi-hole 做 DNS）  </li>
+<li><code>http://&lt;IP_ADDRESS_OF_YOUR_PI_HOLE&gt;/admin/</code></li>
+</ol>
+<p>它像一位热心向导，伸手指向门口：<br>“来，进去看看你家网络今天都发生了什么。”</p>
+<hr>
+<h2 id="它是免费的，但它也需要被世界温柔对待"><a href="#它是免费的，但它也需要被世界温柔对待" class="headerlink" title="它是免费的，但它也需要被世界温柔对待"></a>它是免费的，但它也需要被世界温柔对待</h2><p>Pi-hole 很清楚自己是谁：免费、开源、重视隐私。<br>但它也很坦白：维护这样的项目有持续成本，而背后是一群志愿开发者在扛。</p>
+<p>它会很认真地说一句：<br><strong>你的支持，真的很重要。</strong></p>
+<p>你可以通过：</p>
+<ul>
+<li>Donations（捐助）  </li>
+<li>GitHub Sponsors  </li>
+<li>Patreon  </li>
+<li>以及更多方式  </li>
+<li>甚至只是把它介绍给朋友、分享你从中受益的故事</li>
+</ul>
+<hr>
+<h2 id="你也可以成为它的同伴"><a href="#你也可以成为它的同伴" class="headerlink" title="你也可以成为它的同伴"></a>你也可以成为它的同伴</h2><p>Pi-hole 不把自己当成“高冷的成品”，它更像一个仍在成长的角色。<br>它欢迎所有人参与：</p>
+<ul>
+<li>报告 issue  </li>
+<li>提建议  </li>
+<li>提交 PR</li>
+</ul>
+<p>它会说：<br>“从一个 typo 到一个新功能，我都愿意听你讲。”</p>
+<hr>
+<h2 id="结尾：把广告留在黑洞里，把清爽留在家里"><a href="#结尾：把广告留在黑洞里，把清爽留在家里" class="headerlink" title="结尾：把广告留在黑洞里，把清爽留在家里"></a>结尾：把广告留在黑洞里，把清爽留在家里</h2><p>Pi-hole® 不靠夸张的噱头，它靠站岗。<br>它站在你家网络的入口，沉默、坚定、有效：</p>
+<p>当广告想混进来时，它把对方的路标抹掉；<br>当追踪想尾随你时，它让对方找不到门；<br>当你的设备想更快得到答案时，它用缓存把体验变顺。</p>
+<p>它像一句不动声色的承诺：<br><strong>“我在，你安心用网。”</strong></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%8F%92%E4%BB%B6/">软件及插件</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/04/24/worldmonitor/" title="worldmonitor"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">worldmonitor</div></div><div class="info-2"><div class="info-item-1"> 阅读使人充实，会谈使人敏捷，写作使人精确。——培根  当世界醒着：World Monitor 的一日巡航记有些项目像工具，有些项目像伙伴。World Monitor 更像一位不睡觉的“世界值班官”——它把来自全球的风声、浪涌、交易钟声、航线尾迹、基础设施的脉搏、以及新闻的每一次眨眼，都收进同一块“态势感知”的大屏里，然后用 AI 把嘈杂变成简报，把分散变成线索，把偶然变成关联。 它在 GitHub 上的自我介绍很克制，却很锋利：  Real-time global intelligence dashboard — AI-powered news aggregation, geopolitical monitoring, and infrastructure tracking in a unified situational awareness interface.  你可以把它理解成一个会说人话、会看地图、会整理情报的“全球观察站”。它不是冷冰冰的仪表盘，它更像一位站在指挥台前的播报员：一边把地球转给你看，一边把世界的重点划出来。 项目主页：https://worldmonit...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2023/11/01/Motrix%E5%BC%80%E6%BA%90%E4%B8%8B%E8%BD%BD%E7%AE%A1%E7%90%86%E5%99%A8/" title="Motrix开源下载管理器"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-01</div><div class="info-item-2">Motrix开源下载管理器</div></div><div class="info-2"><div class="info-item-1"> 怒伤肝，思伤脾，忧伤肺，恐伤肾。——佚名  官网： https://motrix.app/ 源码： https://github.com/agalwood/Motrix chrome插件： https://github.com/gautamkrishnar/motrix-webextension 前两天用XCode下载IOS模拟器半天都下载不下来，之后去官网下，也老断开，最后用这个下载管理器  安装完插件需要配置：   之后重启浏览器即可让Motrix接管下载 </div></div></div></a><a class="pagination-related" href="/2025/02/08/figma/" title="figma"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-08</div><div class="info-item-2">figma</div></div><div class="info-2"><div class="info-item-1"> 生活的情况越艰难，我越感到自己更坚强，甚而也更聪明。——高尔基  https://www.figma.com Figma 是我最近接触到的一款在线协作设计工具，它以浏览器为基础运行，不需要安装任何客户端，只要有网络和浏览器就能开始设计。它在产品设计、原型制作、UI&#x2F;UX 开发等领域拥有极高的用户评价，特别是在团队协作方面，几乎是当前市场上最优的解决方案之一。 相比传统的设计软件如 Sketch、Adobe XD 等，Figma 最大的优势在于它支持实时协作。多个设计师或开发人员可以同时在同一个项目中操作，类似于 Google Docs 的多人协作编辑功能。你可以直接看到其他团队成员的光标和实时改动，这对于跨部门、跨地区的团队协作来说简直是神器。产品经理、设计师、开发人员可以同步查看和讨论设计方案，再也不用反复导出和分享设计文件。 Figma 的另一个亮点是它的云端存储和版本管理功能。每次编辑都会自动保存并生成版本历史，用户可以随时回溯到任何一个时间点的版本。这解决了本地设计工具中常见的文件丢失或版本冲突问题，不需要额外依赖云存储服务或手动备份。此外，项目文件在云端存储...</div></div></div></a><a class="pagination-related" href="/2024/02/20/idea%E6%96%B0%E7%89%88gitlab%E6%8A%A5%E9%94%99/" title="idea新版gitlab报错"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-02-20</div><div class="info-item-2">idea新版gitlab报错</div></div><div class="info-2"><div class="info-item-1"> 不欲极饥而食，食不可过饱；不与极渴而饮，引不欲过多。——孙思邈   然后解决办法： 取消勾选掉  </div></div></div></a><a class="pagination-related" href="/2023/10/21/AnotherRedisDesktopManager/" title="AnotherRedisDesktopManager"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-21</div><div class="info-item-2">AnotherRedisDesktopManager</div></div><div class="info-2"><div class="info-item-1"> 与人交，推其长者，讳其短者，故能久也。——孔子  这两天找Redis的可视化客户端，看到了这个 https://github.com/qishibo/AnotherRedisDesktopManager  感觉还可以  </div></div></div></a><a class="pagination-related" href="/2021/03/16/Momo-Code-Sec-inpoector/" title="Momo Code Sec inpoector"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-03-16</div><div class="info-item-2">Momo Code Sec inpoector</div></div><div class="info-2"><div class="info-item-1"> 凡笑者，就表现着他尚有生活的胆和力。——德懋庸  介绍个idea插件  下载后重启idea 然后可以看到我们的代码中出现了更多审查  我们可以点击一键修复  这个插件可以避免我们代码中的潜在隐患，很香啊 </div></div></div></a><a class="pagination-related" href="/2025/04/04/trace-moe/" title="trace.moe"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-04</div><div class="info-item-2">trace.moe</div></div><div class="info-2"><div class="info-item-1"> 所谓世人，不就是你吗？——太宰治《人间失格》  GitHub - soruly&#x2F;trace.moe: Anime Scene Search by Image https://trace.moe/ trace.moe：通过截图识别番剧的开源神器trace.moe 是一个开源的番剧识别服务，通过上传任意一帧截图，即可快速识别出该画面来自哪一部动画、哪一集，甚至精确到具体的时间点。其核心目标是为动漫爱好者、视频剪辑师和弹幕平台提供“以图识番”的能力。  一、项目简介trace.moe 由 @soruly 开发，提供完整的后端识别引擎、Web API 接口以及前端页面，支持本地部署和线上使用。用户可以通过网页上传截图，也可以通过 API 集成进第三方应用。 该项目已部署于 https://trace.moe，开放免费使用，也支持自行搭建私有服务。  二、核心功能 以图搜番：通过上传图片识别动画出处，返回标题、集数、时间戳、相似度等。  时间定位：输出画面在原动画中出现的时间范围，支持跳转播放。  多语言支持：返回中英日等多语种标题信息。  公开 API：适用于 Bot、插件、...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2158</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/VampireAchao"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Pi-hole%EF%BC%9A%E4%B8%80%E4%BD%8D%E6%8A%8A%E5%B9%BF%E5%91%8A%E2%80%9C%E5%90%B8%E8%BF%9B%E9%BB%91%E6%B4%9E%E2%80%9D%E7%9A%84%E7%BD%91%E7%BB%9C%E5%AE%88%E9%97%A8%E4%BA%BA"><span class="toc-number">1.</span> <span class="toc-text">Pi-hole：一位把广告“吸进黑洞”的网络守门人</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%83%E6%98%AF%E8%B0%81%EF%BC%9F%E5%AE%83%E6%80%8E%E4%B9%88%E4%BF%9D%E6%8A%A4%E4%BD%A0%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">它是谁？它怎么保护你？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E9%94%AE%E5%8F%AC%E5%94%A4%EF%BC%9AOne-Step-Automated-Install"><span class="toc-number">1.2.</span> <span class="toc-text">一键召唤：One-Step Automated Install</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%A6%E4%B8%80%E7%A7%8D%E6%9B%B4%E2%80%9C%E8%B0%A8%E6%85%8E%E2%80%9D%E7%9A%84%E7%9B%B8%E5%A4%84%E6%96%B9%E5%BC%8F%EF%BC%9AAlternative-Install-Methods"><span class="toc-number">1.3.</span> <span class="toc-text">另一种更“谨慎”的相处方式：Alternative Install Methods</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Method-1%EF%BC%9AClone-%E4%BB%93%E5%BA%93%E5%B9%B6%E8%BF%90%E8%A1%8C"><span class="toc-number">1.3.1.</span> <span class="toc-text">Method 1：Clone 仓库并运行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Method-2%EF%BC%9A%E6%89%8B%E5%8A%A8%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%AC%E5%B9%B6%E8%BF%90%E8%A1%8C"><span class="toc-number">1.3.2.</span> <span class="toc-text">Method 2：手动下载安装脚本并运行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Method-3%EF%BC%9ADocker-%E9%83%A8%E7%BD%B2"><span class="toc-number">1.3.3.</span> <span class="toc-text">Method 3：Docker 部署</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A3%85%E5%A5%BD%E4%B9%8B%E5%90%8E%EF%BC%9A%E8%AE%A9%E6%95%B4%E4%B8%AA%E7%BD%91%E7%BB%9C%E9%83%BD%E5%90%AC%E5%AE%83%E7%9A%84"><span class="toc-number">1.4.</span> <span class="toc-text">装好之后：让整个网络都听它的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%83%E4%B8%8D%E5%8F%AA%E6%98%AF%E9%BB%91%E6%B4%9E%EF%BC%9A%E5%AE%83%E8%BF%98%E6%98%AF%E4%B8%80%E5%8F%B0%E2%80%9C%E6%9B%B4%E5%BF%AB-than-light%E2%80%9D%E7%9A%84%E5%BC%95%E6%93%8E"><span class="toc-number">1.5.</span> <span class="toc-text">它不只是黑洞：它还是一台“更快-than-light”的引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#API-%E6%80%8E%E4%B9%88%E7%9C%8B%EF%BC%9F"><span class="toc-number">1.5.1.</span> <span class="toc-text">API 怎么看？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%EF%BC%9A%E5%AE%83%E7%9A%84%E2%80%9C%E5%B7%A5%E4%BD%9C%E6%80%81%E5%BA%A6%E2%80%9D%E5%86%99%E5%9C%A8%E6%AF%8F%E4%B8%80%E4%B8%AA%E6%8C%87%E4%BB%A4%E9%87%8C"><span class="toc-number">1.6.</span> <span class="toc-text">命令行：它的“工作态度”写在每一个指令里</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Web-Interface-Dashboard%EF%BC%9A%E6%8A%8A%E7%BD%91%E7%BB%9C%E2%80%9C%E7%9C%8B%E5%BE%97%E8%A7%81%E2%80%9D"><span class="toc-number">1.7.</span> <span class="toc-text">Web Interface Dashboard：把网络“看得见”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%AA%E8%A1%A8%E7%9B%98%E6%80%8E%E4%B9%88%E8%BF%9B%EF%BC%9F"><span class="toc-number">1.7.1.</span> <span class="toc-text">仪表盘怎么进？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%83%E6%98%AF%E5%85%8D%E8%B4%B9%E7%9A%84%EF%BC%8C%E4%BD%86%E5%AE%83%E4%B9%9F%E9%9C%80%E8%A6%81%E8%A2%AB%E4%B8%96%E7%95%8C%E6%B8%A9%E6%9F%94%E5%AF%B9%E5%BE%85"><span class="toc-number">1.8.</span> <span class="toc-text">它是免费的，但它也需要被世界温柔对待</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%A0%E4%B9%9F%E5%8F%AF%E4%BB%A5%E6%88%90%E4%B8%BA%E5%AE%83%E7%9A%84%E5%90%8C%E4%BC%B4"><span class="toc-number">1.9.</span> <span class="toc-text">你也可以成为它的同伴</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E5%B0%BE%EF%BC%9A%E6%8A%8A%E5%B9%BF%E5%91%8A%E7%95%99%E5%9C%A8%E9%BB%91%E6%B4%9E%E9%87%8C%EF%BC%8C%E6%8A%8A%E6%B8%85%E7%88%BD%E7%95%99%E5%9C%A8%E5%AE%B6%E9%87%8C"><span class="toc-number">1.10.</span> <span class="toc-text">结尾：把广告留在黑洞里，把清爽留在家里</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/25/pi-hole/" title="pi-hole">pi-hole</a><time datetime="2026-04-25T14:58:43.000Z" title="发表于 2026-04-25 22:58:43">2026-04-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/24/worldmonitor/" title="worldmonitor">worldmonitor</a><time datetime="2026-04-24T02:04:32.000Z" title="发表于 2026-04-24 10:04:32">2026-04-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/thunderbolt/" title="thunderbolt">thunderbolt</a><time datetime="2026-04-23T09:21:42.000Z" title="发表于 2026-04-23 17:21:42">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/22/llmonitoring/" title="llmonitoring">llmonitoring</a><time datetime="2026-04-22T02:46:00.000Z" title="发表于 2026-04-22 10:46:00">2026-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/FinceptTerminal/" title="FinceptTerminal">FinceptTerminal</a><time datetime="2026-04-21T02:25:49.000Z" title="发表于 2026-04-21 10:25:49">2026-04-21</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
