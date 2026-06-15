@@ -1,0 +1,191 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>索引操作 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一个人的礼貌是一面照出他的肖像的镜子。——歌德  自己整理的mysql对于索引操作的sql： 12345678910111213141516171819202122232425262728293031323334353637383940CREATE TABLE &#96;user&#96; (	-- 创建表时指定主键索引	&#96;id&#96; BIGINT ( 20 ) PRIMARY KEY NOT NULL COMME">
+<meta property="og:type" content="article">
+<meta property="og:title" content="索引操作">
+<meta property="og:url" content="https://vampireachao.github.io/2021/07/29/%E7%B4%A2%E5%BC%95%E6%93%8D%E4%BD%9C/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="一个人的礼貌是一面照出他的肖像的镜子。——歌德  自己整理的mysql对于索引操作的sql： 12345678910111213141516171819202122232425262728293031323334353637383940CREATE TABLE &#96;user&#96; (	-- 创建表时指定主键索引	&#96;id&#96; BIGINT ( 20 ) PRIMARY KEY NOT NULL COMME">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.github.io/img/head.png">
+<meta property="article:published_time" content="2021-07-28T16:30:22.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.680Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.github.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "索引操作",
+  "url": "https://vampireachao.github.io/2021/07/29/%E7%B4%A2%E5%BC%95%E6%93%8D%E4%BD%9C/",
+  "image": "https://vampireachao.github.io/img/head.png",
+  "datePublished": "2021-07-28T16:30:22.000Z",
+  "dateModified": "2026-02-24T09:48:42.680Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.github.io/2021/07/29/%E7%B4%A2%E5%BC%95%E6%93%8D%E4%BD%9C/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '索引操作',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top_img.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">索引操作</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">索引操作</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-07-28T16:30:22.000Z" title="发表于 2021-07-29 00:30:22">2021-07-29</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.680Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>一个人的礼貌是一面照出他的肖像的镜子。——歌德</p>
+</blockquote>
+<p>自己整理的<code>mysql</code>对于索引操作的<code>sql</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE `user` (</span><br><span class="line">	-- 创建表时指定主键索引</span><br><span class="line">	`id` BIGINT ( 20 ) PRIMARY KEY NOT NULL COMMENT &#x27;主键&#x27;,</span><br><span class="line">	`gmt_create` datetime ( 0 ) NOT NULL COMMENT &#x27;创建时间&#x27;,</span><br><span class="line">	`gmt_modified` datetime ( 0 ) NOT NULL COMMENT &#x27;修改时间&#x27;,</span><br><span class="line">	`is_delete` TINYINT ( 1 ) NOT NULL DEFAULT 0 COMMENT &#x27;逻辑删除字段&#x27;,</span><br><span class="line">	`username` VARCHAR ( 32 ) CHARACTER </span><br><span class="line">	SET utf8mb4 COLLATE utf8mb4_general_ci UNIQUE DEFAULT NULL COMMENT &#x27;用户名&#x27;,</span><br><span class="line">	`password` VARCHAR ( 32 ) CHARACTER </span><br><span class="line">	SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT &#x27;密码&#x27;,</span><br><span class="line">	`mobile` INT ( 11 ) DEFAULT NULL COMMENT &#x27;手机号&#x27;,</span><br><span class="line">	-- 创建表时顺带创建索引</span><br><span class="line">	INDEX `idx_gmt_create` ( `gmt_create` DESC ) USING BTREE COMMENT &#x27;创建日期检索索引&#x27; </span><br><span class="line">);</span><br><span class="line">-- 删除索引</span><br><span class="line">DROP INDEX `username` ON `user`;</span><br><span class="line">-- 创建唯一索引并指定长度</span><br><span class="line">CREATE UNIQUE INDEX `idx_username` USING BTREE ON `user` (`username` ( 16 ));</span><br><span class="line"></span><br><span class="line">-- 创建普通索引并指定降序</span><br><span class="line">ALTER TABLE `user` ADD INDEX `idx_gmt_modified` ( `gmt_modified` DESC ) USING BTREE COMMENT &#x27;修改日期索引&#x27;;</span><br><span class="line">-- 创建唯一索引</span><br><span class="line">ALTER TABLE `user` ADD UNIQUE `uk_mobile` ( `mobile` ) USING BTREE;</span><br><span class="line">-- 创建主键索引</span><br><span class="line">ALTER TABLE `user` ADD PRIMARY KEY `pk_username` ( `username` ) USING BTREE;</span><br><span class="line">-- 创建全文索引</span><br><span class="line">ALTER TABLE `user` ADD FULLTEXT `fx_username`(`username`);</span><br><span class="line">-- 创建联合索引</span><br><span class="line">ALTER TABLE `user` ADD UNIQUE `idx_id_username`(`id`,`username`) USING BTREE;</span><br><span class="line">-- 创建联合唯一索引</span><br><span class="line">ALTER TABLE `user` ADD UNIQUE `uk_username_mobile`(`username`,`mobile`) USING BTREE;</span><br><span class="line"></span><br><span class="line">-- 删除索引</span><br><span class="line">ALTER TABLE `user` DROP INDEX `fx_username`;</span><br><span class="line">-- 删除主键索引</span><br><span class="line">ALTER TABLE `user` DROP PRIMARY KEY;</span><br><span class="line"></span><br><span class="line">-- 查看索引</span><br><span class="line">SHOW INDEX FROM `user`;</span><br><span class="line">SHOW KEYS FROM `user`;</span><br></pre></td></tr></table></figure>
+
+<p>注意阿里<code>Java</code>手册中对于索引命名的规约</p>
+<blockquote>
+<p>五（一）5.【强制】主键索引名为 pk_字段名；唯一索引名为 uk_字段名；普通索引名则为 idx_字段名。</p>
+<p>说明：pk_ 即 primary key；uk_ 即 unique key；idx_ 即 index 的简称。</p>
+</blockquote>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2021/07/30/nginx%E4%BB%A3%E7%90%86%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90404%E5%9D%91/" title="nginx代理静态资源404坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">nginx代理静态资源404坑</div></div><div class="info-2"><div class="info-item-1"> 与其在绝望和挣扎中苟活，不如在希冀和盼望中死亡。——纪伯伦  今天配置nginx做静态资源反向代理的时候配置文件如下 123456789101112events&#123;	worker_connections  1024;&#125;http&#123;        server&#123;        listen 80;        server_name localhost;        location ~ /upload/img/ &#123;                        root			/upload/img/;	        	&#125;        &#125;&#125;  本来我是想配置请求/upload/img/，然后获取到/upload/img/下面的静态资源 但我没有注意到location中配置的/upload/img/路径会自动和root下的路径相加。。。 因此我们应该修改为如下 123456789101112events&#123;	worker_connections  1024;&#125;http&#123; ...</div></div></div></a><a class="pagination-related" href="/2021/07/28/idea%E9%85%8D%E7%BD%AE%E6%9E%9A%E4%B8%BE%E6%A8%A1%E6%9D%BF/" title="idea配置枚举模板"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">idea配置枚举模板</div></div><div class="info-2"><div class="info-item-1"> 对我们帮助最大的，并不是朋友们的实际帮助，而是我们坚信得到他们的帮助的信念——伊壁鸠鲁  我们可以配置枚举模板 这样新建枚举的时候就会带上我们的模板中包含的内容，就不用每次都去写  123456789101112131415161718192021#if ($&#123;PACKAGE_NAME&#125; &amp;&amp; $&#123;PACKAGE_NAME&#125; != &quot;&quot;)package $&#123;PACKAGE_NAME&#125;;#end#parse(&quot;File Header.java&quot;)import lombok.AllArgsConstructor;import lombok.Getter;/** * $DESCRIPTION * * @author &lt;achao1441470436@gmail.com&gt; * @since $DATE $TIME */@Getter@AllArgsConstructorpublic enum $&#123;NAME&#125; &#123;    /**   ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2023/06/28/%E8%A7%A3%E5%86%B3%E4%B8%8D%E8%83%BD%E5%9C%A8mysql%E5%94%AF%E4%B8%80%E7%B4%A2%E5%BC%95%E4%BD%BF%E7%94%A8%E5%87%BD%E6%95%B0%E9%97%AE%E9%A2%98/" title="解决不能在mysql唯一索引使用函数问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-28</div><div class="info-item-2">解决不能在mysql唯一索引使用函数问题</div></div><div class="info-2"><div class="info-item-1"> 我们在伤害别人之前，要想到别人也会同样伤害我们。——达·芬奇  遇到不能在mysql唯一索引使用函数问题 可以使用虚拟列，例如下面的例子 1234# 添加虚拟列，为`date`字段格式化为月计算出来得到`month`字段ALTER TABLE `my_table` ADD COLUMN `month` VARCHAR(7) AS (DATE_FORMAT(`date`, &#x27;%Y-%m&#x27;)) VIRTUAL;# 添加唯一索引到`month`和其他字段，组成联合唯一索引ALTER TABLE `my_table` ADD UNIQUE INDEX uk_date (`month`, `gmt_deleted`);  </div></div></div></a><a class="pagination-related" href="/2021/01/27/Client-does-not-support-authentication-protocol-requested-by-server/" title="Client does not support authentication protocol requested by server"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-01-27</div><div class="info-item-2">Client does not support authentication protocol requested by server</div></div><div class="info-2"><div class="info-item-1"> 宿命论是那些缺乏意志力的弱者的借口。——罗曼·罗兰  今天试了试使用js连接数据库，发现报错Client does not support authentication protocol requested by server; consider upgrading MySQL client 乍一看，代码好像没问题 1234567891011121314151617181920var mysql = require(&quot;mysql&quot;);let connection = mysql.createConnection(&#123;    host: &quot;127.0.0.1&quot;,    port: 3306,    user: &quot;root&quot;,    password: &quot;789456&quot;,    database: &quot;ruben&quot;&#125;);connection.connect();connection.query(&quot;select * from user&quot;, funct...</div></div></div></a><a class="pagination-related" href="/2021/11/30/mysql%E8%BF%9E%E6%8E%A5%E6%95%B0%E6%BB%A1%E4%BA%86%E6%80%8E%E4%B9%88%E8%B0%83%E5%A4%A7/" title="mysql连接数满了怎么调大"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-30</div><div class="info-item-2">mysql连接数满了怎么调大</div></div><div class="info-2"><div class="info-item-1"> 人生应该如蜡烛一样，从顶燃到底，一直都是光明。——萧楚女  今天链接数据库发现提示too many connections 于是临时把mysql连接数调大了一点 查看参数sql： 1show variables;   设置连接数： 1set GLOBAL max_connections=99999;  </div></div></div></a><a class="pagination-related" href="/2022/06/08/mysql%E4%BF%AE%E6%94%B9%E5%AD%97%E7%AC%A6%E9%9B%86/" title="mysql修改字符集"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-06-08</div><div class="info-item-2">mysql修改字符集</div></div><div class="info-2"><div class="info-item-1"> 我需要，最狂的风，和最静的海。——顾城《世界和我·第八个早晨》  首先是查看字符集格式 1show variables where variable_name like &#x27;%character%&#x27;  然后是存储过程，用于修改表内所有字段的字符集 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950DROP PROCEDUREIF	EXISTS addColumn;DELIMITER $$CREATE PROCEDURE addColumn () BEGIN-- 定义表名变量	DECLARE		s_tablename VARCHAR ( 100 );/*显示表的数据库中的所有表SELECT table_name FROM information_schema.tables WHERE table_schema=&#x27;databasename&#x27; Order by table_name ;*/#显示所有	DECLARE	...</div></div></div></a><a class="pagination-related" href="/2025/01/19/VictoriaMetrics/" title="VictoriaMetrics"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-19</div><div class="info-item-2">VictoriaMetrics</div></div><div class="info-2"><div class="info-item-1"> 任凭人群来往，任凭钟声响起，小孩啼哭——决心好好过上一天。——梭罗的《瓦尔登湖》  最近在了解一些性能优化和数据监控的工具时，我发现了一个非常实用的项目——VictoriaMetrics。它是一个高效的时间序列数据库，专为大规模数据监控和存储而设计，特别适合用来存储 Prometheus 格式的时序数据。 VictoriaMetrics 的核心优势是其高性能、高可扩展性和低资源消耗，这使得它非常适合大规模的生产环境，尤其是在处理监控数据和日志数据时。无论是在单节点部署还是集群模式下，VictoriaMetrics 都能提供极高的性能，支持每秒数百万的写入请求和非常快速的查询响应。  VictoriaMetrics 可以通过多种方式进行安装和使用。你可以通过二进制包、Docker 或者 Kubernetes 等方式轻松部署。以下是常见的安装和配置方式：  通过二进制安装你可以从 GitHub Releases 页面下载适用于自己系统的二进制包，解压后运行即可。例如： 1234wget https://github.com/VictoriaMetrics/VictoriaMetri...</div></div></div></a><a class="pagination-related" href="/2021/02/08/mysql%E9%BB%98%E8%AE%A4%E5%80%BC/" title="mysql默认值"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-02-08</div><div class="info-item-2">mysql默认值</div></div><div class="info-2"><div class="info-item-1"> 时穷节乃见,一一垂丹青。一一文天祥  如果我们在编写SQL时需要给一个默认值，例如查询或者编辑的时候，可以使用mysql函数IFNULL 例如这里我们表内有两条数据  然后我们编写SQL，如果我们用户名为null，我们默认填充一个unknown 1SELECT id,IFNULL(username,&#x27;unknown&#x27;) username FROM `user`   在编辑的时候也可以用 1UPDATE user set username = IFNULL(`username`,&#x27;achao&#x27;) where id = 2  这里如果我们的username为null，就会被修改成achao，但如果已经有值了，则不会进行修改 </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/VampireAchao"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/14/pm-skills/" title="pm-skills">pm-skills</a><time datetime="2026-06-14T08:20:32.000Z" title="发表于 2026-06-14 16:20:32">2026-06-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/13/openmed/" title="openmed">openmed</a><time datetime="2026-06-13T08:08:11.000Z" title="发表于 2026-06-13 16:08:11">2026-06-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/12/container/" title="container">container</a><time datetime="2026-06-12T01:07:15.000Z" title="发表于 2026-06-12 09:07:15">2026-06-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/11/flowsint/" title="flowsint">flowsint</a><time datetime="2026-06-11T12:09:31.000Z" title="发表于 2026-06-11 20:09:31">2026-06-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/10/openclaw-windows-node/" title="openclaw-windows-node">openclaw-windows-node</a><time datetime="2026-06-10T03:36:40.000Z" title="发表于 2026-06-10 11:36:40">2026-06-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

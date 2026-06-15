@@ -1,0 +1,195 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>mp中typeHandler自动获取字段类型 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="相熟的人表现出恭而敬之的样子总是叫人感到可笑。——歌德  一般我们在实体类上指定 @TableName(autoResultMap &#x3D; true) 即可使用typeHandler指定转换器，然后就可以自动转换了 例如List&lt;XXX&gt;的Json可以如下使用： 12@TableField(typeHandler &#x3D; JsonListHandler.class)private List&amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mp中typeHandler自动获取字段类型">
+<meta property="og:url" content="https://vampireachao.github.io/2023/03/21/mp%E4%B8%ADtypeHandler%E8%87%AA%E5%8A%A8%E8%8E%B7%E5%8F%96%E5%AD%97%E6%AE%B5%E7%B1%BB%E5%9E%8B/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="相熟的人表现出恭而敬之的样子总是叫人感到可笑。——歌德  一般我们在实体类上指定 @TableName(autoResultMap &#x3D; true) 即可使用typeHandler指定转换器，然后就可以自动转换了 例如List&lt;XXX&gt;的Json可以如下使用： 12@TableField(typeHandler &#x3D; JsonListHandler.class)private List&amp;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.github.io/img/head.png">
+<meta property="article:published_time" content="2023-03-21T12:27:32.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.166Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.github.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "mp中typeHandler自动获取字段类型",
+  "url": "https://vampireachao.github.io/2023/03/21/mp%E4%B8%ADtypeHandler%E8%87%AA%E5%8A%A8%E8%8E%B7%E5%8F%96%E5%AD%97%E6%AE%B5%E7%B1%BB%E5%9E%8B/",
+  "image": "https://vampireachao.github.io/img/head.png",
+  "datePublished": "2023-03-21T12:27:32.000Z",
+  "dateModified": "2026-02-24T09:48:42.166Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.github.io/2023/03/21/mp%E4%B8%ADtypeHandler%E8%87%AA%E5%8A%A8%E8%8E%B7%E5%8F%96%E5%AD%97%E6%AE%B5%E7%B1%BB%E5%9E%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'mp中typeHandler自动获取字段类型',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top_img.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">mp中typeHandler自动获取字段类型</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">mp中typeHandler自动获取字段类型</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-03-21T12:27:32.000Z" title="发表于 2023-03-21 20:27:32">2023-03-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.166Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>相熟的人表现出恭而敬之的样子总是叫人感到可笑。——歌德</p>
+</blockquote>
+<p>一般我们在实体类上指定</p>
+<p><code>@TableName(autoResultMap = true)</code></p>
+<p>即可使用<code>typeHandler</code>指定转换器，然后就可以自动转换了</p>
+<p>例如<code>List&lt;XXX&gt;</code>的<code>Json</code>可以如下使用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@TableField(typeHandler = JsonListHandler.class)</span></span><br><span class="line"><span class="keyword">private</span> List&lt;CalcUnitEnum&gt; calcUnits;</span><br></pre></td></tr></table></figure>
+
+<p>这里<code>JsonListHandler</code>如下，<code>JacksonUtil</code>就懒得赘述了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> VampireAchao</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2023/3/20 17:43</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JsonListHandler</span>&lt;T&gt; <span class="keyword">extends</span> <span class="title class_">AbstractJsonTypeHandler</span>&lt;List&lt;T&gt;&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Class&lt;T&gt; clazz;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setClazz</span><span class="params">(Class&lt;T&gt; clazz)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.clazz = clazz;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> List&lt;T&gt; <span class="title function_">parse</span><span class="params">(String json)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> JacksonUtil.toList(json, clazz);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> String <span class="title function_">toJson</span><span class="params">(List&lt;T&gt; obj)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> JacksonUtil.toJson(obj);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>光有这个是不够的，还需要在注入表信息时候，将字段内的泛型拿到</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.baomidou.mybatisplus.core.handlers.PostInitTableInfoHandler;</span><br><span class="line"><span class="keyword">import</span> com.baomidou.mybatisplus.core.metadata.TableFieldInfo;</span><br><span class="line"><span class="keyword">import</span> com.baomidou.mybatisplus.core.metadata.TableInfo;</span><br><span class="line"><span class="keyword">import</span> io.github.vampireachao.stream.core.reflect.ReflectHelper;</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.mapping.ResultMap;</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.mapping.ResultMapping;</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.session.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.type.TypeHandler;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> VampireAchao</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2023/3/20 18:10</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JsonPostInitTableInfoHandler</span> <span class="keyword">implements</span> <span class="title class_">PostInitTableInfoHandler</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 参与 TableInfo 初始化</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> tableInfo     TableInfo</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> configuration Configuration</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">postTableInfo</span><span class="params">(TableInfo tableInfo, Configuration configuration)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (TableFieldInfo fieldInfo : tableInfo.getFieldList()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (fieldInfo.getTypeHandler() == <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (tableInfo.getResultMap() == <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="type">ResultMap</span> <span class="variable">resultMap</span> <span class="operator">=</span> configuration.getResultMap(tableInfo.getResultMap());</span><br><span class="line">            <span class="keyword">for</span> (ResultMapping resultMapping : resultMap.getResultMappings()) &#123;</span><br><span class="line">                TypeHandler&lt;?&gt; handler = resultMapping.getTypeHandler();</span><br><span class="line">                <span class="keyword">if</span> (handler <span class="keyword">instanceof</span> JsonListHandler) &#123;</span><br><span class="line">                    JsonListHandler&lt;Object&gt; typeHandler = (JsonListHandler&lt;Object&gt;) handler;</span><br><span class="line">                    typeHandler.setClazz((Class&lt;Object&gt;) ReflectHelper.getGenericTypes(fieldInfo.getField().getGenericType())[<span class="number">0</span>]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        PostInitTableInfoHandler.<span class="built_in">super</span>.postTableInfo(tableInfo, configuration);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/03/22/mybatis%E7%9A%84call-setters-on-nulls/" title="mybatis的call-setters-on-nulls"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">mybatis的call-setters-on-nulls</div></div><div class="info-2"><div class="info-item-1"> 一个结婚以后的朋友，无论如何不是从前的朋友了，男人的灵魂现在羼入了一些女人的灵魂。——罗曼·罗兰  我们在使用org.apache.ibatis.session.SqlSession#selectMap(java.lang.String, java.lang.String) 时会遇到字段值为null的时候，这个时候返回的map会丢失掉对应的entry节点   只需要配置mybatis.configuration.call-setters-on-nulls为true即可保留对应的entry   </div></div></div></a><a class="pagination-related" href="/2023/03/20/svelte/" title="svelte"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">svelte</div></div><div class="info-2"><div class="info-item-1"> 我宁肯忘掉亏欠自己的而不愿忘掉亏欠别人的。——贝多芬  分享一个前端框架svelte 官网：https://svelte.dev/ 仓库链接：https://github.com/sveltejs/svelte 语法非常的简单容易上手  12345&lt;script&gt;	let name = &#x27;world&#x27;;&lt;/script&gt;&lt;h1&gt;Hello &#123;name&#125;!&lt;/h1&gt;  同样是响应式  非常的有意思 使用也很简单 1234npm create svelte@latest myappcd myappnpm installnpm run dev  </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/12/03/uniapp-x%E4%B8%8Espringboot%E8%B7%91%E9%80%9Awebsocket%E7%A4%BA%E4%BE%8B/" title="uniapp-x与springboot跑通websocket示例"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-12-03</div><div class="info-item-2">uniapp-x与springboot跑通websocket示例</div></div><div class="info-2"><div class="info-item-1"> 万人都要将火熄灭，我一人独将此火高高举起。——海子  uniapp-x的 utils/device.ts 1234567891011121314151617181920212223242526272829/** * 获取设备唯一标识符 * @returns &#123;string&#125; 唯一设备标识符 */export function getUniqueDeviceId(): string &#123;    let deviceId: string | null = uni.getStorageSync(&#x27;deviceId&#x27;); // 从本地缓存获取    if (!deviceId) &#123;        // 如果不存在，生成新的 UUID        deviceId = generateUUID();        uni.setStorageSync(&#x27;deviceId&#x27;, deviceId); // 存储到本地    &#125;    console.log(&#x27;设备唯一标识: &#x27;, d...</div></div></div></a><a class="pagination-related" href="/2021/04/27/SneakyThrows/" title="@SneakyThrows"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-04-27</div><div class="info-item-2">@SneakyThrows</div></div><div class="info-2"><div class="info-item-1"> 好的木材并不在顺境中生长；风越强，树越壮。——（英）马里欧特  我们有时候会把一些受检异常try catch掉 例如   但我们每次都这么写 12345try &#123;    String encode = URLEncoder.encode(&quot;阿巴阿巴阿巴阿巴&quot;, &quot;UTF-8&quot;);&#125; catch (UnsupportedEncodingException e) &#123;    e.printStackTrace();&#125;  会导致代码很臃肿 如果我们使用了lombok 可以直接在方法上加个@SneakyThrows注解  简洁多了 </div></div></div></a><a class="pagination-related" href="/2024/03/28/jackson%E8%BD%AC%E8%8C%83%E5%9E%8B/" title="jackson转范型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-28</div><div class="info-item-2">jackson转范型</div></div><div class="info-2"><div class="info-item-1"> 不下决心培养思考习惯的人，便失去了生活中的最大乐趣。——爱迪生  代码很简单 1mapper.readValue(json, mapper.constructType(type))  这里主要是来源com.alibaba.nacos.common.utils.JacksonUtils#toObj(java.lang.String, java.lang.reflect.Type) 主要是这个mapper.constructType(type) 还可以 12TypeFactory typeFactory = mapper.getTypeFactory();JavaType javaType = typeFactory.constructType(MyClass.class); </div></div></div></a><a class="pagination-related" href="/2020/07/18/Maven%E5%B8%B8%E7%94%A8%E9%95%9C%E5%83%8F%E9%85%8D%E7%BD%AE/" title="Maven常用镜像配置"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-07-18</div><div class="info-item-2">Maven常用镜像配置</div></div><div class="info-2"><div class="info-item-1">分享一下Maven阿里云常用镜像仓库settings.xml 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808182838485868788899091929394&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;settings xmlns=&quot;http://maven.apache.org/SETTINGS/1.0.0&quot;          xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;          xsi:schemaLocation=&quot;http://maven.apache.org/SETTINGS/1.0.0 http://...</div></div></div></a><a class="pagination-related" href="/2024/03/27/stream-query%E5%BC%80%E6%BA%90%E5%90%88%E8%A7%84/" title="stream-query开源合规"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-27</div><div class="info-item-2">stream-query开源合规</div></div><div class="info-2"><div class="info-item-1"> 不好的书也像不好的朋友一样，可能把你戕害。——菲尔丁  首先是检查header的github action的ci 123456789101112131415161718192021222324252627282930313233343536373839404142# Licensed to the Apache Software Foundation (ASF) under one# or more contributor license agreements.  See the NOTICE file# distributed with this work for additional information# regarding copyright ownership.  The ASF licenses this file# to you under the Apache License, Version 2.0 (the# &quot;License&quot;); you may not use this file except in compliance# with...</div></div></div></a><a class="pagination-related" href="/2021/01/09/try-catch-%E5%86%99%E6%B3%95/" title="try()catch{}写法"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-01-09</div><div class="info-item-2">try()catch{}写法</div></div><div class="info-2"><div class="info-item-1"> 当生活像一首歌那样轻快流畅时，笑颜常开乃易事；而在一切事都不妙时仍能微笑的人，是真正的乐观。——威尔科克斯  曾经我们使用java的IO流复制文件时是这么写的 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849package com.ruben;import java.io.*;import java.util.Optional;/** * @ClassName: FileDemo * @Description: 我还没有写描述 * @Date: 2021/1/10 0010 21:38 * * * @author: &lt;achao1441470436@gmail.com&gt; * @version: 1.0 * @since: JDK 1.8 */public class FileDemo &#123;    private static final String FILE_PATH = &quot;D:/file/files/ps/2077....</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/VampireAchao"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/14/pm-skills/" title="pm-skills">pm-skills</a><time datetime="2026-06-14T08:20:32.000Z" title="发表于 2026-06-14 16:20:32">2026-06-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/13/openmed/" title="openmed">openmed</a><time datetime="2026-06-13T08:08:11.000Z" title="发表于 2026-06-13 16:08:11">2026-06-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/12/container/" title="container">container</a><time datetime="2026-06-12T01:07:15.000Z" title="发表于 2026-06-12 09:07:15">2026-06-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/11/flowsint/" title="flowsint">flowsint</a><time datetime="2026-06-11T12:09:31.000Z" title="发表于 2026-06-11 20:09:31">2026-06-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/10/openclaw-windows-node/" title="openclaw-windows-node">openclaw-windows-node</a><time datetime="2026-06-10T03:36:40.000Z" title="发表于 2026-06-10 11:36:40">2026-06-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

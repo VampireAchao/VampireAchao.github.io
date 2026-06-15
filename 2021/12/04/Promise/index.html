@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Promise | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="人活在世，不过一场美丽的寄居。——简嫃  在前端开发中经常会使用异步方法 这里介绍Promise函数 定义方式： 12345&#x2F;&#x2F; Promise内部构造参数为一个闭包，闭包中传入你想要异步处理的逻辑new Promise((resolve,reject)&#x3D;&gt;&#123;    &#x2F;&#x2F; 这里resolve表示正常处理异步逻辑后传送回调，reject则是异常逻辑或错误逻辑时执行，当异步方法中抛出">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Promise">
+<meta property="og:url" content="https://vampireachao.github.io/2021/12/04/Promise/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="人活在世，不过一场美丽的寄居。——简嫃  在前端开发中经常会使用异步方法 这里介绍Promise函数 定义方式： 12345&#x2F;&#x2F; Promise内部构造参数为一个闭包，闭包中传入你想要异步处理的逻辑new Promise((resolve,reject)&#x3D;&gt;&#123;    &#x2F;&#x2F; 这里resolve表示正常处理异步逻辑后传送回调，reject则是异常逻辑或错误逻辑时执行，当异步方法中抛出">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.github.io/img/head.png">
+<meta property="article:published_time" content="2021-12-04T13:21:51.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.229Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="前端">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.github.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Promise",
+  "url": "https://vampireachao.github.io/2021/12/04/Promise/",
+  "image": "https://vampireachao.github.io/img/head.png",
+  "datePublished": "2021-12-04T13:21:51.000Z",
+  "dateModified": "2026-02-24T09:48:42.229Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.github.io/2021/12/04/Promise/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Promise',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top_img.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">Promise</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Promise</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-12-04T13:21:51.000Z" title="发表于 2021-12-04 21:21:51">2021-12-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.229Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>人活在世，不过一场美丽的寄居。——简嫃</p>
+</blockquote>
+<p>在前端开发中经常会使用异步方法</p>
+<p>这里介绍<code>Promise</code>函数</p>
+<p>定义方式：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Promise内部构造参数为一个闭包，闭包中传入你想要异步处理的逻辑</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="comment">// 这里resolve表示正常处理异步逻辑后传送回调，reject则是异常逻辑或错误逻辑时执行，当异步方法中抛出异常，会自动调用reject，这里也可以手动调用</span></span><br><span class="line">    <span class="title function_">resolve</span>(<span class="number">1</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>然后定义完了，我们就可以开始调用</p>
+<p>调用写法如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="comment">// 假设我这里异步方法处理完后得到的结果为1，我就传入一个1</span></span><br><span class="line">    <span class="title function_">resolve</span>(<span class="number">1</span>)</span><br><span class="line">&#125;)</span><br><span class="line">.<span class="title function_">then</span>(<span class="function"><span class="params">res</span>=&gt;</span>&#123;</span><br><span class="line">    <span class="comment">// 然后异步方法执行完了，我再对结果进行异步处理，让得到的1再加一个1</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res+<span class="number">1</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>then</code>可以执行异步方法后续处理，将异步方法的回调的结果作为参数</p>
+<p>这里执行后就会打印<code>2</code></p>
+<p>如果发生异常，我们想进行异常处理，则可以使用<code>catch</code>处理，例如下面例子</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="comment">// 手动抛出异常</span></span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;ruben&quot;</span>)</span><br><span class="line">    <span class="title function_">resolve</span>(<span class="number">1</span>)</span><br><span class="line">&#125;)</span><br><span class="line">.<span class="title function_">then</span>(<span class="function"><span class="params">res</span>=&gt;</span>&#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res+<span class="number">1</span>)</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function"><span class="params">error</span>=&gt;</span>&#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(error)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>打印结果为<code>ruben</code></p>
+<p><img src="/img/oss/picGo/image-20211204215228205.png" alt="image-20211204215228205"></p>
+<p>我们也可以用另一种写法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;ruben&quot;</span>)</span><br><span class="line">    <span class="title function_">resolve</span>(<span class="number">1</span>)</span><br><span class="line">    </span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// 这里在then中传入两个闭包，第二个则相当于`catch`函数的参数</span></span><br><span class="line">.<span class="title function_">then</span>(<span class="function"><span class="params">res</span>=&gt;</span>&#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res+<span class="number">1</span>)</span><br><span class="line">&#125;,<span class="function"><span class="params">error</span>=&gt;</span>&#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(error)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>如果我们对于<code>Promise</code>要让他同步处理，也就是说我要等他执行完再执行后面的逻辑，可以在前面加一个<code>await</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">await</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;ruben&quot;</span>)</span><br><span class="line">    <span class="title function_">resolve</span>(<span class="number">1</span>)</span><br><span class="line">    </span><br><span class="line">&#125;)</span><br><span class="line">.<span class="title function_">then</span>(<span class="function"><span class="params">res</span>=&gt;</span>&#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res+<span class="number">1</span>)</span><br><span class="line">&#125;,<span class="function"><span class="params">error</span>=&gt;</span>&#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(error)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%89%8D%E7%AB%AF/">前端</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2021/12/05/%E5%91%BD%E4%BB%A4%E6%A8%A1%E5%BC%8F/" title="命令模式"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">命令模式</div></div><div class="info-2"><div class="info-item-1"> 向没有开辟的领域进军，才能创造新天地。——［美］李政道  命令模式的最大优势为将应用分层处理，避免各层耦合 这里举个例子  在市中心逛了很久的街后， 你找到了一家不错的餐厅， 坐在了临窗的座位上。 一名友善的服务员走近你， 迅速记下你点的食物， 写在一张纸上。 服务员来到厨房， 把订单贴在墙上。 过了一段时间， 厨师拿到了订单， 他根据订单来准备食物。 厨师将做好的食物和订单一起放在托盘上。 服务员看到托盘后对订单进行检查， 确保所有食物都是你要的， 然后将食物放到了你的桌上。 那张纸就是一个命令， 它在厨师开始烹饪前一直位于队列中。 命令中包含与烹饪这些食物相关的所有信息。 厨师能够根据它马上开始烹饪， 而无需跑来直接和你确认订单详情。  我们如果不使用命令模式，写出来的代码就如下： 1234567891011121314private static void withoutCommandMode() throws InterruptedException &#123;    // 在市中心逛了很久的街后， 你找到了一家不错的餐厅， 坐在了临窗的座位上。    // 一名友善...</div></div></div></a><a class="pagination-related" href="/2021/12/03/mysql%E9%87%8D%E7%BD%AE%E8%87%AA%E5%A2%9E%E4%B8%BB%E9%94%AE%E5%9D%91/" title="mysql重置自增主键坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">mysql重置自增主键坑</div></div><div class="info-2"><div class="info-item-1"> 商人的兴趣就在那些能找到财富的地方。——埃伯克  今天重置mysql自增主键时遇到个坑，明明sql执行了 1ALTER TABLE table_name AUTO_INCREMENT= 1;  但还是修改失败了 后来发现原来是因为当前表最大id比我设置的自增id大导致的 而且这种情况还不报错，提示sql正常执行，就挺坑的 最后把表内数据调整了，成功重置自增id 可以通过 1SHOW TABLE STATUS WHERE NAME = &#x27;user&#x27;;  查看表状态 </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2021/11/13/%E7%AE%AD%E5%A4%B4%E5%87%BD%E6%95%B0%E4%B8%8Ethis%E6%8C%87%E5%90%91%E6%8E%A2%E7%A9%B6/" title="箭头函数与this指向探究"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-13</div><div class="info-item-2">箭头函数与this指向探究</div></div><div class="info-2"><div class="info-item-1"> 我有明珠一颗，久被尘劳关锁，一朝尘净光生，照破山河万朵。——柴陵郁禅师  今天研究了下箭头函数与this，发现了一些挺好玩的特性 首先，我们在控制台输入上这段js 123456789101112131415161718192021var handler = &#123;    name :&#x27;handler&#x27;,    init: function() &#123;    let init1 = function(event) &#123;        console.log(&quot;init1: &quot;, this);        let init5 = function()&#123;            console.log(&quot;init5: &quot;, this);        &#125;        init5();    // init5:  Window &#123;window: Window, self: Window, document: document, name: &#x27;&#x27;, loca...</div></div></div></a><a class="pagination-related" href="/2021/07/01/%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5%E6%89%93%E5%BC%80/" title="新标签页打开"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-01</div><div class="info-item-2">新标签页打开</div></div><div class="info-2"><div class="info-item-1"> 人民不仅有权爱国，而且爱国是个义务，是一种光荣。——徐特立  123456&lt;a href=&quot;https://VampireAchao.github.io/&quot; target=&quot;_self&quot;&gt;默认当前页面打开&lt;/a&gt;&lt;a href=&quot;https://VampireAchao.github.io/&quot; target=&quot;_blank&quot;&gt;新页面打开&lt;/a&gt;&lt;a href=&quot;&quot; target=&quot;ruben&quot;&gt;在frame中打开&lt;/a&gt;&lt;iframe src=&quot;&quot; name=&quot;ruben&quot;&gt;&lt;/iframe&gt;&lt;a href=&quot;https://VampireAchao.github.io/&quot; target=&quot;_parent&quot;&gt;如果是在iframe里，无视iframe直接当前外层页面打开&lt;...</div></div></div></a><a class="pagination-related" href="/2022/07/30/ant-motion/" title="ant motion"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-30</div><div class="info-item-2">ant motion</div></div><div class="info-2"><div class="info-item-1"> 一个人的行动，比他所说的话，更有详细的表现。——卡耐基  分享一个动画库ant-motion 官方文档：https://motion.ant.design/index-cn 提供的效果也是非常好看   是一个值得一试的动画库 </div></div></div></a><a class="pagination-related" href="/2023/04/23/recordrtc/" title="recordrtc"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-04-23</div><div class="info-item-2">recordrtc</div></div><div class="info-2"><div class="info-item-1"> 贫者因书而富，富者因书而贵。——王安石  分享一个JavaScript音频 + 视频 + 屏幕 + 画布(2D+ 3D动画)录制库：WebRTC  https://recordrtc.org/ https://github.com/muaz-khan/RecordRTC demo：https://www.webrtc-experiment.com/RecordRTC/simple-demos/ 123456789101112let stream = await navigator.mediaDevices.getUserMedia(&#123;video: true, audio: true&#125;);let recorder = new RecordRTCPromisesHandler(stream, &#123;    type: &#x27;video&#x27;&#125;);recorder.startRecording();const sleep = m =&gt; new Promise(r =&gt; setTimeout(r, m));await slee...</div></div></div></a><a class="pagination-related" href="/2025/05/26/vue-ueditor-wrap/" title="vue-ueditor-wrap"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-05-26</div><div class="info-item-2">vue-ueditor-wrap</div></div><div class="info-2"><div class="info-item-1"> 会当凌绝顶，一览众山小。 —— 杜 甫《望岳》  https://github.com/haochuan9421/vue-ueditor-wrap vue-ueditor-wrap：轻松集成 UEditor 到 Vue 项目在 Web 开发中，富文本编辑器是许多应用的重要组成部分，尤其是在博客系统、内容管理平台（CMS）等场景中。作为经典的富文本编辑器，UEditor 功能强大，但在现代前端框架（如 Vue）中使用时可能略显复杂。 今天我们来介绍 vue-ueditor-wrap，一个基于 Vue 的封装组件，旨在让开发者轻松将 UEditor 集成到 Vue 项目中。  什么是 vue-ueditor-wrap？vue-ueditor-wrap 是一个 UEditor 的 Vue 封装组件，提供了简洁的 API 和灵活的配置选项。它解决了原生 UEditor 在 Vue 项目中的集成难题，让开发者无需处理复杂的初始化逻辑。  主要功能 快速集成：通过简单的配置，即可将 UEditor 嵌入 Vue 项目。 支持双向绑定：轻松实现 Vue 的 v-model 与 UEditor...</div></div></div></a><a class="pagination-related" href="/2022/12/19/css-attr/" title="css attr"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-19</div><div class="info-item-2">css attr</div></div><div class="info-2"><div class="info-item-1"> 过于大方的施舍会导致盗窃——西塞罗  分享一个css函数attr MDN：https://developer.mozilla.org/zh-CN/docs/Web/CSS/attr attr可以获取我们标签内的属性作为值 例如： 1&lt;p data-foo=&quot;hello&quot;&gt;world&lt;/p&gt;  css： 123[data-foo]::before &#123;  content: attr(data-foo) &quot; &quot;;&#125;  效果：  [data-foo]::before {   content: attr(data-foo) " "; }  world  除了data-*的自定义属性，也可以获取其他的，例如custom-prefix 123456&lt;style&gt;[custom-prefix]::before &#123;  content: attr(custom-prefix);&#125;&lt;/style&gt;&lt;p custom-prefix=&quot;hello&quot;&g...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/VampireAchao"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/14/pm-skills/" title="pm-skills">pm-skills</a><time datetime="2026-06-14T08:20:32.000Z" title="发表于 2026-06-14 16:20:32">2026-06-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/13/openmed/" title="openmed">openmed</a><time datetime="2026-06-13T08:08:11.000Z" title="发表于 2026-06-13 16:08:11">2026-06-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/12/container/" title="container">container</a><time datetime="2026-06-12T01:07:15.000Z" title="发表于 2026-06-12 09:07:15">2026-06-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/11/flowsint/" title="flowsint">flowsint</a><time datetime="2026-06-11T12:09:31.000Z" title="发表于 2026-06-11 20:09:31">2026-06-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/10/openclaw-windows-node/" title="openclaw-windows-node">openclaw-windows-node</a><time datetime="2026-06-10T03:36:40.000Z" title="发表于 2026-06-10 11:36:40">2026-06-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

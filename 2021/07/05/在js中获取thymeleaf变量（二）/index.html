@@ -1,0 +1,201 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>在js中获取thymeleaf变量（二） | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="所谓天才，只不过是把别人喝咖啡的功夫都用在工作上了。——鲁迅  上回写过在js中获取thymeleaf变量 但比较繁琐 这次用简单的写法 1234&lt;script&gt;    var id &#x3D; [[$&#123;id&#125;]]    console.log(id)&lt;&#x2F;script&gt;  非常简单~ 不过要注意一点，如果是对象格式的数据，需要在script标签上加th:inl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在js中获取thymeleaf变量（二）">
+<meta property="og:url" content="https://vampireachao.github.io/2021/07/05/%E5%9C%A8js%E4%B8%AD%E8%8E%B7%E5%8F%96thymeleaf%E5%8F%98%E9%87%8F%EF%BC%88%E4%BA%8C%EF%BC%89/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="所谓天才，只不过是把别人喝咖啡的功夫都用在工作上了。——鲁迅  上回写过在js中获取thymeleaf变量 但比较繁琐 这次用简单的写法 1234&lt;script&gt;    var id &#x3D; [[$&#123;id&#125;]]    console.log(id)&lt;&#x2F;script&gt;  非常简单~ 不过要注意一点，如果是对象格式的数据，需要在script标签上加th:inl">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.github.io/img/head.png">
+<meta property="article:published_time" content="2021-07-05T15:42:22.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.557Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.github.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "在js中获取thymeleaf变量（二）",
+  "url": "https://vampireachao.github.io/2021/07/05/%E5%9C%A8js%E4%B8%AD%E8%8E%B7%E5%8F%96thymeleaf%E5%8F%98%E9%87%8F%EF%BC%88%E4%BA%8C%EF%BC%89/",
+  "image": "https://vampireachao.github.io/img/head.png",
+  "datePublished": "2021-07-05T15:42:22.000Z",
+  "dateModified": "2026-02-24T09:48:42.557Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.github.io/2021/07/05/%E5%9C%A8js%E4%B8%AD%E8%8E%B7%E5%8F%96thymeleaf%E5%8F%98%E9%87%8F%EF%BC%88%E4%BA%8C%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '在js中获取thymeleaf变量（二）',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top_img.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">在js中获取thymeleaf变量（二）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">在js中获取thymeleaf变量（二）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-07-05T15:42:22.000Z" title="发表于 2021-07-05 23:42:22">2021-07-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.557Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>所谓天才，只不过是把别人喝咖啡的功夫都用在工作上了。——鲁迅</p>
+</blockquote>
+<p>上回写过<a href="https://vampireachao.github.io/2021/05/20/%E5%9C%A8js%E4%B8%AD%E8%8E%B7%E5%8F%96thymeleaf%E5%8F%98%E9%87%8F/">在js中获取thymeleaf变量</a></p>
+<p>但比较繁琐</p>
+<p>这次用简单的写法</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> id = [[$&#123;id&#125;]]</span></span><br><span class="line"><span class="language-javascript">    <span class="variable language_">console</span>.<span class="title function_">log</span>(id)</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>非常简单~</p>
+<p>不过要注意一点，如果是对象格式的数据，需要在<code>script</code>标签上加<code>th:inline=&quot;javascript&quot;</code></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">th:inline</span>=<span class="string">&quot;javascript&quot;</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> id = [[$&#123;id&#125;]]</span></span><br><span class="line"><span class="language-javascript">    <span class="variable language_">console</span>.<span class="title function_">log</span>(id)</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在页面中也可以直接使用，可以代替<code>th:text</code></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span><br><span class="line">    [[$&#123;id&#125;]]</span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>效果如下</p>
+<p><img src="/img/oss/picGo/image-20210705234534494.png" alt="image-20210705234534494"></p>
+<p>如果是字符串也支持的</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span><br><span class="line">    [[$&#123;id&#125;]]</span><br><span class="line">    [[&#x27;id&#x27;]]</span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/oss/picGo/image-20210705234742185.png" alt="image-20210705234742185"></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2021/07/06/js%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E5%9D%91/" title="js精度丢失坑"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">js精度丢失坑</div></div><div class="info-2"><div class="info-item-1"> 飞蛾扑火时一定是极快乐幸福的。——三毛  我们在进行开发时可能会遇到这样一个坑，那就是js代码的精度丢失  可以看到16位以后就会出现精度丢失的问题 我们定义一个简单接口，这里用com.baomidou.mybatisplus.core.toolkit.IdWorker.getId()生成19位为Long类型的id 12345@GetMapping(&quot;json&quot;)@ResponseBodypublic Ruben json() &#123;    return new Ruben(IdWorker.getId());&#125;  返回的Ruben对象 1234567891011121314151617181920/** * @author &lt;achao1441470436@gmail.com&gt; * @since 2021/7/6 0006 21:37 */public class Ruben &#123;    private Long id;    public Ruben(Long id) &#123;        this.id = i...</div></div></div></a><a class="pagination-related" href="/2021/07/04/qq%E6%8E%A8%E5%B9%BF/" title="qq推广"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">qq推广</div></div><div class="info-2"><div class="info-item-1"> 在自己身上，克服这个时代。——尼采  我们接入QQ客服，可以让用户在网页上直接打开QQ窗口与号主交谈 进入网址  登录后刷新一下页面  选择想要的样式，复制下面的代码  然后我们复制到我们的网站上，点击打开，然后到“QQ在线状态”官网开启服务。    然后就可以使用QQ客服啦~  </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/10/26/PersistJobDataAfterExecution%E6%B3%A8%E8%A7%A3/" title="PersistJobDataAfterExecution注解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-10-26</div><div class="info-item-2">PersistJobDataAfterExecution注解</div></div><div class="info-2"><div class="info-item-1"> 心地善良的人、富于幻想的人比冷酷残忍的人更容易聚合——约翰逊  quartz之前我们也聊过了，今天说下这个注解org.quartz.PersistJobDataAfterExecution 一般和DisallowConcurrentExecution搭配使用 PersistJobDataAfterExecution表示Job执行结束后更新JobDataMap DisallowConcurrentExecution表示不允许并发执行 12345678910111213141516171819202122232425262728293031@Slf4j@DisallowConcurrentExecution@PersistJobDataAfterExecutionpublic class SettlementJob implements Job &#123;    /**     * &lt;p&gt;     * Called by the &lt;code&gt;&#123;@link Scheduler&#125;&lt;/code&gt; when a &lt;code&g...</div></div></div></a><a class="pagination-related" href="/2023/06/15/wrapper%E6%94%AF%E6%8C%81typeHandler/" title="wrapper支持typeHandler"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-15</div><div class="info-item-2">wrapper支持typeHandler</div></div><div class="info-2"><div class="info-item-1"> 错误经不起失败，但真理却不怕失败。——泰戈尔  相关pr： https://gitee.com/dromara/stream-query/pulls/340 大致使用方式 123456789101112131415161718192021222324@Testvoid selectTest() &#123;  Name name = new Name();  name.setUsername(&quot;VampireAchao&quot;);  name.setNickname(&quot;阿超&quot;);  UserInfoWithJsonName user = new UserInfoWithJsonName();  user.setName(name);  Database.saveFewSql(Lists.of(user));  Database.updateFewSql(Lists.of(user));  LambdaQueryWrapper&lt;UserInfoWithJsonName&gt; wrapper =      QueryCondition.qu...</div></div></div></a><a class="pagination-related" href="/2020/09/25/java%E5%87%BD%E6%95%B0%E9%98%B2%E6%8A%96/" title="java函数防抖"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-25</div><div class="info-item-2">java函数防抖</div></div><div class="info-2"><div class="info-item-1"> 从工作里爱了生命，就是通彻了生命最深的秘密。——纪伯伦  前段时间写了js防抖，今天朋友(无中生友)找我要java版的 来！ 123456789101112131415161718192021222324252627282930313233343536373839package com.ruben.aop;import org.aspectj.lang.ProceedingJoinPoint;import org.aspectj.lang.annotation.Around;import org.aspectj.lang.annotation.Aspect;import org.aspectj.lang.annotation.Pointcut;import java.util.Timer;import java.util.TimerTask;@Aspectpublic class HandShakeAop &#123;    boolean antiShakeFlag = false;    @Pointcut(&quot;execution(* com.ruben...*.o...</div></div></div></a><a class="pagination-related" href="/2025/01/31/Apache-Linkis/" title="Apache Linkis"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-31</div><div class="info-item-2">Apache Linkis</div></div><div class="info-2"><div class="info-item-1"> 微微怪时间不能保存情绪,保存那一切情绪所曾流连的境界。——《你是人间的四月天》  Apache Linkis 是一款由 Apache 基金会孵化的开源项目，它致力于在上层应用和底层数据计算引擎之间构建一层计算中间件。通过 Linkis，开发者可以轻松连接 Spark、Hive、Flink、Presto 等底层引擎，实现资源的统一管理、计算任务治理、脚本与数据的跨平台互通。它在数据计算平台中的应用广泛，被许多企业用作大数据处理的统一入口。  Linkis 的目标与优势Linkis 的核心目标是解决复杂的计算资源管理问题。传统的大数据系统中，不同引擎之间通常存在高度耦合、复杂的调用关系，而 Linkis 通过提供 REST、WebSocket、JDBC 等标准接口将这些引擎解耦。这样一来，开发者只需面向 Linkis 进行统一操作，而无需直接对接各类底层计算引擎，大幅降低了系统的复杂性和运维成本。 Linkis 的优势包括：  多引擎支持：支持 Spark、Hive、Flink、Trino、Python 等多种计算引擎，适用于离线批处理、实时流处理、交互式查询等多种场景。 统一管理...</div></div></div></a><a class="pagination-related" href="/2024/09/09/Apache-ShenYu%E6%94%AF%E6%8C%81namespace%E5%8A%9F%E8%83%BD%EF%BC%88%E5%9B%9B%EF%BC%89/" title="Apache-ShenYu支持namespace功能（四）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-09</div><div class="info-item-2">Apache-ShenYu支持namespace功能（四）</div></div><div class="info-2"><div class="info-item-1"> 教育的最高目标不是知识而是行动。——斯宾塞  本次适配是将几个页面的namespace选择框隐藏了，然后对data-permission数据权限配置弹框里添加了一个namespace选择框，并在内部切换namespace时候刷新表格 PR链接： https://github.com/apache/shenyu-dashboard/pull/479 隐藏namespace的逻辑很简单，首先用withRouter将react组件和dvajs的路由绑定： 1import &#123; withRouter &#125; from &quot;dva/router&quot;;  然后绑定： 1export default withRouter(GlobalHeader);  然后从props里取出当前路由 1const &#123; location: &#123; pathname &#125; &#125; = this.props;  进行判断,当不在下列路由里时，showNamespaces为true 12345678const showNamespaces = !~[  ...</div></div></div></a><a class="pagination-related" href="/2022/10/03/jasper-reports/" title="jasper-reports"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-10-03</div><div class="info-item-2">jasper-reports</div></div><div class="info-2"><div class="info-item-1"> 自然里并不包含有永恒不变的形态——霍尔巴赫  JasperReports 库是世界上最流行的开源报告引擎。它完全是用 Java 编写的，能够使用来自任何类型数据源的数据，并生成像素完美的文档，可以查看、打印或导出各种文档格式，包括 HTML、 PDF、 Excel、 OpenOffice、 MS Word 和其他格式。 git地址：https://github.com/TIBCOSoftware/jasperreports 官网地址：https://community.jaspersoft.com/project/jasperreports-library  </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/VampireAchao"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/14/pm-skills/" title="pm-skills">pm-skills</a><time datetime="2026-06-14T08:20:32.000Z" title="发表于 2026-06-14 16:20:32">2026-06-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/13/openmed/" title="openmed">openmed</a><time datetime="2026-06-13T08:08:11.000Z" title="发表于 2026-06-13 16:08:11">2026-06-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/12/container/" title="container">container</a><time datetime="2026-06-12T01:07:15.000Z" title="发表于 2026-06-12 09:07:15">2026-06-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/11/flowsint/" title="flowsint">flowsint</a><time datetime="2026-06-11T12:09:31.000Z" title="发表于 2026-06-11 20:09:31">2026-06-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/10/openclaw-windows-node/" title="openclaw-windows-node">openclaw-windows-node</a><time datetime="2026-06-10T03:36:40.000Z" title="发表于 2026-06-10 11:36:40">2026-06-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

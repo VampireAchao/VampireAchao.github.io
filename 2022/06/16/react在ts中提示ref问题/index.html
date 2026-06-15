@@ -1,0 +1,211 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>react在ts中提示ref问题 | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="不要太在乎一些人，越在乎，越卑微。——周国平  首先按照官方文档的demo写好代码，却报错如下：  安装插件Error Lens后：  如何解决？ 前往Text的ref源码，可以看到是需要一个叫LegacyRef的类型  我们进LegacyRef，看到其就是Ref或string的类型  因此这里我们定义为Ref类型即可  这里出现了新的问题，不能将MutableRefObject&lt;Text">
+<meta property="og:type" content="article">
+<meta property="og:title" content="react在ts中提示ref问题">
+<meta property="og:url" content="https://vampireachao.github.io/2022/06/16/react%E5%9C%A8ts%E4%B8%AD%E6%8F%90%E7%A4%BAref%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="不要太在乎一些人，越在乎，越卑微。——周国平  首先按照官方文档的demo写好代码，却报错如下：  安装插件Error Lens后：  如何解决？ 前往Text的ref源码，可以看到是需要一个叫LegacyRef的类型  我们进LegacyRef，看到其就是Ref或string的类型  因此这里我们定义为Ref类型即可  这里出现了新的问题，不能将MutableRefObject&lt;Text">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.github.io/img/head.png">
+<meta property="article:published_time" content="2022-06-16T05:03:08.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.255Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="前端">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.github.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "react在ts中提示ref问题",
+  "url": "https://vampireachao.github.io/2022/06/16/react%E5%9C%A8ts%E4%B8%AD%E6%8F%90%E7%A4%BAref%E9%97%AE%E9%A2%98/",
+  "image": "https://vampireachao.github.io/img/head.png",
+  "datePublished": "2022-06-16T05:03:08.000Z",
+  "dateModified": "2026-02-24T09:48:42.255Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.github.io/2022/06/16/react%E5%9C%A8ts%E4%B8%AD%E6%8F%90%E7%A4%BAref%E9%97%AE%E9%A2%98/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'react在ts中提示ref问题',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top_img.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">react在ts中提示ref问题</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">react在ts中提示ref问题</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-06-16T05:03:08.000Z" title="发表于 2022-06-16 13:03:08">2022-06-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.255Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>不要太在乎一些人，越在乎，越卑微。——周国平</p>
+</blockquote>
+<p>首先按照官方文档的<code>demo</code>写好代码，却报错如下：</p>
+<p><img src="/img/oss/picGo/image-20220616130732782.png" alt="image-20220616130732782"></p>
+<p>安装插件<code>Error Lens</code>后：</p>
+<p><img src="/img/oss/picGo/image-20220616130416141.png" alt="image-20220616130416141"></p>
+<p>如何解决？</p>
+<p>前往<code>Text</code>的<code>ref</code>源码，可以看到是需要一个叫<code>LegacyRef</code>的类型</p>
+<p><img src="/img/oss/picGo/image-20220616131033822.png" alt="image-20220616131033822"></p>
+<p>我们进<code>LegacyRef</code>，看到其就是<code>Ref</code>或<code>string</code>的类型</p>
+<p><img src="/img/oss/picGo/image-20220616131134570.png" alt="image-20220616131134570"></p>
+<p>因此这里我们定义为<code>Ref</code>类型即可</p>
+<p><img src="/img/oss/picGo/image-20220616131228231.png" alt="image-20220616131228231"></p>
+<p>这里出现了新的问题，不能将<code>MutableRefObject&lt;Text | null |undefined&gt;</code>分配给<code>Ref&lt;Text&gt;</code></p>
+<p>我们进入<code>useRef</code>源码，看到其包含几个重载</p>
+<p><img src="/img/oss/picGo/image-20220616131355690.png" alt="image-20220616131355690"></p>
+<p>分别查看<code>MuteableRefObject</code>和<code>RefObject</code></p>
+<p><img src="/img/oss/picGo/image-20220616131558832.png" alt="image-20220616131558832"></p>
+<p>可以看到<code>RefObject</code>是<code>Ref</code>中容许的其中一种类型</p>
+<p><img src="/img/oss/picGo/image-20220616131733093.png" alt="image-20220616131733093"></p>
+<p>所以应该使用上面一种重载</p>
+<p><img src="/img/oss/picGo/image-20220616131807973.png" alt="image-20220616131807973"></p>
+<p>在原有代码<code>React.useRef()</code>中传入<code>null</code></p>
+<p>报错解决</p>
+<p><img src="/img/oss/picGo/image-20220616131847569.png" alt="image-20220616131847569"></p>
+<p>同理，<code>trRef</code>一样</p>
+<p><img src="/img/oss/picGo/image-20220616131948951.png" alt="image-20220616131948951"></p>
+<p>注意此处<code>Ref&lt;TextRef&gt;</code>内的泛型使用的是<code>konva/lib/shapes/Text</code>包下的<code>Text</code>，改名为<code>TextRef</code></p>
+<p>除了在定义变量左侧申明类型，在方法右侧也可以申明泛型，让编辑器自动推测</p>
+<p><img src="/img/oss/picGo/image-20220616132252642.png" alt="image-20220616132252642"></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%89%8D%E7%AB%AF/">前端</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/06/17/%E5%9C%A8vue%E4%B8%AD%E4%BD%BF%E7%94%A8jsx/" title="在vue中使用jsx"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">在vue中使用jsx</div></div><div class="info-2"><div class="info-item-1"> 一个人追求的目标越高，他的才能就发展得越快，对社会就越有益，我确信这也是一个真理。——玛克西姆·高尔基  首先是官方文档 vue2的：https://cn.vuejs.org/v2/guide/render-function.html#JSX vue3的：https://v3.cn.vuejs.org/guide/render-function.html#jsx 我们这里以vue2举例： 先使用render函数写一个最简单的jsx组件 12345678910&lt;script&gt;export default &#123;    render() &#123;        return &lt;div&gt;Hello World&lt;/div&gt;    &#125;&#125;&lt;/script&gt;&lt;style&gt;&lt;/style&gt;  注意此处不能有template标签，其他的该咋用就咋用 还有的区别在这个链接里：https://github.com/vuejs/jsx#installation 如果有react的基础，上手这个就很容易...</div></div></div></a><a class="pagination-related" href="/2022/06/15/konva-react/" title="konva-react"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">konva-react</div></div><div class="info-2"><div class="info-item-1"> “善良一点，因为大家的一生都不容易。”——《奇迹男孩》。  官方文档：https://konvajs.org/docs/react/ 中文文档：http://konvajs-doc.bluehymn.com/docs/react/ 安装： 1pnpm install react-konva konva --save  在konva中能做到的，在konva-react也一样能做到，只不过是换了一种写法罢了 这里有个使用konva-react的在线编辑器Demo https://konvajs.org/docs/sandbox/Canvas_Editor.html 是基于一个叫Polotno的框架，它提供了多种react对konva的封装，能开箱即用 https://polotno.dev/ 但其不可以免费用于商业用途 https://codesandbox.io/embed/github/polotno-project/polotno-site/tree/source/examples/polotno-demo?fontsize=11&amp;hidenavigation=1&a...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2021/04/13/%E5%AD%A6%E4%B9%A0uni-app%E5%AE%98%E6%96%B9%E6%95%99%E7%A8%8B/" title="学习uni-app官方教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-04-13</div><div class="info-item-2">学习uni-app官方教程</div></div><div class="info-2"><div class="info-item-1"> 生命是一条奔流不息的河，我们都是那个过河的人。——席慕蓉  官网  我们直接实战 创建两个项目   从hello-uniapp中复制common文件夹以及static下面的uni.ttf文件到news项目同目录下  然后是复制App.vue中的样式库 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808182838485868788899091&lt;script&gt;	export default &#123;		onLaunch: function() &#123;			console.log(&#x27;App Launch&#x27;)		&#125;,		onShow: function() &#123;			console.log(&#x27;App Show&#x27;)		&#125;,		onHide: fun...</div></div></div></a><a class="pagination-related" href="/2022/03/11/Array-from/" title="Array.from"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-03-11</div><div class="info-item-2">Array.from</div></div><div class="info-2"><div class="info-item-1"> 世界在音乐中得到了完整的再现和表达。它是各种艺术当中第一位的，帝王式的艺术，能够成为音乐那样，则是一切艺术的目的。——叔本华  继续还是js中Array的方法 这次说的方法是from：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/from 这个方法简单应用如下： 12345console.log(Array.from(&#x27;foo&#x27;));// expected output: Array [&quot;f&quot;, &quot;o&quot;, &quot;o&quot;]console.log(Array.from([1, 2, 3], x =&gt; x + x));// expected output: Array [2, 4, 6]  我这里写个稍微复杂点的例子，随机生成文件名并排序 1[...new Set(Array.from(Array(200).fill(&#x27;文件&#x27;),x=&gt;x+String(...</div></div></div></a><a class="pagination-related" href="/2020/09/06/vue%E6%8C%82%E8%BD%BD%E5%85%A8%E5%B1%80%E5%87%BD%E6%95%B0/" title="vue挂载全局函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-06</div><div class="info-item-2">vue挂载全局函数</div></div><div class="info-2"><div class="info-item-1"> 要是生活送了你一个柠檬，那你应该再要点盐与龙蛇兰。  首先在src下面建个utils包，创建个index.js 然后写上我们的全局函数 123456789101112131415161718192021//获取当前传入参数类型export function getObjType(obj) &#123;    var toString = Object.prototype.toString    var map = &#123;        &#x27;[object Boolean]&#x27;: &#x27;boolean&#x27;,        &#x27;[object Number]&#x27;: &#x27;number&#x27;,        &#x27;[object String]&#x27;: &#x27;string&#x27;,        &#x27;[object Function]&#x27;: &#x27;function&#x27;,        &#x27;[object Array]&#x27;: &#x27;array&#x2...</div></div></div></a><a class="pagination-related" href="/2025/08/20/papermark/" title="papermark"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-08-20</div><div class="info-item-2">papermark</div></div><div class="info-2"><div class="info-item-1"> 常制不可以待变化,一涂不可以应万方,刻船不以索遗剑。一一东晋·葛洪《抱朴子》  https://github.com/mfts/papermark Papermark：开源 DocSend 替代方案，智能文档分享新体验在数字化办公和远程协作日益普及的今天，文档安全分享与跟踪成为企业和个人不可或缺的需求。你是否曾因为发送合同、方案、报告时无法精准掌控访问和分析而苦恼？你是否希望拥有一款既能自定义品牌，又能实时统计文档访问的数据房间工具？如果你的答案是肯定的，那么你一定要试试 Papermark —— 一个正在快速崛起的开源 DocSend 替代项目！ 一、项目简介Papermark 是一款完全开源的文档分享与跟踪平台，被誉为“开源版 DocSend”。它支持个性化品牌、定制域名、内置访问分析，并允许开发者和企业自部署、自定义，保障数据安全和可控性。  项目主页：https://papermark.com GitHub地址：https://github.com/mfts/papermark 项目定位：开源、安全、可自托管、可扩展的数据房间&#x2F;文档分享平台 最新 Star 数...</div></div></div></a><a class="pagination-related" href="/2022/02/15/includes/" title="includes"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-15</div><div class="info-item-2">includes</div></div><div class="info-2"><div class="info-item-1"> 一个人能在鼠疫和生活的赌博中所赢得的全部东西，就是知识和记忆。——《鼠疫》  我们除了使用indexOf判断字符串&#x2F;数组是否包含某字符&#x2F;元素还可以使用includes 区别在于数组判断中indexOf对NaN值处理会错误，而includes不会，例如：  这里显示-1说明没有匹配到 而使用includes：  可以看到成功匹配 字符串也可以使用includes  非常的方便 我们可以用prototype获取原型对象然后再调用 1Array.prototype.includes.call([1,2,3,4],1)  还是蛮方便的 </div></div></div></a><a class="pagination-related" href="/2025/08/26/fabricjs/" title="fabricjs"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-08-26</div><div class="info-item-2">fabricjs</div></div><div class="info-2"><div class="info-item-1"> 没有比脚更长的路，没有比人更高的山。――汪国真《山高路远》  Fabric.js：浏览器里的 Canvas 超级引擎 —— 让前端图形开发极致自由在现代网页开发中，图形和可视化已成为用户体验的关键一环。无论是在线图片编辑、白板、流程图、交互动画，还是数据可视化，HTML5 Canvas 都是前端开发者的“画布”。但原生 Canvas API 虽强，却略显底层、开发门槛高。你是否想在浏览器里拥有类似 Photoshop、PowerPoint 的自由拖拽、变形、分组、交互体验？如果答案是 YES，那你不能错过 Fabric.js —— 这个让前端图形开发“飞起来”的开源超级引擎！  一、项目简介Fabric.js 是一个功能强大的 Javascript Canvas 库，专为现代浏览器设计，能让开发者用极少代码实现复杂的图形对象创建、编辑、管理与交互。它不仅支持 Canvas 的全部绘图能力，还提供了对象化管理、序列化、事件监听、自由变形等高级功能，成为前端图形应用的“事实标准”。  项目地址：https://github.com/fabricjs/fabric.js 官网演示：h...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/VampireAchao"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/14/pm-skills/" title="pm-skills">pm-skills</a><time datetime="2026-06-14T08:20:32.000Z" title="发表于 2026-06-14 16:20:32">2026-06-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/13/openmed/" title="openmed">openmed</a><time datetime="2026-06-13T08:08:11.000Z" title="发表于 2026-06-13 16:08:11">2026-06-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/12/container/" title="container">container</a><time datetime="2026-06-12T01:07:15.000Z" title="发表于 2026-06-12 09:07:15">2026-06-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/11/flowsint/" title="flowsint">flowsint</a><time datetime="2026-06-11T12:09:31.000Z" title="发表于 2026-06-11 20:09:31">2026-06-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/10/openclaw-windows-node/" title="openclaw-windows-node">openclaw-windows-node</a><time datetime="2026-06-10T03:36:40.000Z" title="发表于 2026-06-10 11:36:40">2026-06-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

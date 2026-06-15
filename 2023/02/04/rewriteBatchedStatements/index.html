@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>rewriteBatchedStatements | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从前的日色变得慢，车，马，邮件都慢，一生只够爱一个人。——木心  我们在使用mybatis进行批量更新时，可以在mysql的链接url处添加rewriteBatchedStatements&#x3D;true提升效率. 文档：https:&#x2F;&#x2F;dev.mysql.com&#x2F;doc&#x2F;connector-j&#x2F;8.0&#x2F;en&#x2F;connector-j-connp-props-performance-extensions">
+<meta property="og:type" content="article">
+<meta property="og:title" content="rewriteBatchedStatements">
+<meta property="og:url" content="https://vampireachao.github.io/2023/02/04/rewriteBatchedStatements/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="从前的日色变得慢，车，马，邮件都慢，一生只够爱一个人。——木心  我们在使用mybatis进行批量更新时，可以在mysql的链接url处添加rewriteBatchedStatements&#x3D;true提升效率. 文档：https:&#x2F;&#x2F;dev.mysql.com&#x2F;doc&#x2F;connector-j&#x2F;8.0&#x2F;en&#x2F;connector-j-connp-props-performance-extensions">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.github.io/img/head.png">
+<meta property="article:published_time" content="2023-02-04T08:51:22.000Z">
+<meta property="article:modified_time" content="2026-02-24T09:48:42.330Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.github.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "rewriteBatchedStatements",
+  "url": "https://vampireachao.github.io/2023/02/04/rewriteBatchedStatements/",
+  "image": "https://vampireachao.github.io/img/head.png",
+  "datePublished": "2023-02-04T08:51:22.000Z",
+  "dateModified": "2026-02-24T09:48:42.330Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.github.io/2023/02/04/rewriteBatchedStatements/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'rewriteBatchedStatements',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top_img.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">rewriteBatchedStatements</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">rewriteBatchedStatements</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-02-04T08:51:22.000Z" title="发表于 2023-02-04 16:51:22">2023-02-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-24T09:48:42.330Z" title="更新于 2026-02-24 17:48:42">2026-02-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>从前的日色变得慢，车，马，邮件都慢，一生只够爱一个人。——木心</p>
+</blockquote>
+<p>我们在使用<code>mybatis</code>进行批量更新时，可以在<code>mysql</code>的链接<code>url</code>处添加<code>rewriteBatchedStatements=true</code>提升效率.</p>
+<p>文档：<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-connp-props-performance-extensions.html">https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-connp-props-performance-extensions.html</a></p>
+<blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rewriteBatchedStatements</span><br></pre></td></tr></table></figure>
+
+<p>Should the driver use multi-queries, regardless of the setting of ‘allowMultiQueries’, as well as rewriting of prepared statements for INSERT and REPLACE queries into multi-values clause statements when ‘executeBatch()’ is called?</p>
+<p>Notice that this might allow SQL injection when using plain statements and the provided input is not properly sanitized. Also notice that for prepared statements, if the stream length is not specified when using ‘PreparedStatement.set*Stream()’, the driver would not be able to determine the optimum number of parameters per batch and might return an error saying that the resultant packet is too large.</p>
+<p>‘Statement.getGeneratedKeys()’, for statements that are rewritten only works when the entire batch consists of INSERT or REPLACE statements.</p>
+<p>Be aware that when using “rewriteBatchedStatements&#x3D;true” with “INSERT … ON DUPLICATE KEY UPDATE” for rewritten statements, the server returns only one value for all affected (or found) rows in the batch, and it is not possible to map it correctly to the initial statements; in this case the driver returns “0” as the result for each batch statement if total count was zero, and ‘Statement.SUCCESS_NO_INFO’ if total count was above zero.</p>
+<table>
+<thead>
+<tr>
+<th align="left">Default Value</th>
+<th>false</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Since Version</td>
+<td>3.1.13</td>
+</tr>
+</tbody></table>
+</blockquote>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/02/05/pinia/" title="pinia"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">pinia</div></div><div class="info-2"><div class="info-item-1"> 天时不如地利，地利不如人和——孟子  分享一个Vuex的同类型vue状态管理框架：Pinia 中文文档：https://pinia.web3doc.top/  它的Demo：https://stackblitz.com/github/piniajs/example-vue-3-vite?file=README.md 相比于Vuex:https://pinia.web3doc.top/introduction.html#%E4%B8%8E-vuex-%E7%9A%84%E6%AF%94%E8%BE%83  Pinia 提供了一个更简单的 API，具有更少的规范，提供了 Composition-API 风格的 API，最重要的是，在与 TypeScript 一起使用时具有可靠的类型推断支持。    </div></div></div></a><a class="pagination-related" href="/2023/02/03/kotlin%E6%B3%9B%E5%9E%8B%E5%A4%9A%E4%B8%AA%E4%B8%8A%E7%95%8C/" title="kotlin泛型多个上界"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">kotlin泛型多个上界</div></div><div class="info-2"><div class="info-item-1"> 善气迎人，亲如兄弟；恶气迎人，害于戈兵。——管子  java中，我们可以使用&lt;T extends Comparable&lt;? super T&gt;, Serializable&gt;来指定多个接口的泛型限制 kotlin中 对应的是上界  上界最常见的约束类型是与 Java 的 extends 关键字对应的 上界： 1fun &lt;T : Comparable&lt;T&gt;&gt; sort(list: List&lt;T&gt;) &#123;  …… &#125;  冒号之后指定的类型是上界：只有 Comparable&lt;T&gt; 的子类型可以替代 T。 例如： 12sort(listOf(1, 2, 3)) // OK。Int 是 Comparable&lt;Int&gt; 的子类型sort(listOf(HashMap&lt;Int, String&gt;())) // 错误：HashMap&lt;Int, String&gt; 不是 Comparable&lt;HashMap&lt;Int, String&gt;&gt; 的子类型  默认的上界...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/01/27/%E5%85%A8%E5%B1%80%E6%9B%BF%E6%8D%A2%E5%8F%8C%E6%96%9C%E6%9D%A0-%E8%BD%AC%E4%B9%89-%E5%8F%8D%E6%96%9C%E6%9D%A0-%E4%B8%BA%E5%8D%95%E6%96%9C%E6%9D%A0/" title="全局替换双斜杠(转义+反斜杠)为单斜杠"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-01-27</div><div class="info-item-2">全局替换双斜杠(转义+反斜杠)为单斜杠</div></div><div class="info-2"><div class="info-item-1"> 心气和平，玉体安宁。——佚名  今天经IOS开发小哥哥反馈，让我将全局返回的双斜杠\\替换为单斜杠\ 于是有了下面这段代码： 123456789101112131415161718192021222324252627@Overrideprotected void writeInternal(Object object, @Nullable Type type, HttpOutputMessage outputMessage)        throws IOException, HttpMessageNotWritableException &#123;    MediaType contentType = outputMessage.getHeaders().getContentType();    JsonEncoding encoding = getJsonEncoding(contentType);    Class&lt;?&gt; clazz = (object instanceof MappingJacksonValue mappingJacksonValue ?...</div></div></div></a><a class="pagination-related" href="/2021/01/03/Random%E6%8B%93%E5%B1%95/" title="Random拓展"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-01-03</div><div class="info-item-2">Random拓展</div></div><div class="info-2"><div class="info-item-1"> 顽强的毅力可以征服世界上任何一座高峰。——狄更斯  random拓展 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950package com.ruben;import com.baomidou.mybatisplus.extension.api.R;import java.util.Random;import java.util.Spliterators;import java.util.stream.IntStream;import java.util.stream.StreamSupport;/** * @ClassName: RandomDemo * @Description: 我还没有写描述 * @Date: 2021/1/3 0003 12:39 * * * @author: &lt;achao1441470436@gmail.com&gt; * @version: 1.0 * @since: JDK 1.8 */public clas...</div></div></div></a><a class="pagination-related" href="/2021/12/06/Collectors-toMap%E7%A9%BA%E6%8C%87%E9%92%88%E9%97%AE%E9%A2%98/" title="Collectors.toMap空指针问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-12-06</div><div class="info-item-2">Collectors.toMap空指针问题</div></div><div class="info-2"><div class="info-item-1"> 社会上崇敬名人，于是以为名人的话就是名言，却忘记了他所以得名是那一种学问和事业。 —— 鲁迅  对于Collectors.toMap，我们使用时如果value为空，则会抛出空指针，因为底层调用的Map.merge函数 如果我们想避免该问题，就可以使用collect去处理，例如我给hutool提交的这个PR一样 原先： 1StreamUtil.of(collection, isParallel).collect(Collectors.toMap(key, value, (l, r) -&gt; l));  现在： 1StreamUtil.of(collection, isParallel).collect(HashMap::new, (HashMap&lt;K, V&gt; m, E v) -&gt; m.put(key.apply(v), value.apply(v)), HashMap::putAll);  完整函数： 12345678910111213141516/** * @param collection 需要转化的集合 * @param key        E类型转...</div></div></div></a><a class="pagination-related" href="/2020/07/26/jenkins%E5%87%AD%E8%AF%81%E7%AE%A1%E7%90%86/" title="jenkins凭证管理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-07-26</div><div class="info-item-2">jenkins凭证管理</div></div><div class="info-2"><div class="info-item-1">安装Credentials Binding插件  安装完了回设置页面，发现有了一个Manage Credentials  然后安装Git插件  安装完了去服务器里安装Git 1234#yum安装Gityum install git -y#安装完了用以下命令查看版本git --version  安装好了我们就开始拉代码吧~ 先去到我们的Manage Credentials里 点击全局  然后点击添加凭据  选择第一个Username with password  填写好Gitlab的用户名密码 到我们新建的项目test01的配置里  填写git仓库，然后选择凭据，如果凭据验证通过，就会是我这个样子，否则是报错 点击保存后，再点击左侧的Build Now按钮   这时候，jenkins就去拉代码了 默认是在/var/lib/jenkins/workspace/下  然后是ssh的免密登录秘钥类型 123456#先在服务器上生成秘钥(yao!)敲完按回车ssh-keygen -t rsa#然后进入目录cd /root/.ssh#cat公钥文件cat id_rsa.pub  复制，粘贴到...</div></div></div></a><a class="pagination-related" href="/2024/07/10/Mybatis%E5%9C%A8Mapper%E4%B8%8A%E5%8A%A0%E6%B3%A8%E8%A7%A3%E5%85%B3%E9%97%AD%E4%BA%8C%E7%BA%A7%E7%BC%93%E5%AD%98/" title="Mybatis在Mapper上加注解关闭二级缓存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-10</div><div class="info-item-2">Mybatis在Mapper上加注解关闭二级缓存</div></div><div class="info-2"><div class="info-item-1"> 久视伤血，久卧伤气，久坐伤肉，久立伤骨，久行伤筋。——曹廷栋  代码如下 12345678910111213import org.apache.ibatis.annotations.CacheNamespace;import org.apache.ibatis.annotations.Select;import org.apache.ibatis.annotations.Mapper;import org.apache.ibatis.cache.impl.PerpetualCache;@Mapper@CacheNamespace(implementation = PerpetualCache.class, blocking = false)public interface MyMapper &#123;    @Select(&quot;SELECT * FROM my_table WHERE id = #&#123;id&#125;&quot;)    MyEntity selectById(int id);&#125;  上使用@CacheNamespace注解，并将imp...</div></div></div></a><a class="pagination-related" href="/2024/04/20/java%E4%BD%BF%E7%94%A8jodd%E6%93%8D%E4%BD%9Chtml/" title="java使用jodd操作html"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-04-20</div><div class="info-item-2">java使用jodd操作html</div></div><div class="info-2"><div class="info-item-1"> 快乐就像香水，不是泼在别人身上，而是洒在自己身上。——拉尔夫·沃尔多·爱默生  https://github.com/oblac/jodd https://jodd.org/ Jodd 是一个开源的 Java 工具库，提供了一系列简化和增强 Java 开发的工具，包括但不限于对象操作、数据库连接、邮件发送等功能。JerryParser 是 Jodd 中处理 HTML 的重要工具。 JerryParser 基于 CSS 选择器，允许开发者使用类似 jQuery 的语法来查找、修改和操纵 HTML 元素。这样的设计使得处理 HTML 文档就像在编写 jQuery 脚本一样简单。 主要功能：  查找元素：通过 CSS 选择器快速定位页面上的元素。 修改内容：轻松添加、删除或修改元素的内容和属性。 事件处理：支持基本的事件绑定，如点击、加载等。  安装： 首先，确保你的项目中已经包含了 Jodd 库。如果还没有，可以通过 Maven 添加依赖： 12345&lt;dependency&gt;    &lt;groupId&gt;org.jodd&lt;/groupId&gt;    &...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2208</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/VampireAchao"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/14/pm-skills/" title="pm-skills">pm-skills</a><time datetime="2026-06-14T08:20:32.000Z" title="发表于 2026-06-14 16:20:32">2026-06-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/13/openmed/" title="openmed">openmed</a><time datetime="2026-06-13T08:08:11.000Z" title="发表于 2026-06-13 16:08:11">2026-06-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/12/container/" title="container">container</a><time datetime="2026-06-12T01:07:15.000Z" title="发表于 2026-06-12 09:07:15">2026-06-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/11/flowsint/" title="flowsint">flowsint</a><time datetime="2026-06-11T12:09:31.000Z" title="发表于 2026-06-11 20:09:31">2026-06-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/10/openclaw-windows-node/" title="openclaw-windows-node">openclaw-windows-node</a><time datetime="2026-06-10T03:36:40.000Z" title="发表于 2026-06-10 11:36:40">2026-06-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
