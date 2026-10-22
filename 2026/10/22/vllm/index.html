@@ -1,0 +1,247 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>vllm | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="吾生也有涯，而知也无涯。——庄子  把显存一寸一寸抠回来：vLLM 的推理引擎长什么样三个词，一句自我定位「Easy, fast, and cheap.」 这是 vLLM 给自己写的 slogan，短得有点不像话：简单、快、便宜，人人可用。三个形容词，没有一个是技术名词，但它们恰好对应了部署一个大模型时最疼的三件事——装不起来、跑得太慢、算下来太贵。 它的正式定位也只有一句：一个面向大语言模型的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vllm">
+<meta property="og:url" content="https://vampireachao.github.io/2026/10/22/vllm/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="吾生也有涯，而知也无涯。——庄子  把显存一寸一寸抠回来：vLLM 的推理引擎长什么样三个词，一句自我定位「Easy, fast, and cheap.」 这是 vLLM 给自己写的 slogan，短得有点不像话：简单、快、便宜，人人可用。三个形容词，没有一个是技术名词，但它们恰好对应了部署一个大模型时最疼的三件事——装不起来、跑得太慢、算下来太贵。 它的正式定位也只有一句：一个面向大语言模型的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.github.io/img/head.png">
+<meta property="article:published_time" content="2026-10-22T02:39:37.000Z">
+<meta property="article:modified_time" content="2026-10-22T02:41:45.379Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="ai">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.github.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "vllm",
+  "url": "https://vampireachao.github.io/2026/10/22/vllm/",
+  "image": "https://vampireachao.github.io/img/head.png",
+  "datePublished": "2026-10-22T02:39:37.000Z",
+  "dateModified": "2026-10-22T02:41:45.379Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.github.io/2026/10/22/vllm/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'vllm',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2338</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">36</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top_img.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">vllm</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">vllm</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-10-22T02:39:37.000Z" title="发表于 2026-10-22 10:39:37">2026-10-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-22T02:41:45.379Z" title="更新于 2026-10-22 10:41:45">2026-10-22</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>吾生也有涯，而知也无涯。——庄子</p>
+</blockquote>
+<h1 id="把显存一寸一寸抠回来：vLLM-的推理引擎长什么样"><a href="#把显存一寸一寸抠回来：vLLM-的推理引擎长什么样" class="headerlink" title="把显存一寸一寸抠回来：vLLM 的推理引擎长什么样"></a>把显存一寸一寸抠回来：vLLM 的推理引擎长什么样</h1><h2 id="三个词，一句自我定位"><a href="#三个词，一句自我定位" class="headerlink" title="三个词，一句自我定位"></a>三个词，一句自我定位</h2><p>「Easy, fast, and cheap.」</p>
+<p>这是 vLLM 给自己写的 slogan，短得有点不像话：简单、快、便宜，人人可用。三个形容词，没有一个是技术名词，但它们恰好对应了部署一个大模型时最疼的三件事——装不起来、跑得太慢、算下来太贵。</p>
+<p>它的正式定位也只有一句：一个面向大语言模型的高吞吐、内存高效的推理与服务引擎。</p>
+<p>注意这两个限定词。<strong>高吞吐</strong>说的是一段时间里能吐出多少 token；<strong>内存高效</strong>说的是这些 token 是用多少显存换来的。这两个词放在一起，其实是一个约束条件的两面：显存是硬的，吞吐是软的，想让吞吐上去，只能在显存的使用方式上做文章。</p>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/vllm-project/vllm">https://github.com/vllm-project/vllm</a></p>
+<p>vLLM 做的所有事情，几乎都可以追溯到这一条线上。</p>
+<h2 id="它从哪儿来"><a href="#它从哪儿来" class="headerlink" title="它从哪儿来"></a>它从哪儿来</h2><p>这份代码最早诞生在加州大学伯克利分校的 Sky Computing Lab。一个实验室项目，长到今天这个体量——文档里用了一个很克制的说法：它已经成为最活跃的开源 AI 项目之一，由来自几十家学术机构与公司的多元社区共同构建和维护，贡献者超过 2000 人。</p>
+<p>2000 多人不是一个可以靠热情维持的数字。它意味着这个项目必须有一套能让陌生人快速接手的工作方式：清晰的贡献路径、公开的讨论场所、可复现的基准、以及足够稳定的接口。这些不写在性能指标里，但它们是「一个项目能不能活过第三年」的分水岭。</p>
+<h2 id="快，具体快在哪"><a href="#快，具体快在哪" class="headerlink" title="快，具体快在哪"></a>快，具体快在哪</h2><p>文档把「快」拆成了一份相当长的清单。逐条看下来，会发现它们其实在解决四个层次的问题：显存怎么用、请求怎么排、执行怎么走、算力怎么省。</p>
+<h3 id="第一层：显存这块，先动刀"><a href="#第一层：显存这块，先动刀" class="headerlink" title="第一层：显存这块，先动刀"></a>第一层：显存这块，先动刀</h3><p>清单第一条是「业界领先的服务吞吐」，第二条就给了原因——用 <strong>PagedAttention</strong> 高效管理注意力的 key 与 value 缓存。</p>
+<p>这个设计是整个项目的起点。KV 缓存是推理时最占地方的东西：每个并发请求都要为自己的上下文留一块连续空间，长度还不确定，短的浪费，长的溢出。PagedAttention 的思路是把这块内存像操作系统管内存那样分页管理，让缓存不必连续、不必预留、可以按需拼接。</p>
+<p>显存不再被「预留但没用上」的碎片吃掉，能同时容纳的请求数就上去了。吞吐的提升不是算得更快，而是<strong>同时算得更多</strong>。</p>
+<h3 id="第二层：请求不该排队等整批"><a href="#第二层：请求不该排队等整批" class="headerlink" title="第二层：请求不该排队等整批"></a>第二层：请求不该排队等整批</h3><p>接着是三个调度层面的机制：<strong>连续批处理</strong>、<strong>分块预填充</strong>、<strong>前缀缓存</strong>。</p>
+<p>连续批处理解决的是「批的边界太硬」这个问题。传统做法是攒一批、跑完、再攒一批，一个短请求如果赶上了一个长请求，就得陪它等到最后。连续批处理让新请求可以在任意时刻加入正在跑的批次，一个请求结束，它的位置立刻被下一个填上。</p>
+<p>分块预填充把长 prompt 的预填充阶段切成小块，让一个超长输入的请求不至于独霸整个批次。</p>
+<p>前缀缓存则针对那些「开头都一样」的请求——系统提示词、few-shot 示例、固定的工具描述。这一段算过一次就可以复用，不必每个请求都重算。</p>
+<p>三个机制合起来，效果是同一件事：<strong>让 GPU 的空闲周期变少。</strong></p>
+<h3 id="第三层：图、核、量化"><a href="#第三层：图、核、量化" class="headerlink" title="第三层：图、核、量化"></a>第三层：图、核、量化</h3><p>再往下是执行层。</p>
+<p><strong>CUDA&#x2F;HIP 图</strong>，支持分段和整图两种模式。图捕获的意义在于把一长串 kernel 启动的调度开销压成一次提交，尤其在解码这种每步计算量小、启动次数多的场景里，省下来的时间比例很可观。</p>
+<p><strong>量化</strong>这张清单长得有点夸张：FP8、MXFP8、MXFP4、NVFP4、INT8、INT4、GPTQ、AWQ、GGUF、compressed-tensors、ModelOpt、TorchAO，后面还跟着「以及更多」。这不是为了显得全，而是因为现实里的模型权重就是各种格式混杂的，一个服务引擎如果只认一种，用户就得先做一轮转换。</p>
+<p><strong>注意力 kernel</strong> 支持 FlashAttention、FlashInfer、TRTLLM-GEN、FlashMLA 和 Triton。<strong>GEMM 与 MoE kernel</strong> 覆盖多种精度，用 CUTLASS、TRTLLM-GEN、CuTeDSL 实现。</p>
+<p>这些名字背后是同一个现实：注意力机制和专家混合这两块最吃算力，也最依赖硬件细节。不同显卡、不同精度、不同序列长度，最优实现都不一样，所以这里给的不是一个 kernel，而是一排。</p>
+<p><strong>torch.compile</strong> 在这里承担了自动化的角色——自动生成 kernel，做图级变换。手写 kernel 能榨出最后几个百分点，但它需要人；编译器能覆盖那些没人愿意为它手写 kernel 的形状。两条腿走路。</p>
+<h3 id="第四层：先猜，再验"><a href="#第四层：先猜，再验" class="headerlink" title="第四层：先猜，再验"></a>第四层：先猜，再验</h3><p><strong>投机解码</strong>是另一条思路：用小模型或者规则先猜出若干个 token，再用大模型一次性验证。猜对了就白赚，猜错了就回退。</p>
+<p>vLLM 支持四种：n-gram、suffix、EAGLE、DFlash。四种方法对应四种「猜」的来源——从输入文本本身找重复片段，从上下文里找后缀匹配，用专门训练的小模型来猜，或者用更轻的扩散式方案。</p>
+<p>这条路的天花板取决于「猜得准不准」，而准不准又取决于任务本身。代码补全、结构化输出、长文档改写，这些场景里重复和规律多，投机解码的收益就明显；自由创作里就未必。</p>
+<h3 id="还有一条：把流水线拆开"><a href="#还有一条：把流水线拆开" class="headerlink" title="还有一条：把流水线拆开"></a>还有一条：把流水线拆开</h3><p><strong>分离式 prefill、decode 和 encode</strong>，是把推理的不同阶段放到不同机器上跑。</p>
+<p>预填充是算力密集的，一次要吞下整个 prompt；解码是显存带宽密集的，每步只吐一个 token。把这两件事塞在同一张卡上，等于让一台机器同时干两种性格完全相反的工作。拆开之后，各自的资源可以按各自的节奏扩缩。</p>
+<h2 id="好用，具体好用在哪"><a href="#好用，具体好用在哪" class="headerlink" title="好用，具体好用在哪"></a>好用，具体好用在哪</h2><p>性能清单看完，再看易用性清单，会发现语气变了：不再是「我们支持多少种格式」，而是「你原来怎么用，现在还能怎么用」。</p>
+<p><strong>与 Hugging Face 上的主流模型无缝集成。</strong> 这一条是整份文档里最重要的一句工程承诺。它意味着你不需要为了换引擎而重写模型定义、重新导出权重、重新对齐分词器。</p>
+<p><strong>多种解码算法的高吞吐服务</strong>，包括并行采样、束搜索，以及更多。批量生成多个候选、做 reranking、做 self-consistency，这些都不必自己在外层拼装。</p>
+<p><strong>五种并行</strong>：张量并行、流水线并行、数据并行、专家并行、上下文并行。前三种是常规手段，专家并行针对 MoE 结构，上下文并行则服务于那些长到一张卡放不下的序列。</p>
+<p><strong>流式输出。</strong> 一个字一个字往外吐，而不是等整段生成完。</p>
+<p><strong>结构化输出</strong>，通过 xgrammar 或 guidance 实现。这两套都是把语法约束塞进解码过程，让模型从一开始就只能生成合法的 JSON、正则匹配的字符串或者某种 DSL。</p>
+<p><strong>工具调用与推理解析器。</strong> 前者让模型输出可以被直接解析成函数调用，后者负责把思维链和最终答案分开——这两件事现在更像服务层该有的能力，而不只是应用层的小技巧。</p>
+<p><strong>OpenAI 兼容的 API 服务</strong>，另外还支持 <strong>Anthropic Messages API</strong> 和 <strong>gRPC</strong>。三种入口对应三类用户：已经写好 OpenAI SDK 调用的、用 Claude 那套消息格式的、以及需要强类型接口和高性能传输的。</p>
+<p><strong>面向稠密层与 MoE 层的高效 multi-LoRA。</strong> 一个基座模型挂多个适配器，各租户各用各的，权重共享。这条对做 SaaS 的团队尤其重要——它把「一个客户一个模型」的成本压回了「一个模型多个适配器」。</p>
+<h2 id="硬件版图：不止-NVIDIA"><a href="#硬件版图：不止-NVIDIA" class="headerlink" title="硬件版图：不止 NVIDIA"></a>硬件版图：不止 NVIDIA</h2><p>支持的硬件分两类写：原生支持的和靠插件接进来的。</p>
+<p>原生支持 <strong>NVIDIA GPU、AMD GPU、Intel GPU，以及 x86、ARM、PowerPC 架构的 CPU</strong>。</p>
+<p>插件生态则拉得更开：Google TPU、Intel Gaudi、IBM Spyre、华为昇腾、Rebellions NPU、Apple Silicon、MetaX GPU，以及更多。</p>
+<p>把这份名单读一遍，能看出一个很现实的考量。推理引擎的护城河不在模型，在硬件适配——每多支持一种卡，就多一群能用它的人。而插件机制的意义在于，这件事不必由核心团队一个人一个人地做。</p>
+<h2 id="200-模型架构，六类"><a href="#200-模型架构，六类" class="headerlink" title="200+ 模型架构，六类"></a>200+ 模型架构，六类</h2><p>文档说它无缝支持 Hugging Face 上 200 多种模型架构，然后按六类举例：</p>
+<p><strong>纯解码器 LLM</strong>，比如 Llama、Qwen、Gemma。这是最主流的一类。</p>
+<p><strong>专家混合 LLM</strong>，比如 Mixtral、DeepSeek-V3、Qwen-MoE、GPT-OSS。这类模型的参数总量很大但每步只激活一部分，对调度和显存管理的要求比稠密模型更高。</p>
+<p><strong>混合注意力与状态空间模型</strong>，比如 Mamba、Qwen3.5。这一类的计算模式和 Transformer 不一样，能支持它说明引擎的抽象层留了足够的余地。</p>
+<p><strong>多模态模型</strong>，比如 LLaVA、Qwen-VL、Pixtral。图像要被编码成 token 才能进语言模型，这条链路要单独打通。</p>
+<p><strong>嵌入与检索模型</strong>，比如 E5-Mistral、GTE、ColBERT。这一类不生成文本，只吐向量，服务形态完全不同。</p>
+<p><strong>奖励与分类模型</strong>，比如 Qwen-Math。输出是一个分数或者一个标签，而不是一段话。</p>
+<p>六类放在一起看，vLLM 想覆盖的其实不是「文本生成」，而是「模型前向计算的任何一种用法」。</p>
+<h2 id="装起来只要两行"><a href="#装起来只要两行" class="headerlink" title="装起来只要两行"></a>装起来只要两行</h2><p>文档推荐的安装方式是用 <code>uv</code>，也支持 <code>pip</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">uv pip install vllm</span><br><span class="line">vllm download-kernels  <span class="comment"># precompiled kernels for faster startup</span></span><br></pre></td></tr></table></figure>
+
+<p>第一行装包，第二行把预编译好的 kernel 拉下来，换一个更快的启动速度。</p>
+<p>如果是要做开发，也可以从源码构建。这条路径通向的是另一件事：改代码、提 PR、参与这个 2000 多人的协作。</p>
+<h2 id="名字背后那篇论文"><a href="#名字背后那篇论文" class="headerlink" title="名字背后那篇论文"></a>名字背后那篇论文</h2><p>vLLM 不是一个凭空冒出来的工程实践，它有一篇对应的论文，题目是《Efficient Memory Management for Large Language Model Serving with PagedAttention》，发表在 ACM SIGOPS 第 29 届操作系统原理研讨会上。</p>
+<p>题目已经把核心讲完了：用 PagedAttention 做高效的大模型服务内存管理。前面讲的 KV 缓存分页、连续批处理、吞吐提升，都是这篇论文的工程化延伸。</p>
+<p>这也是这个项目比较特别的地方——它的性能优势来自一个可以被复述、被检验、被引用的机制，而不是一堆调参技巧的堆叠。机制可以被别人重新实现，技巧不行。</p>
+<h2 id="一个项目怎么长大"><a href="#一个项目怎么长大" class="headerlink" title="一个项目怎么长大"></a>一个项目怎么长大</h2><p>文档里关于「如何参与」的部分写得很平，但值得念一遍：技术问题和功能请求走 GitHub Issues；和同行讨论去 vLLM 论坛；协调贡献和开发去 Slack；安全漏洞走 GitHub 的安全公告渠道；合作与伙伴关系另有专门的联络方式。</p>
+<p>这五条对应的其实是五种不同的关系：使用者、同行、贡献者、安全研究者、商业伙伴。一个项目能同时容下这五种人，才有了从实验室项目变成基础设施的可能。</p>
+<p>至于 logo 的使用，文档单独指了一个 media kit 仓库——这种事写得越清楚，越说明它已经被人惦记过很多次了。</p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>回到那三个词。</p>
+<p>Easy 是把复杂度收进引擎内部，让调用方看到的仍然是一个 OpenAI 兼容的接口。Fast 是把显存、调度、kernel、解码四层一起优化，而不是只在一个点上做文章。Cheap 是前两者的结果——同样的卡，跑出更多的 token，单位成本自然就下来了。</p>
+<p>PagedAttention 这个设计的迷人之处，在于它借了一个非常古老的思路：内存不该被一整块一整块地占着，应该被切成页，按需分配。操作系统几十年前就学会了这件事，vLLM 只是把它搬到了注意力的 KV 缓存上。</p>
+<p>有时候让一个领域往前跳一步的，不是什么新发明，而是一个从别处借来的旧常识。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ai/">ai</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/10/21/jasna/" title="jasna"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">jasna</div></div><div class="info-2"><div class="info-item-1"> 一寸光阴一寸金，寸金难买寸光阴。  只在一小块地方动刀：Jasna 把视频里的马赛克逐帧修回去先把画面讲清楚一段视频里，有一小块区域被马赛克盖住了。其余的一切——背景、人物、光线、噪点、镜头的轻微抖动——都是完好的，没有任何问题。 大多数视频修复工具的思路是「整帧处理」：把每一帧当成一张图，送进模型，出来一张更清晰、更平滑、也更陌生的图。代价是全局的，收益也是全局的，你没法只要其中一小块。 Jasna 走的是另一条路。它的定位只有一句：找出视频里的马赛克，把它们修回来，画面其余部分一概不动。 项目地址：https://github.com/Kruk2/jasna 这句话听起来像一句寻常的功能介绍，其实是整份工程设计的原点。因为「只改一小块」这件事，在视频里比在图片里难得多——图片改一块就完了，视频里同一块区域会移动、会变形、会被切镜打断，你必须先知道它在每一帧的哪里，才谈得上修。 它到底能做什么把功能摊开看，五条：  找出来，再修回来。 在视频里定位马赛克区域并还原，画面其余部分不受影响。 两种还原模型。 快的 BasicVSR++，免费；慢但细节更多的 LTX，面向支持者，且...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/07/09/CodexBar/" title="CodexBar"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-09</div><div class="info-item-2">CodexBar</div></div><div class="info-2"><div class="info-item-1"> 人要独立生活，学习有用的技艺。——凯德  https://github.com/steipete/CodexBar CodexBar：把 AI 编码额度请进 macOS 菜单栏有些工具擅长生成代码，有些工具擅长改代码，而 CodexBar 做的事情很直接：它把你每天最容易忽略、却又最影响节奏的那件事，搬到了眼前。 它是一个面向 macOS 14+ 的轻量级菜单栏应用，专门用来显示 AI 编码服务的使用额度，并告诉你每个额度窗口会在什么时候重置。项目 description 里用一句很朴素的话概括了它的初衷：**显示 OpenAI Codex 和 Claude Code 的使用统计，而且不必反复登录。**而 README 则把这个思路进一步铺开：它希望把“每一个 AI 编码限制”都变成菜单栏里一眼可见的信息。 项目地址：https://github.com/steipete/CodexBar 这类工具为什么会让人一眼记住很多人使用 AI 编码工具时，最容易遇到的不是“不会用”，而是“看不清”。看不清自己还有多少额度，看不清这次会话什么时候重置，看不清某个平台是按周计算、按月计算，...</div></div></div></a><a class="pagination-related" href="/2026/02/25/PersonaLive/" title="PersonaLive"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-25</div><div class="info-item-2">PersonaLive</div></div><div class="info-2"><div class="info-item-1"> 世界上最快而又最慢，最长而又最短，最平凡而又最珍贵，最易被忽视而又最令人后悔的就是时间。——高尔基  PersonaLive: 从图片到动态角色的崭新篇章在数字化娱乐日益走向多样化的今天，动画化技术推动了内容创作的一次次飞跃。而 PersonaLive，作为 CVPR 2026 大会引发热议的焦点项目，通过独特的表现力和实时性角度，把静态的人物肖像转化为栩栩如生的动画角色，赋予了创作者更多的创新空间。  什么是 PersonaLive？PersonaLive 是一款顶尖的动态肖像动画生成工具，专为直播流媒体和视觉创作而设计。它的强大之处不仅体现在完美实现动态表情动画，还提供了前所未有的逼真和自定义能力，非常适合个性化需求的内容创作场景。 项目背后的研究团队由来自澳门大学、Dzine.ai 和大湾区实验室的顶尖研究者组成。此外，PersonaLive 已成功公布至多平台（详见：Hugging Face 模型页面 和 ModelScope），用户可以快速获取资源进行开发。  PersonaLive 的核心优势 🎥 表情实时响应：PersonaLive 可实时将图像动画生成，用于直...</div></div></div></a><a class="pagination-related" href="/2026/09/22/AiToEarn/" title="AiToEarn"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-22</div><div class="info-item-2">AiToEarn</div></div><div class="info-2"><div class="info-item-1"> 学习知识要善于思考，思考，再思。我就是靠这个方法成为科学家的。——爱因斯坦  AiToEarn：把内容创作、发布、互动与变现交给 AI Agent项目地址：https://github.com/yikart/AiToEarn 内容创作从来不是只写完一篇文案、剪好一条视频那么简单。 一个真正完整的内容流程，往往从选题和创意开始，经过素材组织、图文或视频制作、平台适配、账号发布、评论互动、品牌关注，最后才有机会走向传播、推广与变现。对于独立创作者、品牌团队、企业运营者，以及希望以更小规模组织完成更多事情的一人公司而言，内容工作既充满机会，也常常被大量重复操作切得支离破碎。 AiToEarn 想做的，正是把这些分散在不同平台、不同步骤、不同工具中的事情，重新组织成一套由 AI Agent 驱动的内容工作流。 它的定位是面向 OPC 一人公司的 AI 内容营销智能体平台，围绕内容构建、分发与变现展开。项目用四个词概括其能力方向：  Monetize · Publish · Engage · Create  赚钱、发布、互动、创作。 这四个词并不是彼此孤立的功能标签，而是一条内容运营链路...</div></div></div></a><a class="pagination-related" href="/2026/01/06/WeKnora/" title="WeKnora"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-06</div><div class="info-item-2">WeKnora</div></div><div class="info-2"><div class="info-item-1"> 永远不要把你今天可以做的事留到明天做。延宕是偷光阴的贼。抓住他吧!——狄更斯  嗨，今天来聊聊一个最近很“香”的开源项目：WeKnora。它来自腾讯，主页在这里：weknora.weixin.qq.com，GitHub 仓库在这里：Tencent&#x2F;WeKnora。一句话版简介（摘自仓库 description + README）：一个面向“深度文档理解 + 语义检索”的 LLM 框架，遵循 RAG（检索增强生成）范式，目标是把复杂、异构的文档，转化为“能被问、能被答、答得准”的知识。 先剧透几个关键词：  RAG、向量索引、语义检索、重排序 Agent（ReACT）能力，可调用内置工具、MCP 工具、Web 搜索 多类型知识库：FAQ 与文档型，支持文件夹&#x2F;URL 导入、标签管理、在线录入 Go 为主（后端），前端 TypeScript + Vue，配套 Python&#x2F;Shell 工具脚本 Docker Compose、Helm 等多种部署方式（仓库含 docker-compose.yml 与 helm 目录） 官网与多语言 README：Engl...</div></div></div></a><a class="pagination-related" href="/2025/11/26/call-center-ai/" title="call-center-ai"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-11-26</div><div class="info-item-2">call-center-ai</div></div><div class="info-2"><div class="info-item-1"> 人生最大的错误是不断担心会犯错。——亨利·福特  Call Center AI：用 Azure + OpenAI GPT 打造“能打电话、能接电话、能落地业务数据”的 AI 呼叫中心 项目地址：https://github.com/microsoft/call-center-ai项目描述：Send a phone call from AI agent, in an API call. Or, directly call the bot from the configured phone number!许可证：Apache-2.0技术栈关键词：Azure Communication Services、Azure Cognitive Services（STT&#x2F;TTS&#x2F;Translation）、Azure OpenAI（gpt-4.1 &#x2F; gpt-4.1-nano &#x2F; Embedding）、Azure Container Apps、Cosmos DB、AI Search、Event Grid、Redis、Application Insights...</div></div></div></a><a class="pagination-related" href="/2025/08/28/agent-chat-ui/" title="agent-chat-ui"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-08-28</div><div class="info-item-2">agent-chat-ui</div></div><div class="info-2"><div class="info-item-1"> 忘记和不曾察觉的事，等于从未发生。――史铁生  https://github.com/langchain-ai/agent-chat-ui LangChain Agent Chat UI：让智能体对话可视化与交互一站式实现在大模型、AI 智能体爆发的时代，越来越多开发者希望将强大的 AI 代理（Agent）能力嵌入自己的产品，无论是智能问答、助理对话、业务流程自动化，还是复杂的多智能体协作场景。你是否想过，如何用最方便、最现代的方式在前端实现与 Agent 的实时交互？你是否希望拥有一个开箱即用、可自定义、支持多智能体、多轮对话的 Web UI？那么，LangChain 官方出品的 agent-chat-ui 就是你不可错过的开源宝藏！  一、项目简介agent-chat-ui 是 LangChain 官方团队打造的开源 Web UI 项目，专为 Agent（智能体）对话和多智能体协作场景设计。它以极简集成、强大功能、现代体验为特色，让开发者可以一键拥有“类 ChatGPT”级别的 Agent 聊天界面，并支持可视化多智能体、工具调用、任务流追踪等高级特性。  项目地址：htt...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2338</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">36</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/VampireAchao"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8A%8A%E6%98%BE%E5%AD%98%E4%B8%80%E5%AF%B8%E4%B8%80%E5%AF%B8%E6%8A%A0%E5%9B%9E%E6%9D%A5%EF%BC%9AvLLM-%E7%9A%84%E6%8E%A8%E7%90%86%E5%BC%95%E6%93%8E%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="toc-number">1.</span> <span class="toc-text">把显存一寸一寸抠回来：vLLM 的推理引擎长什么样</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E4%B8%AA%E8%AF%8D%EF%BC%8C%E4%B8%80%E5%8F%A5%E8%87%AA%E6%88%91%E5%AE%9A%E4%BD%8D"><span class="toc-number">1.1.</span> <span class="toc-text">三个词，一句自我定位</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%83%E4%BB%8E%E5%93%AA%E5%84%BF%E6%9D%A5"><span class="toc-number">1.2.</span> <span class="toc-text">它从哪儿来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BF%AB%EF%BC%8C%E5%85%B7%E4%BD%93%E5%BF%AB%E5%9C%A8%E5%93%AA"><span class="toc-number">1.3.</span> <span class="toc-text">快，具体快在哪</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E5%B1%82%EF%BC%9A%E6%98%BE%E5%AD%98%E8%BF%99%E5%9D%97%EF%BC%8C%E5%85%88%E5%8A%A8%E5%88%80"><span class="toc-number">1.3.1.</span> <span class="toc-text">第一层：显存这块，先动刀</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E5%B1%82%EF%BC%9A%E8%AF%B7%E6%B1%82%E4%B8%8D%E8%AF%A5%E6%8E%92%E9%98%9F%E7%AD%89%E6%95%B4%E6%89%B9"><span class="toc-number">1.3.2.</span> <span class="toc-text">第二层：请求不该排队等整批</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E5%B1%82%EF%BC%9A%E5%9B%BE%E3%80%81%E6%A0%B8%E3%80%81%E9%87%8F%E5%8C%96"><span class="toc-number">1.3.3.</span> <span class="toc-text">第三层：图、核、量化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E5%B1%82%EF%BC%9A%E5%85%88%E7%8C%9C%EF%BC%8C%E5%86%8D%E9%AA%8C"><span class="toc-number">1.3.4.</span> <span class="toc-text">第四层：先猜，再验</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%98%E6%9C%89%E4%B8%80%E6%9D%A1%EF%BC%9A%E6%8A%8A%E6%B5%81%E6%B0%B4%E7%BA%BF%E6%8B%86%E5%BC%80"><span class="toc-number">1.3.5.</span> <span class="toc-text">还有一条：把流水线拆开</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A5%BD%E7%94%A8%EF%BC%8C%E5%85%B7%E4%BD%93%E5%A5%BD%E7%94%A8%E5%9C%A8%E5%93%AA"><span class="toc-number">1.4.</span> <span class="toc-text">好用，具体好用在哪</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A1%AC%E4%BB%B6%E7%89%88%E5%9B%BE%EF%BC%9A%E4%B8%8D%E6%AD%A2-NVIDIA"><span class="toc-number">1.5.</span> <span class="toc-text">硬件版图：不止 NVIDIA</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#200-%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%EF%BC%8C%E5%85%AD%E7%B1%BB"><span class="toc-number">1.6.</span> <span class="toc-text">200+ 模型架构，六类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A3%85%E8%B5%B7%E6%9D%A5%E5%8F%AA%E8%A6%81%E4%B8%A4%E8%A1%8C"><span class="toc-number">1.7.</span> <span class="toc-text">装起来只要两行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8D%E5%AD%97%E8%83%8C%E5%90%8E%E9%82%A3%E7%AF%87%E8%AE%BA%E6%96%87"><span class="toc-number">1.8.</span> <span class="toc-text">名字背后那篇论文</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E9%A1%B9%E7%9B%AE%E6%80%8E%E4%B9%88%E9%95%BF%E5%A4%A7"><span class="toc-number">1.9.</span> <span class="toc-text">一个项目怎么长大</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%90%8E"><span class="toc-number">1.10.</span> <span class="toc-text">最后</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/22/vllm/" title="vllm">vllm</a><time datetime="2026-10-22T02:39:37.000Z" title="发表于 2026-10-22 10:39:37">2026-10-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/21/jasna/" title="jasna">jasna</a><time datetime="2026-10-21T02:49:04.000Z" title="发表于 2026-10-21 10:49:04">2026-10-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/20/os-taxonomy/" title="os-taxonomy">os-taxonomy</a><time datetime="2026-10-20T03:28:02.000Z" title="发表于 2026-10-20 11:28:02">2026-10-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/19/llm-course/" title="llm-course">llm-course</a><time datetime="2026-10-18T16:54:24.000Z" title="发表于 2026-10-19 00:54:24">2026-10-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/18/orca/" title="orca">orca</a><time datetime="2026-10-17T18:28:34.000Z" title="发表于 2026-10-18 02:28:34">2026-10-18</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
