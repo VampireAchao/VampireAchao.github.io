@@ -1,0 +1,321 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>openvino | 阿超</title><meta name="author" content="阿超"><meta name="copyright" content="阿超"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="路漫漫其修远兮，吾将上下而求索。——屈原  换一个字符串就换硬件：OpenVINO 把自己做成了别人的后端先说一个 API 细节看这段代码，注意第五行。 12345678910111213import openvino as ovimport torchimport torchvisionmodel &#x3D; torch.hub.load(&quot;pytorch&#x2F;vision&quot;, &amp;qu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="openvino">
+<meta property="og:url" content="https://vampireachao.github.io/2026/11/24/openvino/index.html">
+<meta property="og:site_name" content="阿超">
+<meta property="og:description" content="路漫漫其修远兮，吾将上下而求索。——屈原  换一个字符串就换硬件：OpenVINO 把自己做成了别人的后端先说一个 API 细节看这段代码，注意第五行。 12345678910111213import openvino as ovimport torchimport torchvisionmodel &#x3D; torch.hub.load(&quot;pytorch&#x2F;vision&quot;, &amp;qu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://vampireachao.github.io/img/head.png">
+<meta property="article:published_time" content="2026-11-24T03:07:58.000Z">
+<meta property="article:modified_time" content="2026-11-24T03:10:06.930Z">
+<meta property="article:author" content="阿超">
+<meta property="article:tag" content="ai">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://vampireachao.github.io/img/head.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "openvino",
+  "url": "https://vampireachao.github.io/2026/11/24/openvino/",
+  "image": "https://vampireachao.github.io/img/head.png",
+  "datePublished": "2026-11-24T03:07:58.000Z",
+  "dateModified": "2026-11-24T03:10:06.930Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "阿超",
+      "url": "https://VampireAchao.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://vampireachao.github.io/2026/11/24/openvino/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'openvino',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2370</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">36</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top_img.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/head.png" alt="Logo"><span class="site-name">阿超</span></a><a class="nav-page-title" href="/"><span class="site-name">openvino</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友鏈</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">openvino</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-24T03:07:58.000Z" title="发表于 2026-11-24 11:07:58">2026-11-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-24T03:10:06.930Z" title="更新于 2026-11-24 11:10:06">2026-11-24</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>路漫漫其修远兮，吾将上下而求索。——屈原</p>
+</blockquote>
+<h1 id="换一个字符串就换硬件：OpenVINO-把自己做成了别人的后端"><a href="#换一个字符串就换硬件：OpenVINO-把自己做成了别人的后端" class="headerlink" title="换一个字符串就换硬件：OpenVINO 把自己做成了别人的后端"></a>换一个字符串就换硬件：OpenVINO 把自己做成了别人的后端</h1><h2 id="先说一个-API-细节"><a href="#先说一个-API-细节" class="headerlink" title="先说一个 API 细节"></a>先说一个 API 细节</h2><p>看这段代码，注意第五行。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> openvino <span class="keyword">as</span> ov</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torchvision</span><br><span class="line"></span><br><span class="line">model = torch.hub.load(<span class="string">&quot;pytorch/vision&quot;</span>, <span class="string">&quot;shufflenet_v2_x1_0&quot;</span>, weights=<span class="string">&quot;DEFAULT&quot;</span>)</span><br><span class="line"></span><br><span class="line">example = torch.randn(<span class="number">1</span>, <span class="number">3</span>, <span class="number">224</span>, <span class="number">224</span>)</span><br><span class="line">ov_model = ov.convert_model(model, example_input=(example,))</span><br><span class="line"></span><br><span class="line">core = ov.Core()</span><br><span class="line">compiled_model = core.compile_model(ov_model, <span class="string">&#x27;CPU&#x27;</span>)</span><br><span class="line"></span><br><span class="line">output = compiled_model(&#123;<span class="number">0</span>: example.numpy()&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><code>core.compile_model(ov_model, &#39;CPU&#39;)</code>。</p>
+<p>第二个参数是一个字符串。</p>
+<p>这不是语法糖，这是整个项目最核心的一句设计。因为设备在这里是一个<strong>参数</strong>，不是一次编译选项、不是一份单独的构建产物、不是一套分叉的代码路径。</p>
+<p>你想让它跑在 GPU 上，就换这个字符串。想跑在 NPU 上，还是换这个字符串。模型不用重新导出，代码不用 <code>#ifdef</code>，构建脚本不用改。</p>
+<p>绝大多数推理框架做不到这件事。它们的做法是：为每个后端编一个版本，或者在某处埋一堆条件分支，然后在文档里用一张表告诉你哪些组合能用。</p>
+<p>而这里，设备是一种输入。</p>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/openvinotoolkit/openvino">https://github.com/openvinotoolkit/openvino</a></p>
+<h2 id="它说自己是什么"><a href="#它说自己是什么" class="headerlink" title="它说自己是什么"></a>它说自己是什么</h2><p>描述只有一句：一个用于优化和部署 AI 推理的开源工具包。</p>
+<p>页面上那句更完整：优化和部署深度学习模型的开源软件工具包。</p>
+<p>「优化」和「部署」是两个词，中间那个「和」很关键。因为做推理这件事，通常被拆成两个互不相干的工种：一边是训练侧的人负责把模型压小、量化、剪枝；另一边是工程侧的人负责把它塞进某个设备里跑起来。而一个工具包同时说自己管这两件事，意味着它想覆盖从「模型能跑」到「模型跑得动」之间的全部距离。</p>
+<p>下面四条，把这个「全部距离」拆开了：</p>
+<p><strong>推理优化。</strong> 提性能，覆盖计算机视觉、语音识别、生成式 AI、大模型和小模型的语言任务，以及一堆常见任务。</p>
+<p><strong>模型来源灵活。</strong> 吃 PyTorch、TensorFlow、ONNX、Keras、PaddlePaddle、JAX 和 Flax 训出来的模型；也能通过 Optimum Intel 直接用 Hugging Face 上的 transformers 和 diffusers 模型。而后面那句才是重点：<strong>可以转换和部署模型，不需要原始框架。</strong></p>
+<p><strong>平台覆盖广。</strong> 降低资源需求，从边缘到云都能部署。推理支持 CPU 的 x86 和 ARM、Intel 的集成与独立 GPU，以及 Intel 的 NPU。</p>
+<p><strong>社区与生态。</strong></p>
+<p>四条里，第二条的最后半句值得单独拎出来写一节。</p>
+<h2 id="三步：转换、编译、推理"><a href="#三步：转换、编译、推理" class="headerlink" title="三步：转换、编译、推理"></a>三步：转换、编译、推理</h2><p>上面那段代码，其实是一条编译流水线。</p>
+<p><strong>第一步，转换。</strong> <code>convert_model</code> 把一个 PyTorch 模型变成 OpenVINO 的模型对象。这一步做的是图级别的翻译：把原来框架的计算图，换成它自己的一套中间表示。</p>
+<p><strong>第二步，编译。</strong> <code>compile_model</code> 把这个中间表示，针对某个具体设备编成能跑的形态。注意「编译」这个词——它不是一个加载动作，是一次真正的代码生成，只不过生成的目标不是 CPU 指令，而是那个设备的执行计划。</p>
+<p><strong>第三步，推理。</strong> 把输入喂进去，拿输出。</p>
+<p>三步，三个动词，正好对应编译器前端的三个经典阶段：翻译、优化、生成。</p>
+<p>这也是为什么它能做到「换一个字符串就换硬件」。因为中间表示这一层存在，设备就被隔离在了第二步里。前两步的产物跟设备无关，第三步的产物跟设备强绑定。</p>
+<p>而它把这个绑定关系做成了一次函数调用，而不是一次构建流程。</p>
+<h2 id="部署时不该带着训练框架"><a href="#部署时不该带着训练框架" class="headerlink" title="部署时不该带着训练框架"></a>部署时不该带着训练框架</h2><p>「可以转换和部署模型，不需要原始框架。」</p>
+<p>这句话听起来像一句技术说明，其实是一个部署问题。</p>
+<p>因为真实世界里，把一个 PyTorch 模型放进生产环境，成本不只是那几百兆权重。你还要装 PyTorch 本身、装它依赖的加速运行时、装一堆只在训练时才用得上的包。于是一个只为推理而存在的服务，最后扛着整棵训练生态的依赖，构建慢、镜像大，而且每隔几个月就要为一个跟推理毫无关系的上游升级做一次回归测试。</p>
+<p>而如果部署产物只需要一个推理运行时，那些东西全都可以不进镜像。</p>
+<p>这也是为什么「转换」这个动作值得单独存在。它不只是为了性能，它是为了<strong>把训练侧和部署侧解耦</strong>。</p>
+<p>解耦之后，两边的节奏就分开了。训练的人可以继续用他熟悉的框架，随便升级；部署的人抱着一个转换好的模型，不用关心上游又发了什么版本。</p>
+<p>顺带说，这一步也解释了它为什么要支持那么多种来源。因为解耦的前提是「不管你从哪来，我都能接」。如果只吃 PyTorch，那这句话就只对一半的人成立。</p>
+<h2 id="这份文档里没有一个字在讲训练"><a href="#这份文档里没有一个字在讲训练" class="headerlink" title="这份文档里没有一个字在讲训练"></a>这份文档里没有一个字在讲训练</h2><p>通读一遍，会注意到一个缺席。</p>
+<p>没有数据集。没有损失函数。没有反向传播。没有微调，没有 LoRA，没有对齐，没有分布式训练。</p>
+<p>整份文档假设一件事：<strong>模型已经训好了。</strong></p>
+<p>这个假设很大，但它让整个工具的边界变得非常清楚。它不帮你得到一个模型，它帮你把手上的模型送出去。</p>
+<p>而这个边界有个实际的好处：它不需要在训练框架的战争里选边。</p>
+<p>PyTorch 赢了，它是好事——多一个前端。JAX 起来了，也是好事——再多一个前端。TensorFlow 式微，也只是少一个要维护的适配器。一个只做推理的工具，可以从所有框架的竞争里获益，而不必押注其中任何一个。</p>
+<p>反过来说，这也解释了它为什么要把「六个框架进」做成一件正经事。因为它的全部价值，建立在「不管你用什么训的，我都接得住」这个前提上。</p>
+<p>一个只服务一种框架的推理工具，本质上还是那个框架的附属品。而一个谁都接的推理工具，才有资格谈「部署层」。</p>
+<h2 id="为什么-LLM-要单独一层"><a href="#为什么-LLM-要单独一层" class="headerlink" title="为什么 LLM 要单独一层"></a>为什么 LLM 要单独一层</h2><p>文档在讲完设备和框架之后，插了一句很短的话：它提供四个语言的 API，另外提供 GenAI API，用来跑优化过的模型流水线。</p>
+<p>然后是独立的一节：GenAI 的安装、GenAI 的详细指南、GenAI 的示例仓库、GenAI 的笔记本。</p>
+<p>一个功能如果被单开成一个仓库、一套安装说明、一批示例，通常说明它和核心不是同一种东西。</p>
+<p>它确实不是。</p>
+<p>跑一个图像分类模型，是「进一张图，出一组数」。无状态、单次、算完就完。而跑一个 LLM，是「进一段提示，一个一个吐 token」，中间要维护 KV 缓存、要处理分词、要做采样、要管上下文长度。前者是一次函数调用，后者是一个循环。</p>
+<p>这两件事的工程形状，差得比表面上远。所以它没有把生成式这一层硬塞进核心 API，而是单开了一层，配一个独立的仓库。</p>
+<p>而生态里那个 Tokenizers 也单独立项，说明连「把文本变成 id」这一步都值得拆出来。因为它必须和模型的词表严格对齐——差一个 token，整段输出就错位。</p>
+<p>拆完之后，边界很清楚：核心管「算一次前向」，GenAI 管「把前向串成一次对话」。</p>
+<p>这个拆法，无意中也给出了一个判断标准：如果你的模型是 CNN，你只需要第一层；如果你在部署一个聊天服务，你两套都得装。</p>
+<h2 id="六个框架进，四个-API-出"><a href="#六个框架进，四个-API-出" class="headerlink" title="六个框架进，四个 API 出"></a>六个框架进，四个 API 出</h2><p>把文档里散落的两处名单拼起来，会发现它的形状是一个漏斗。</p>
+<p><strong>进口有六种。</strong> PyTorch、TensorFlow、ONNX、Keras、PaddlePaddle、JAX 与 Flax。</p>
+<p>有意思的是，文档里另一段话也列了六种，但名单换了一个：Keras 换成了 TensorFlow Lite。</p>
+<p>同一份文档，两处名单差了一项。这种小出入在一个要维护多个前端适配器的项目里很正常——每加一个前端，总有一处文档忘了同步。但它反而说明了一件事：<strong>这个漏斗的口子在变宽</strong>，而且宽到连自己的文档都追不上。</p>
+<p><strong>出口有四种。</strong> C++、Python、C、NodeJS。</p>
+<p>这个组合挺讲究。C++ 是主语言，仓库的语言统计就写着它；Python 是最多人用的那一个，因为搞模型的人都在 Python 里；C 是为了嵌进别人的东西；NodeJS 是为了让前端和脚本也能直接调。</p>
+<p>一个 C++ 项目愿意维护四种语言绑定，通常不是因为热爱，是因为<strong>部署场景本来就有四种人</strong>。做嵌入式的用 C，做服务的用 C++，做原型的用 Python，做桌面和工具的用 Node。</p>
+<p>而「主语言是 C++」这件事，本身也说明了一个取舍。</p>
+<p>因为这个项目的用户，八成在写 Python——搞模型的人都在 Python 里。但引擎本身不能是 Python。因为推理运行时是要嵌进别人产品里的，它不能要求目标机器上有解释器、有包管理器、有一堆编译好的轮子。</p>
+<p>于是职责分开了：Python 绑定负责选型和调试，C++ 负责交付。同一个引擎，两个时区。</p>
+<h2 id="九个集成，没有一个是它自己的界面"><a href="#九个集成，没有一个是它自己的界面" class="headerlink" title="九个集成，没有一个是它自己的界面"></a>九个集成，没有一个是它自己的界面</h2><p>这是我看完这份文档之后，觉得最能说明它处境的一节。</p>
+<p>集成清单列了九项。我把它们按「宿主是谁」重排一下，会看到一个很整齐的图案：</p>
+<p><strong>Hugging Face。</strong> Optimum Intel，让你在 Hugging Face 的 API 里直接用 OpenVINO。</p>
+<p><strong>PyTorch。</strong> 两个入口——<code>torch.compile</code> 的后端，以及 ExecuTorch 的后端。</p>
+<p><strong>Keras 3。</strong> 一个可切换的后端。Keras 3 本身就是多后端的，OpenVINO 是其中之一。</p>
+<p><strong>vLLM。</strong> 一个后端，用 OpenVINO 加速 vLLM 的模型服务。</p>
+<p><strong>ONNX Runtime。</strong> 一个执行提供器，让你现有的 ONNX Runtime 代码直接换底层。</p>
+<p><strong>LLM 应用框架。</strong> LlamaIndex 和 LangChain 各一个集成。</p>
+<p><strong>LLMWare。</strong> 一百多个已经为 OpenVINO 优化过的 SLM。</p>
+<p>九项，看完会发现一件事：<strong>这里面没有一项是「OpenVINO 自己的界面」。</strong></p>
+<p>没有自己的模型仓库入口，没有自己的训练框架，没有自己的应用框架，也没有自己的聊天客户端。每一个集成的句式都是同一个：<strong>「在你已经在用的东西里，把底下那一层换成我。」</strong></p>
+<p>这是一种很少见的自我定位。因为做工具包的公司，最常见的冲动是往上走——做一个自己的平台、自己的 IDE、自己的 marketplace。而这条路的选择是往下沉：<strong>当别人的后端。</strong></p>
+<p>这个选择的逻辑其实很清楚。做 AI 应用的人不会为了一个推理引擎换掉自己的框架，但会为了少几毫秒、少一块显卡，换掉底下的一个执行提供器。前者的迁移成本是一个项目，后者的迁移成本是一行配置。</p>
+<p>而一旦你成了那一行配置，你就不需要自己的界面了。</p>
+<p>历史上这个位置有过先例：没人写「LLVM 应用」，但编译器、新语言、GPU 驱动全在用它。当后端当到一定程度，就变成了基础设施。</p>
+<h2 id="三类设备，两类写着-Intel"><a href="#三类设备，两类写着-Intel" class="headerlink" title="三类设备，两类写着 Intel"></a>三类设备，两类写着 Intel</h2><p>设备清单很短，但值得逐字读一遍：</p>
+<p>CPU 的 x86 和 ARM。Intel 的集成 GPU 和独立 GPU。Intel 的 NPU。</p>
+<p>三行里，前一行是通用的，后两行都带厂商名。</p>
+<p>这份文档没打算掩饰这件事。它卖的是一个特定硬件家族的推理性能，不是一个通用的加速层。而这个定位对使用者来说其实很实用：你不需要在十种加速卡里做选择，你只需要知道自己手上是什么机器。</p>
+<p>而这三类设备恰好覆盖了一个很现实的部署谱系：机房里那些没有 GPU 的 x86 服务器、办公室里那些带集成显卡的笔记本、以及新一批带 NPU 的终端。这三类机器的共同点是——它们都在等着被用起来，而不是等着被换掉。</p>
+<p>「降低资源需求」这句话，在这个语境下有了具体的含义：不是让你的模型更快，是让你的现有机器能跑。</p>
+<h2 id="生态里的四个工具，其实是一条流水线"><a href="#生态里的四个工具，其实是一条流水线" class="headerlink" title="生态里的四个工具，其实是一条流水线"></a>生态里的四个工具，其实是一条流水线</h2><p>生态那一节只列了四项，但把它们排开看，能看出一条完整的链。</p>
+<p><strong>标注。</strong> Intel Geti，一个交互式的图像与视频标注工具，面向计算机视觉场景。</p>
+<p><strong>优化。</strong> 神经网络压缩框架，做量化和稀疏化这类高级优化。</p>
+<p><strong>生成式 AI 的补充件。</strong> GenAI 仓库和 OpenVINO Tokenizers，前者是跑 LLM 和多模态的资源与工具，后者管分词。</p>
+<p><strong>服务。</strong> OVMS，模型服务器，文档的措辞是「面向 Intel 架构优化的、可扩展的高性能服务方案」。</p>
+<p>最后这一项值得多想一秒。因为一个库和一个服务器，是两种工程。</p>
+<p>库管的是「给我一个输入，我给你一个输出」；服务器管的是排队、批处理、多模型共存、版本切换、健康检查、指标上报。前者是算法问题，后者是运维问题。</p>
+<p>而它没有把服务这件事塞进库里，而是单独立了一个项目。这个拆法和前面那个 GenAI 的拆法是同一个逻辑：<strong>不同形状的工程，不该共用同一层 API。</strong></p>
+<p>回过头看，标注、优化、补充、服务这四件事连起来，正好是一个模型从「有数据」走到「有人调用」的全程。</p>
+<p>这个布局说明它不是只想当一个库。一个库只需要管「给我一个模型，我给你一次推理」。而一条链要管的是：数据怎么进来、模型怎么变小、服务怎么扛住并发。</p>
+<h2 id="五个笔记本，一条从检测到多模态的线"><a href="#五个笔记本，一条从检测到多模态的线" class="headerlink" title="五个笔记本，一条从检测到多模态的线"></a>五个笔记本，一条从检测到多模态的线</h2><p>文档里列了五个笔记本，每个都对应一类任务：</p>
+<p>用 OpenVINO 做一个 LLM 驱动的聊天机器人。YOLOv11 的优化。文生图。LLaVA 的多模态助手。Whisper 的语音识别。</p>
+<p>五个，四种模态：文本、图像检测、图像生成、语音。加上多模态那一个，正好把「模型能处理什么」这件事铺满了。</p>
+<p>笔记本这种形式的用处，不在于教你 API，在于让你在一个能跑的环境里看见效果。因为推理这件事的说服力全在体感上——同样一个模型，在你的机器上跑出多少帧、首字延迟多少毫秒，这些数字只有你自己跑一遍才算数。</p>
+<p>而它把「优化」这件事也做成了一个笔记本，而不是一段文档。这个选择挺实在：量化到底掉多少精度、快多少，讲是讲不清的，得跑。</p>
+<h2 id="性能那一节，只有一句话"><a href="#性能那一节，只有一句话" class="headerlink" title="性能那一节，只有一句话"></a>性能那一节，只有一句话</h2><p>整份文档里，讲性能的地方只有一行：</p>
+<p>去看性能基准测试页，那里有经过验证的数据，可以据此挑最合适的硬件配置、规划你的部署。</p>
+<p>一句话。</p>
+<p>没有柱状图，没有倍数，没有「业界第一」，没有一张标着红绿对比的表格。</p>
+<p>这个克制在一个大公司的开源项目里挺不常见。因为性能是最容易做营销的一栏——你只要挑一个对自己有利的模型、一个对自己有利的批次大小，就能画出一张漂亮的图。</p>
+<p>而这里选择把这一栏交给一个独立的基准页，用「经过验证的数据」这个说法收尾。这句话的潜台词是：数字在别处，而且是可以复核的。</p>
+<p>顺带说，这也解释了它为什么敢在开头就写「提升性能」而不给具体数字。因为一旦给了数字，你就得为那个数字的每一个前提负责：什么模型、什么精度、什么批次、什么编译器版本。而这些前提，只有基准页放得下。</p>
+<h2 id="三种求助渠道，没有一个是工单"><a href="#三种求助渠道，没有一个是工单" class="headerlink" title="三种求助渠道，没有一个是工单"></a>三种求助渠道，没有一个是工单</h2><p>贡献与支持那一节也很短。</p>
+<p>先说贡献指南在哪，然后专门指了一处：如果你在找起点，去看「好的第一个 issue」那一节。</p>
+<p>然后是三个求助渠道：GitHub 的 issue、Intel DevHub 的 Discord 服务器里的 OpenVINO 频道、Stack Overflow 上的 openvino 标签。</p>
+<p>三个，全是社区渠道。</p>
+<p>没有工单系统，没有支持邮箱，没有 SLA，也没有一个「联系我们购买企业支持」的入口。</p>
+<p>这个选择对一个背后有大公司的项目来说，其实是一种筛选。它假设来的人愿意把问题写清楚、愿意搜、愿意等一个陌生人回答。而它给的回报是：所有回答都留在公开的地方，下一个人能搜到。</p>
+<p>至于那个「好的第一个 issue」——把「新人从哪进」做成文档里的一节，说明它把贡献者当成一个需要被引导的角色，而不是一句「欢迎 PR」就完事。</p>
+<h2 id="装起来一行，验起来两行"><a href="#装起来一行，验起来两行" class="headerlink" title="装起来一行，验起来两行"></a>装起来一行，验起来两行</h2><p>安装那一节短得不像话：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install -U openvino</span><br></pre></td></tr></table></figure>
+
+<p>验证也只有两行：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> openvino <span class="keyword">as</span> ov</span><br><span class="line"><span class="built_in">print</span>(ov.__version__)</span><br></pre></td></tr></table></figure>
+
+<p>一行装，两行验。没有配置文件，没有环境变量，没有许可证服务器。</p>
+<p>而页面顶上那排徽章透露了另一件事：它同时发在 PyPI、npm、conda-forge 和 Homebrew 上。</p>
+<p>四个渠道。</p>
+<p>这个组合覆盖的是四类人：用 pip 的、写 Node 的、用 conda 管环境的、以及在 Mac 上习惯 <code>brew install</code> 的。一个 C++ 项目愿意维护四条分发路径，说明它把「第一次跑起来」这件事看得挺重。</p>
+<p>因为这类工具最大的流失点从来不是性能不够，是第一步装不上。</p>
+<h2 id="两处小字：遥测和商标"><a href="#两处小字：遥测和商标" class="headerlink" title="两处小字：遥测和商标"></a>两处小字：遥测和商标</h2><p>最后是文档末尾的两处，都很短，但都值得念一遍。</p>
+<p><strong>遥测。</strong> OpenVINO 会收集软件性能和用量数据，用于改进工具。数据由它自己收集，或者通过 Google Analytics 4 收集。关掉的方式写在正文里：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">opt_in_out --opt_out</span><br></pre></td></tr></table></figure>
+
+<p>一条命令，名字就叫「选择性加入或退出」。这个命名本身很坦白——它没有把开关藏起来，也没有把默认值说得含糊。默认是收集的，命令在这儿，你自己决定。</p>
+<p>对一个要跑在生产机器上的推理运行时来说，这条命令的存在比它的内容更重要。因为这类组件通常没有界面，你没法在设置里找到那个开关。而它至少在正文里给了你一条能复制的命令行。</p>
+<p><strong>许可与商标。</strong> 主体是 Apache 2.0，贡献即视为同意该许可与版权条款。</p>
+<p>然后在最底下，一个星号，一句话：其他名称和品牌可能是他人的财产。</p>
+<p>这句免责声明出现在几乎所有大公司的开源项目末尾。它说的是：文档里提到的那些框架名、产品名，不是我们的。</p>
+<p>一句话，把「我们在用别人的生态」这件事，在法务层面说清楚了。</p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>回到那个字符串。</p>
+<p><code>&#39;CPU&#39;</code>。</p>
+<p>一个开源工具包的全部承诺，最后压缩成了这一个参数：同一份模型，同一段代码，换一个设备名，就能换一台机器跑。</p>
+<p>为了做到这件事，它在底下铺了一条完整的编译流水线——一个中间表示、一个针对设备的代码生成器、四种语言的门面；在上面接了六个框架的入口；在四周挂了九个「在别人的产品里当后端」的集成。</p>
+<p>这些事没有一件是性感的。文档里没有排行榜，没有「一句话生成应用」，也没有一张用来展示吞吐量的动图。</p>
+<p>但它解决的是一个更朴素的问题：你训好的那个模型，怎么在明天那台没有 GPU 的机器上跑起来。</p>
+<p>这个问题不会上热搜，但每个把模型往生产环境搬的人，最后都得回答它。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ai/">ai</a></div><div class="post-share"><div class="social-share" data-image="/img/head.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/11/23/firecrawl/" title="firecrawl"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">firecrawl</div></div><div class="info-2"><div class="info-item-1"> 人生自古谁无死，留取丹心照汗青。——文天祥  一个 TypeScript 仓库，第一件事让你装 Rust：Firecrawl 把同一套 API 拆成了三种形态先说一个反常的细节打开这个仓库，语言那一栏写着 TypeScript。 然后文档的第一个安装命令是： 1cargo install firecrawl-local  Rust。 一个以 TypeScript 为主的项目，把「在你自己的机器上跑」这件事，做成了一个 Rust 二进制。这个选择本身就值得停一下。 更反常的是它紧接着写的那句话：如果你没有 Rust，云端跑同样的抓取，不用构建，也不用注册。 一份文档，在你还没开始编译之前，就把退路指给你了。 这种写法有两种可能：要么是对产品没信心，要么是太清楚「装个编译工具链」对多少人来说是终点。 读完后面那几节，我倾向后者。 项目地址：https://github.com/firecrawl/firecrawl 它现在说自己是什么描述只有一句：让你的 agent 更聪明的知识基础设施。搜索、抓取，并通过一个 API 访问 550 多个数据提供方。 「知识基础设施」这个词，比「网...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/06/20/timesfm/" title="timesfm"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-20</div><div class="info-item-2">timesfm</div></div><div class="info-2"><div class="info-item-1"> 游手好闲的学习并不比学习游手好闲好。——约贝勒斯  https://github.com/google-research/timesfm 当时间开始说话：TimesFM 让时间序列预测变得像聊天一样自然如果时间也有性格，那它大概是这个世界上最倔强、最敏感、也最会藏秘密的家伙。 它会把销量的起伏藏进节假日，把能源负荷的波动塞进季节变化里，把金融市场的情绪裹进一串看似冰冷的数字中。你盯着一列列时间序列数据，像是在读一封没有标点的长信：每个数字都在说话，但它们从不直接告诉你答案。 而 TimesFM 的出现，就像请来了一位专门听懂“时间语言”的翻译官。 TimesFM，全名 Time Series Foundation Model，是 Google Research 推出的一个预训练时间序列基础模型，专门用于时间序列预测。它不是临时拼起来的小工具，也不是只会处理单一场景的“专科生”，而是一位经过系统训练、见过大场面的预测选手。它的核心目标很明确：把时间序列预测这件事，从繁琐、割裂、依赖大量手工建模经验的流程中解放出来。 从仓库 description 到 README，TimesFM...</div></div></div></a><a class="pagination-related" href="/2026/09/11/CloddsBot/" title="CloddsBot"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-11</div><div class="info-item-2">CloddsBot</div></div><div class="info-2"><div class="info-item-1"> 我们在我们的劳动过程中学习思考，劳动的结果，我们认识了世界的奥妙，于是我们就真正来改变生活了。——高尔基  Clodds：把预测市场、加密交易与 AI Agent 放进同一座交易终端项目地址：https://github.com/alsk1992/CloddsBot 市场从不缺数字，真正稀缺的是能够持续理解数字、筛选机会、执行动作并记录过程的工作流。 Clodds 是一个面向预测市场、加密现货、杠杆永续合约、代币发行与 Bittensor 子网挖矿的个人 AI 交易终端。它可以运行在自己的机器上，通过 Claude 驱动交易与研究能力，并把聊天、市场数据、策略、风控、订单执行、记忆、自动化和多渠道交互汇聚在同一套系统中。 它的名字来自 Claude 与 Odds 的组合。Claude 负责理解、分析与协作，Odds 指向市场概率、价格与机会。两者相遇，形成了一个不只是回答问题、也能够围绕市场执行任务的 AI 交易工作台。 Clodds 的目标并不局限于展示行情。它试图让 AI 从一个信息解释者，变成能够参与市场研究、机会扫描、策略执行、风险控制和交易记录的代理。 一台属于自己的...</div></div></div></a><a class="pagination-related" href="/2026/03/29/last30days-skill/" title="last30days-skill"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-29</div><div class="info-item-2">last30days-skill</div></div><div class="info-2"><div class="info-item-1"> 好奇心造就科学家和诗人。——法朗士  last30days：每个月都重置一次的 AI 世界，它负责把你拉回“最新版本”&#x2F;last30days 不是那种“我去网上搜一下”就结束的助手。它更像一位专门做情报的夜班编辑：你睡觉，它翻遍全网；你醒来，它把过去 30 天真正热过、吵过、赌过、拍过视频讲过的东西，整理成一份带引用、能落地的“新鲜情报简报”。 它的性格写在 README 里，几乎有点挑衅： The AI world reinvents itself every month. This skill keeps you current. AI 圈每个月都像换季：上个月还在讨论 A 工具的最佳玩法，这个月大家已经在 B 平台用完全不同的套路冲榜。你要是只靠旧帖子、旧教程、旧 prompt，很容易在新世界里拿着旧地图迷路。 &#x2F;last30days 就是来干这个的：它会在过去 30 天里，去这些地方“听风声、看热度、抓共识”：  Reddit   X   Bluesky   YouTube   TikTok   Instagram   Hacker News   P...</div></div></div></a><a class="pagination-related" href="/2026/06/28/openpilot/" title="openpilot"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-28</div><div class="info-item-2">openpilot</div></div><div class="info-2"><div class="info-item-1"> 教学必须从学习者已有的经验开始。——杜威  https://github.com/commaai/openpilot 当一辆车开始学会思考：走进 openpilot 的机器人驾驶世界如果一套软件也有性格，那么 openpilot 大概是那种不爱空谈、喜欢直接上路见真章的工程师。 它站在仓库首页，开门见山地介绍自己：openpilot is an operating system for robotics. Currently, it upgrades the driver assistance system on 300+ supported cars.这句描述很短，却像一把扳手，拧开了整个项目最核心的气质——它不是一个小打小闹的汽车脚本，也不是一个只停留在实验室里的概念演示，而是一套面向机器人世界的操作系统，并且已经把能力落到了 300 多款支持车型的辅助驾驶系统升级上。 openpilot 这个名字听起来像“开放领航员”，而它做的事情也确实像一位坐在副驾上、神情专注的数字搭档：它不替你成为驾驶员，却努力把车的感知、判断与辅助控制，训练得更聪明、更稳定、更像一位可靠的协作者。...</div></div></div></a><a class="pagination-related" href="/2026/11/02/agent-desktop/" title="agent-desktop"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-02</div><div class="info-item-2">agent-desktop</div></div><div class="info-2"><div class="info-item-1"> 鞠躬尽瘁，死而后已。——诸葛亮  让 agent 别再靠截图猜按钮：agent-desktop 换了个器官先说「computer use」这件老活让 AI 操作电脑，行业里流行了很多年的办法是：截一张图，让模型看图，猜按钮在哪，然后按坐标点下去。 猜对了，皆大欢喜。猜错了，你会在某个清晨发现它把「删除」当成了「重命名」，然后很有礼貌地告诉你任务完成了。 这个项目对这件事的措辞很客气，但意思很直白：不去像素里猜。 项目地址：https://github.com/vercel-labs/agent-desktop 它的自我介绍是：给任何 agent 提供可靠的桌面 computer use。用 Rust 写，通过操作系统的可访问性树看见任何应用真实的 UI 结构并操作它——ref 保持稳定，动作可以安全重试，而不是从像素里猜。 一句话概括：它不看脸，它摸骨。 它到底换了什么器官可访问性树这个东西，本来是为视障用户准备的。屏幕阅读器靠它念出界面：这里有个按钮，叫「保存」，可点击；那里有个列表，第三行叫「文档」。 agent-desktop 干的事，是把这棵原本给人用的树，交给 age...</div></div></div></a><a class="pagination-related" href="/2026/09/04/magnitude/" title="magnitude"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-04</div><div class="info-item-2">magnitude</div></div><div class="info-2"><div class="info-item-1"> 我学习了一生，现在我还在学习，而将来，只要我还有精力，我还要学习下去。——别林斯基  Magnitude：让本地模型真正走进智能体工作流当越来越多的人开始把智能体当作日常开发与创作的伙伴，一个问题也变得越来越具体：如果希望模型运行在自己的设备上，如何让它不只是“能跑起来”，而是真正自然地接入已经在使用的智能体工具？ Magnitude 给出的答案很直接：把本地模型推理能力做成一个开源推理服务器，让它能够根据机器硬件条件，为用户推荐合适的模型，并连接到已有的智能体之中。 项目地址：https://github.com/magnitudedev/magnitude Magnitude 的核心愿景，可以浓缩为一句很有力量的话：让智能体运行在本地模型之上，并且做到免费、私密、离线。 它不是要让用户从繁杂的配置、模型选择和性能判断中独自摸索，而是试图把这些原本分散的问题收拢起来：先认识你的设备，再推荐适合它的模型，随后下载并运行模型，最后把智能体切换到这套本地能力上。 本地模型不该是一场硬件猜谜游戏本地运行模型，听起来像是一个简单的目标，真正开始实践后却常常会遇到一连串问题。 机器有多少...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">阿超</div><div class="author-info-description">我的名字叫阿超 年龄25岁 家在北京市 职业是软件开发 每天最晚也会在八点前回家 不抽烟 酒浅尝辄止 晚上十二点上床 保证睡足八个小时 睡前写一篇博客 再做二十分钟俯卧撑暖身 然后再睡觉 基本能熟睡到天亮 像婴儿一样不留下任何疲劳和压力 就这样迎来第二天的早晨 健康检查结果也显示我很正常 我想说明我是一个不论何时都追求内心平稳的人 不拘泥于胜负 不纠结于烦恼 不树立使我夜不能寐的敌人 这就是我在这社会的生活态度</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2370</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">36</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/VampireAchao"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8D%A2%E4%B8%80%E4%B8%AA%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%B0%B1%E6%8D%A2%E7%A1%AC%E4%BB%B6%EF%BC%9AOpenVINO-%E6%8A%8A%E8%87%AA%E5%B7%B1%E5%81%9A%E6%88%90%E4%BA%86%E5%88%AB%E4%BA%BA%E7%9A%84%E5%90%8E%E7%AB%AF"><span class="toc-number">1.</span> <span class="toc-text">换一个字符串就换硬件：OpenVINO 把自己做成了别人的后端</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%88%E8%AF%B4%E4%B8%80%E4%B8%AA-API-%E7%BB%86%E8%8A%82"><span class="toc-number">1.1.</span> <span class="toc-text">先说一个 API 细节</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%83%E8%AF%B4%E8%87%AA%E5%B7%B1%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.2.</span> <span class="toc-text">它说自己是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E6%AD%A5%EF%BC%9A%E8%BD%AC%E6%8D%A2%E3%80%81%E7%BC%96%E8%AF%91%E3%80%81%E6%8E%A8%E7%90%86"><span class="toc-number">1.3.</span> <span class="toc-text">三步：转换、编译、推理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2%E6%97%B6%E4%B8%8D%E8%AF%A5%E5%B8%A6%E7%9D%80%E8%AE%AD%E7%BB%83%E6%A1%86%E6%9E%B6"><span class="toc-number">1.4.</span> <span class="toc-text">部署时不该带着训练框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%99%E4%BB%BD%E6%96%87%E6%A1%A3%E9%87%8C%E6%B2%A1%E6%9C%89%E4%B8%80%E4%B8%AA%E5%AD%97%E5%9C%A8%E8%AE%B2%E8%AE%AD%E7%BB%83"><span class="toc-number">1.5.</span> <span class="toc-text">这份文档里没有一个字在讲训练</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-LLM-%E8%A6%81%E5%8D%95%E7%8B%AC%E4%B8%80%E5%B1%82"><span class="toc-number">1.6.</span> <span class="toc-text">为什么 LLM 要单独一层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E4%B8%AA%E6%A1%86%E6%9E%B6%E8%BF%9B%EF%BC%8C%E5%9B%9B%E4%B8%AA-API-%E5%87%BA"><span class="toc-number">1.7.</span> <span class="toc-text">六个框架进，四个 API 出</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E4%B8%AA%E9%9B%86%E6%88%90%EF%BC%8C%E6%B2%A1%E6%9C%89%E4%B8%80%E4%B8%AA%E6%98%AF%E5%AE%83%E8%87%AA%E5%B7%B1%E7%9A%84%E7%95%8C%E9%9D%A2"><span class="toc-number">1.8.</span> <span class="toc-text">九个集成，没有一个是它自己的界面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E7%B1%BB%E8%AE%BE%E5%A4%87%EF%BC%8C%E4%B8%A4%E7%B1%BB%E5%86%99%E7%9D%80-Intel"><span class="toc-number">1.9.</span> <span class="toc-text">三类设备，两类写着 Intel</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%9F%E6%80%81%E9%87%8C%E7%9A%84%E5%9B%9B%E4%B8%AA%E5%B7%A5%E5%85%B7%EF%BC%8C%E5%85%B6%E5%AE%9E%E6%98%AF%E4%B8%80%E6%9D%A1%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="toc-number">1.10.</span> <span class="toc-text">生态里的四个工具，其实是一条流水线</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E4%B8%AA%E7%AC%94%E8%AE%B0%E6%9C%AC%EF%BC%8C%E4%B8%80%E6%9D%A1%E4%BB%8E%E6%A3%80%E6%B5%8B%E5%88%B0%E5%A4%9A%E6%A8%A1%E6%80%81%E7%9A%84%E7%BA%BF"><span class="toc-number">1.11.</span> <span class="toc-text">五个笔记本，一条从检测到多模态的线</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E9%82%A3%E4%B8%80%E8%8A%82%EF%BC%8C%E5%8F%AA%E6%9C%89%E4%B8%80%E5%8F%A5%E8%AF%9D"><span class="toc-number">1.12.</span> <span class="toc-text">性能那一节，只有一句话</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E6%B1%82%E5%8A%A9%E6%B8%A0%E9%81%93%EF%BC%8C%E6%B2%A1%E6%9C%89%E4%B8%80%E4%B8%AA%E6%98%AF%E5%B7%A5%E5%8D%95"><span class="toc-number">1.13.</span> <span class="toc-text">三种求助渠道，没有一个是工单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A3%85%E8%B5%B7%E6%9D%A5%E4%B8%80%E8%A1%8C%EF%BC%8C%E9%AA%8C%E8%B5%B7%E6%9D%A5%E4%B8%A4%E8%A1%8C"><span class="toc-number">1.14.</span> <span class="toc-text">装起来一行，验起来两行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E5%A4%84%E5%B0%8F%E5%AD%97%EF%BC%9A%E9%81%A5%E6%B5%8B%E5%92%8C%E5%95%86%E6%A0%87"><span class="toc-number">1.15.</span> <span class="toc-text">两处小字：遥测和商标</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%90%8E"><span class="toc-number">1.16.</span> <span class="toc-text">最后</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/11/24/openvino/" title="openvino">openvino</a><time datetime="2026-11-24T03:07:58.000Z" title="发表于 2026-11-24 11:07:58">2026-11-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/11/23/firecrawl/" title="firecrawl">firecrawl</a><time datetime="2026-11-23T02:35:41.000Z" title="发表于 2026-11-23 10:35:41">2026-11-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/11/22/Claude-BugHunter/" title="Claude-BugHunter">Claude-BugHunter</a><time datetime="2026-11-22T14:15:11.000Z" title="发表于 2026-11-22 22:15:11">2026-11-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/11/21/autoclip/" title="autoclip">autoclip</a><time datetime="2026-11-21T10:21:42.000Z" title="发表于 2026-11-21 18:21:42">2026-11-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/11/20/opensre/" title="opensre">opensre</a><time datetime="2026-11-20T02:25:13.000Z" title="发表于 2026-11-20 10:25:13">2026-11-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 阿超</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
